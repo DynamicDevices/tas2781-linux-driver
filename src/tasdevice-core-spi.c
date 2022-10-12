@@ -25,7 +25,7 @@ static int tasdevice_spi_probe(struct spi_device *spi)
 	int ret = 0, i = 0;
 	const struct spi_device_id *id = spi_get_device_id(spi);
 
-	dev_err(&spi->dev, "%s, spi_device_id:%s", __func__, id->name);//
+	dev_info(&spi->dev, "%s, spi_device_id:%s", __func__, id->name);
 	tas_dev = devm_kzalloc(&spi->dev, sizeof(*tas_dev), GFP_KERNEL);
 	if (!tas_dev) {
 		dev_err(&spi->dev,
