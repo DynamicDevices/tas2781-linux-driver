@@ -10,7 +10,7 @@
 #include "tas2781-reg.h"
 #include "tasdevice-rw.h"
 
-void tasdevice_irq_work_func(struct tasdevice_priv *tas_dev)
+void tas2781_irq_work_func(struct tasdevice_priv *tas_dev)
 {
 	int rc = 0;
 	unsigned int reg_val = 0, array_size = 0, i = 0, ndev = 0;
