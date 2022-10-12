@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0 
+// SPDX-License-Identifier: GPL-2.0
 // PCMDEVICE Sound driver
 // Copyright (C) 2022 Texas Instruments Incorporated  -
 // https://www.ti.com/
@@ -24,6 +24,8 @@
 #include "tasdevice.h"
 #include "tasdevice-dsp_git.h"
 #include "tasdevice-dsp_kernel.h"
+
+#define TAS2781_CAL_BIN_PATH	("/lib/firmware/")
 
 #define ERROR_PRAM_CRCCHK			(0x0000000)
 #define ERROR_YRAM_CRCCHK			(0x0000001)
@@ -1213,53 +1215,58 @@ int tas2781_load_calibration(void *pContext,
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *)pContext;
 	struct Ttasdevice *pTasdev = &(tas_dev->tasdevice[i]);
 	struct TFirmware *mpCalFirmware = NULL;
+	char pHint[256];
 
-	dev_info(tas_dev->dev, "%s:%u:enter\n", __func__, __LINE__);
+	dev_info(tas_dev->dev, "%s: enter\n", __func__);
 
 	ret = request_firmware(&fw_entry, pFileName, tas_dev->dev);
 	if (!ret) {
 		if (!fw_entry->size) {
 			dev_err(tas_dev->dev,
-				"%s:%u: file read error: size = %d\n",
-				__func__, __LINE__, fw_entry->size);
+				"%s: file read error: size = %d\n",
+				__func__, fw_entry->size);
 			goto out;
 		}
 		FW.size = fw_entry->size;
 		FW.data = fw_entry->data;
 		dev_info(tas_dev->dev,
-			"%s:%u: file = %s, file size %zd\n",
-			__func__, __LINE__, pFileName, fw_entry->size);
+			"%s: file = %s, file size %zd\n",
+			__func__, pFileName, fw_entry->size);
 	} else {
 		dev_info(tas_dev->dev,
-				"%s:%u: Request firmware failed, try flip_open()\n",
-				__func__, __LINE__);
+			"%s: Request firmware failed, try flip_open()\n",
+			__func__);
 		fs = get_fs();
 		set_fs(KERNEL_DS);
-		filp = filp_open(pFileName, O_RDONLY, 664);
+		//path+pFileName
+		scnprintf(pHint, sizeof(pHint), "%s%s\n",
+			TAS2781_CAL_BIN_PATH, pFileName);
+		filp = filp_open(pHint, O_RDONLY, 664);
 		if (!IS_ERR_OR_NULL(filp)) {
 			FW.size = i_size_read(file_inode(filp));
 			dev_info(tas_dev->dev,
-				"%s:%u: file = %s, file size %ld\n",
-				__func__, __LINE__, pFileName, (int)FW.size);
+				"%s: file = %s, file size %ld\n",
+				__func__, pHint, (long)FW.size);
 			data = kmalloc(FW.size, GFP_KERNEL);
 			if (data == NULL) {
-				dev_err(tas_dev->dev, "%s:%u:malloc error\n", __func__, __LINE__);
+				dev_err(tas_dev->dev, "%s: malloc error\n",
+					__func__);
 				goto out;
 			}
 			nSize = (int)kernel_read(filp, data, FW.size, &pos);
 			if (!nSize) {
 				dev_err(tas_dev->dev,
-					"%s:%u: file read error: size = %d\n",
-					__func__, __LINE__, nSize);
+					"%s: file read error: size = %d\n",
+					__func__, nSize);
 				goto out;
 			}
-			dev_info(tas_dev->dev, "read filed nSize = %d\n", nSize);
+			dev_info(tas_dev->dev, "read filed nSize = %d\n",
+				nSize);
 			FW.data = data;
-			filp_close(filp, NULL);
 		} else {
 			dev_err(tas_dev->dev,
-				"%s:%u: cannot open calibration file: %s\n",
-				__func__, __LINE__, pFileName);
+				"%s: cannot open calibration file: %s\n",
+				__func__, pHint);
 			goto out;
 		}
 	}
@@ -1298,8 +1305,11 @@ int tas2781_load_calibration(void *pContext,
 	}
 
 out:
-	set_fs(fs);
-	kfree(data);
+	if(filp) {
+		set_fs(fs);
+		filp_close(filp, NULL);
+		kfree(data);
+	}
 	if (fw_entry) {
 		release_firmware(fw_entry);
 		fw_entry = NULL;
