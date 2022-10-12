@@ -34,16 +34,17 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 	const unsigned char *pData = pFW->data;
 
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	pBlock->mnType = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+			pData[offset + 1], pData[offset + 2],
+			pData[offset + 3]);
 	offset  += 4;
 
 	if (offset + 1 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -51,7 +52,7 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 	offset++;
 
 	if (offset + 1 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -59,7 +60,7 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 	offset++;
 
 	if (offset + 1 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -67,7 +68,7 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 	offset++;
 
 	if (offset + 1 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -75,26 +76,27 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 	offset++;
 
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	pBlock->blk_size = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+			pData[offset + 1], pData[offset + 2],
+			pData[offset + 3]);
 	offset  += 4;
 
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	pBlock->nSublocks = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+		pData[offset + 1], pData[offset + 2], pData[offset + 3]);
 	offset  += 4;
 
 	pBlock->mpData = kzalloc(pBlock->blk_size, GFP_KERNEL);
 	if (pBlock->mpData == NULL) {
-		pr_err("%s:%u:mpData memory error\n", __func__, __LINE__);
+		pr_err("%s: mpData memory error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -111,18 +113,19 @@ static int fw_parse_data_kernel(struct TFirmware *pFirmware,
 	unsigned int nBlock;
 
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	pImageData->mnBlocks = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+		pData[offset + 1], pData[offset + 2],pData[offset + 3]);
 	offset  += 4;
 
 	pImageData->mpBlocks =
-		kcalloc(pImageData->mnBlocks, sizeof(struct TBlock), GFP_KERNEL);
+		kcalloc(pImageData->mnBlocks, sizeof(struct TBlock),
+			GFP_KERNEL);
 	if (pImageData->mpBlocks == NULL) {
-		pr_err("%s:%u:FW memory failed!\n", __func__, __LINE__);
+		pr_err("%s: FW memory failed!\n", __func__);
 		goto out;
 	}
 
@@ -148,7 +151,7 @@ int fw_parse_program_data_kernel(struct TFirmware *pFirmware,
 	for (nProgram = 0; nProgram < pFirmware->mnPrograms; nProgram++) {
 		pProgram = &(pFirmware->mpPrograms[nProgram]);
 		if (offset + 64 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -156,7 +159,7 @@ int fw_parse_program_data_kernel(struct TFirmware *pFirmware,
 		offset  += 64;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -164,36 +167,38 @@ int fw_parse_program_data_kernel(struct TFirmware *pFirmware,
 		offset++;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pProgram->mnPDMI2SMode = buf[offset];
 		offset++;
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pProgram->mnISnsPD = buf[offset];
 		offset++;
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pProgram->mnVSnsPD = buf[offset];
 		offset++;
-		offset  += 3; //skip 3-byte reserved
+		//skip 3-byte reserved
+		offset  += 3;
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pProgram->mnPowerLDG = buf[offset];
 		offset++;
 
-		offset = fw_parse_data_kernel(pFirmware, &(pProgram->mData), pFW, offset);
+		offset = fw_parse_data_kernel(pFirmware, &(pProgram->mData),
+			pFW, offset);
 		if (offset < 0)
 			goto out;
 	}
@@ -212,7 +217,7 @@ int fw_parse_configuration_data_kernel(
 	for (nConfiguration = 0; nConfiguration < pFirmware->mnConfigurations; nConfiguration++) {
 		pConfiguration = &(pFirmware->mpConfigurations[nConfiguration]);
 		if (offset + 64 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -220,14 +225,14 @@ int fw_parse_configuration_data_kernel(
 		offset  += 64;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pConfiguration->mnDevice_orientation = pData[offset];
 		offset++;
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -235,7 +240,7 @@ int fw_parse_configuration_data_kernel(
 		offset  += 1;
 
 		if (offset + 2 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -243,7 +248,7 @@ int fw_parse_configuration_data_kernel(
 		offset  += 2;
 
 		if (offset + 4 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -252,7 +257,7 @@ int fw_parse_configuration_data_kernel(
 		offset  += 4;
 
 		if (offset + 2 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -260,7 +265,7 @@ int fw_parse_configuration_data_kernel(
 		offset  += 2;
 
 		if (offset + 2 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -268,7 +273,7 @@ int fw_parse_configuration_data_kernel(
 		offset  += 2;
 
 		if (offset + 4 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -295,27 +300,27 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 	unsigned short maxConf = TASDEVICE_MAXCONFIG_NUM_KERNEL;
 
 	if (offset + 2 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	pFw_hdr->mnDeviceFamily = SMS_HTONS(buf[offset], buf[offset + 1]);
 	if (pFw_hdr->mnDeviceFamily != 0) {
-		pr_err("ERROR:%s:%u:not TAS device\n", __func__, __LINE__);
+		pr_err("ERROR:%s:not TAS device\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	offset  += 2;
 	if (offset + 2 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	pFw_hdr->mnDevice = SMS_HTONS(buf[offset], buf[offset + 1]);
 	if (pFw_hdr->mnDevice >= TASDEVICE_DSP_TAS_MAX_DEVICE ||
 		pFw_hdr->mnDevice == 6) {
-		pr_err("ERROR:%s:%u:not support device %d\n", __func__,
-			__LINE__, pFw_hdr->mnDevice);
+		pr_err("ERROR:%s: not support device %d\n", __func__,
+			pFw_hdr->mnDevice);
 		offset = -1;
 		goto out;
 	}
@@ -323,14 +328,14 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 	pFw_hdr->ndev = deviceNumber[pFw_hdr->mnDevice];
 
 	if (pFw_hdr->ndev != tas_dev->ndev) {
-		pr_err("%s:%u:ndev(%u) in dspbin dismatch ndev(%u) in DTS\n",
-			__func__, __LINE__, pFw_hdr->ndev, tas_dev->ndev);
+		pr_err("%s: ndev(%u) in dspbin dismatch ndev(%u) in DTS\n",
+			__func__, pFw_hdr->ndev, tas_dev->ndev);
 		offset = -1;
 		goto out;
 	}
 
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -338,14 +343,15 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		buf[offset + 2], buf[offset + 3]);
 	offset  += 4;
 
-	if (pFirmware->mnPrograms == 0 || pFirmware->mnPrograms > TASDEVICE_MAXPROGRAM_NUM_KERNEL) {
-		pr_err("%s:%u:mnPrograms is invalid\n", __func__, __LINE__);
+	if (pFirmware->mnPrograms == 0 || pFirmware->mnPrograms >
+		TASDEVICE_MAXPROGRAM_NUM_KERNEL) {
+		pr_err("%s: mnPrograms is invalid\n", __func__);
 		offset = -1;
 		goto out;
 	}
 
 	if (offset + 4 * TASDEVICE_MAXPROGRAM_NUM_KERNEL > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -354,7 +360,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		kcalloc(pFirmware->mnPrograms,
 		sizeof(struct TProgram), GFP_KERNEL);
 	if (pFirmware->mpPrograms == NULL) {
-		pr_err("%s:%u:mpPrograms memory failed!\n", __func__, __LINE__);
+		pr_err("%s: mpPrograms memory failed!\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -369,7 +375,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 	offset  += (4 * (5 - nProgram));
 
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -377,15 +383,17 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		buf[offset + 2], buf[offset + 3]);
 	offset  += 4;
 	maxConf = (pFw_hdr->ndev >= 4) ?
-		TASDEVICE_MAXCONFIG_NUM_KERNEL_MULTIPLE_AMPS : TASDEVICE_MAXCONFIG_NUM_KERNEL;
-	if (pFirmware->mnConfigurations == 0 || pFirmware->mnConfigurations > maxConf) {
-		pr_err("%s:%u:mnConfigurations is invalid\n", __func__, __LINE__);
+		TASDEVICE_MAXCONFIG_NUM_KERNEL_MULTIPLE_AMPS :
+		TASDEVICE_MAXCONFIG_NUM_KERNEL;
+	if (pFirmware->mnConfigurations == 0 ||
+		pFirmware->mnConfigurations > maxConf) {
+		pr_err("%s: mnConfigurations is invalid\n", __func__);
 		offset = -1;
 		goto out;
 	}
 
 	if (offset + 4 * maxConf > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -393,15 +401,17 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 	pFirmware->mpConfigurations = kcalloc(pFirmware->mnConfigurations,
 		sizeof(struct TConfiguration), GFP_KERNEL);
 	if (pFirmware->mpConfigurations == NULL) {
-		pr_err("%s:%u:mpPrograms memory failed!\n", __func__, __LINE__);
+		pr_err("%s: mpPrograms memory failed!\n", __func__);
 		offset = -1;
 		goto out;
 	}
 
-	for (nConfiguration = 0; nConfiguration < pFirmware->mnPrograms; nConfiguration++) {
-		pConfiguration = &(pFirmware->mpConfigurations[nConfiguration]);
-		pConfiguration->cfg_size = SMS_HTONL(buf[offset], buf[offset + 1],
-			buf[offset + 2], buf[offset + 3]);
+	for (nConfiguration = 0; nConfiguration < pFirmware->mnPrograms;
+		nConfiguration++) {
+		pConfiguration =
+			&(pFirmware->mpConfigurations[nConfiguration]);
+		pConfiguration->cfg_size = SMS_HTONL(buf[offset],
+			buf[offset + 1], buf[offset + 2], buf[offset + 3]);
 		offset  += 4;
 	}
 
@@ -412,7 +422,8 @@ out:
 	return offset;
 }
 
-int tasdevice_load_block_kernel(struct tasdevice_priv *pTAS2781, struct TBlock *pBlock)
+int tasdevice_load_block_kernel(struct tasdevice_priv *pTAS2781,
+	struct TBlock *pBlock)
 {
 	int nResult = 0;
 
@@ -422,12 +433,6 @@ int tasdevice_load_block_kernel(struct tasdevice_priv *pTAS2781, struct TBlock *
 	unsigned char dev_idx = 0;
 	struct tasdevice_dspfw_hdr *pFw_hdr = &(pTAS2781->mpFirmware->fw_hdr);
 	struct tasdevice_fw_fixed_hdr *pFw_fixed_hdr = &(pFw_hdr->mnFixedHdr);
-
-	/*pr_info("block = 0x%08x\n", pBlock->mnType);
-	pr_info("mnPChkSum = 0x%02x\n", pBlock->mnPChkSum);
-	pr_info("mnYChkSum = 0x%02x\n", pBlock->mnYChkSum);
-	pr_info("blk_size = %d\n", pBlock->blk_size);
-	pr_info("nSublocks = %d\n", pBlock->nSublocks);*/
 
 	if (pFw_fixed_hdr->mnPPCVersion >= PPC3_VERSION) {
 		switch (pBlock->mnType) {
@@ -463,8 +468,9 @@ int tasdevice_load_block_kernel(struct tasdevice_priv *pTAS2781, struct TBlock *
 			dev_idx = 4|0xC0;
 			break;
 		default:
-			dev_info(pTAS2781->dev, "%s:%u:TAS2781 load block: Other Type = 0x%02x\n",
-				__func__, __LINE__, pBlock->mnType);
+			dev_info(pTAS2781->dev, "%s: TAS2781 load block: "
+				"Other Type = 0x%02x\n", __func__,
+				pBlock->mnType);
 			break;
 		}
 	} else {
@@ -501,8 +507,9 @@ int tasdevice_load_block_kernel(struct tasdevice_priv *pTAS2781, struct TBlock *
 			dev_idx = 4|0xC0;
 			break;
 		default:
-			dev_info(pTAS2781->dev, "%s:%u:TAS2781 load block: Other Type = 0x%02x\n",
-				__func__, __LINE__, pBlock->mnType);
+			dev_info(pTAS2781->dev, "%s: TAS2781 load block: "
+				"Other Type = 0x%02x\n", __func__,
+				pBlock->mnType);
 			break;
 		}
 	}
@@ -511,14 +518,14 @@ int tasdevice_load_block_kernel(struct tasdevice_priv *pTAS2781, struct TBlock *
 		int rc = tasdevice_process_block(pTAS2781, pData + length,
 			dev_idx, blk_size - length);
 		if (rc < 0) {
-			dev_err(pTAS2781->dev, "%s:%u:ERROR:%u %u sublock write error\n",
-				__func__, __LINE__, length, blk_size);
+			dev_err(pTAS2781->dev, "%s: ERROR:%u %u sublock write "
+				"error\n", __func__, length, blk_size);
 			break;
 		}
 		length  += (unsigned int)rc;
 		if (blk_size < length) {
-			dev_err(pTAS2781->dev, "%s:%u:ERROR:%u %u out of memory\n",
-				__func__, __LINE__, length, blk_size);
+			dev_err(pTAS2781->dev, "%s: ERROR:%u %u out of "
+				"memory\n", __func__, length, blk_size);
 			break;
 		}
 	}

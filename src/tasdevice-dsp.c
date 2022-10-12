@@ -102,13 +102,17 @@ static inline void tas2781_clear_Calfirmware(struct TFirmware
 		for (i = 0; i < mpCalFirmware->mnCalibrations; i++) {
 			pCalibration = &(mpCalFirmware->mpCalibrations[i]);
 			if (pCalibration) {
-				struct TData *pImageData = &(pCalibration->mData);
+				struct TData *pImageData =
+					&(pCalibration->mData);
 
 				if (pImageData->mpBlocks) {
 					struct TBlock *pBlock;
 
-					for (nBlock = 0; nBlock < pImageData->mnBlocks; nBlock++) {
-						pBlock = &(pImageData->mpBlocks[nBlock]);
+					for (nBlock = 0; nBlock <
+						pImageData->mnBlocks;
+						nBlock++) {
+						pBlock = &(pImageData->
+							mpBlocks[nBlock]);
 						kfree(pBlock->mpData);
 					}
 				kfree(pImageData->mpBlocks);
@@ -128,17 +132,18 @@ static int fw_parse_block_data(struct TFirmware *pFirmware,
 	int n;
 
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	pBlock->mnType = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+		pData[offset + 1], pData[offset + 2], pData[offset + 3]);
 	offset  += 4;
 
-	if (pFirmware->fw_hdr.mnFixedHdr.mnDriverVersion >= PPC_DRIVER_CRCCHK) {
+	if (pFirmware->fw_hdr.mnFixedHdr.mnDriverVersion >=
+		PPC_DRIVER_CRCCHK) {
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -146,7 +151,7 @@ static int fw_parse_block_data(struct TFirmware *pFirmware,
 		offset++;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -154,7 +159,7 @@ static int fw_parse_block_data(struct TFirmware *pFirmware,
 		offset++;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -162,7 +167,7 @@ static int fw_parse_block_data(struct TFirmware *pFirmware,
 		offset++;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -173,24 +178,24 @@ static int fw_parse_block_data(struct TFirmware *pFirmware,
 		pBlock->mbYChkSumPresent = 0;
 	}
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	pBlock->mnCommands = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+		pData[offset + 1], pData[offset + 2], pData[offset + 3]);
 	offset  += 4;
 
 	n = pBlock->mnCommands * 4;
 	if (offset + n > pFW->size) {
-		pr_err("%s:%u:File Size(%u) error offset = %d n = %d\n",
-			__func__, __LINE__, pFW->size, offset, n);
+		pr_err("%s: File Size(%u) error offset = %d n = %d\n",
+			__func__, pFW->size, offset, n);
 		offset = -1;
 		goto out;
 	}
 	pBlock->mpData = kmemdup(&pData[offset], n, GFP_KERNEL);
 	if (pBlock->mpData == NULL) {
-		pr_err("%s:%u:mpData memory error\n", __func__, __LINE__);
+		pr_err("%s: mpData memory error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -207,7 +212,7 @@ static int fw_parse_data(struct TFirmware *pFirmware,
 	unsigned int nBlock;
 
 	if (offset + 64 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		n = -1;
 		goto out;
 	}
@@ -217,19 +222,19 @@ static int fw_parse_data(struct TFirmware *pFirmware,
 	n = strlen((char *)&pData[offset]);
 	n++;
 	if (offset + n > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	pImageData->mpDescription = kmemdup(pData, n, GFP_KERNEL);
 	if (pImageData->mpDescription == NULL) {
-		pr_err("%s:%u:FW memory failed!\n", __func__, __LINE__);
+		pr_err("%s: FW memory failed!\n", __func__);
 		goto out;
 	}
 	offset  += n;
 
 	if (offset + 2 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -237,9 +242,10 @@ static int fw_parse_data(struct TFirmware *pFirmware,
 	offset  += 2;
 
 	pImageData->mpBlocks =
-		kcalloc(pImageData->mnBlocks, sizeof(struct TBlock), GFP_KERNEL);
+		kcalloc(pImageData->mnBlocks, sizeof(struct TBlock),
+			GFP_KERNEL);
 	if (pImageData->mpBlocks == NULL) {
-		pr_err("%s:%u:FW memory failed!\n", __func__, __LINE__);
+		pr_err("%s: FW memory failed!\n", __func__);
 		goto out;
 	}
 	for (nBlock = 0; nBlock < pImageData->mnBlocks; nBlock++) {
@@ -263,30 +269,32 @@ static int fw_parse_calibration_data(struct TFirmware *pFirmware,
 	struct TCalibration *pCalibration = NULL;
 
 	if (offset + 2 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	pFirmware->mnCalibrations = SMS_HTONS(pData[offset], pData[offset + 1]);
+	pFirmware->mnCalibrations = SMS_HTONS(pData[offset],
+		pData[offset + 1]);
 	offset  += 2;
 
 	if (pFirmware->mnCalibrations != 1) {
-		pr_err("%s:%u:only support one calibraiton(%d)!\n",
-			__func__, __LINE__, pFirmware->mnCalibrations);
+		pr_err("%s: only support one calibraiton(%d)!\n",
+			__func__, pFirmware->mnCalibrations);
 		goto out;
 	}
 
 	pFirmware->mpCalibrations =
-		kcalloc(pFirmware->mnCalibrations, sizeof(struct TCalibration), GFP_KERNEL);
+		kcalloc(pFirmware->mnCalibrations, sizeof(struct TCalibration),
+			GFP_KERNEL);
 	if (pFirmware->mpCalibrations == NULL) {
-		pr_err("%s:%u:mpCalibrations memory failed!\n", __func__, __LINE__);
+		pr_err("%s: mpCalibrations memory failed!\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	for (nCalibration = 0; nCalibration < pFirmware->mnCalibrations;
 		nCalibration++) {
 		if (offset + 64 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -297,20 +305,22 @@ static int fw_parse_calibration_data(struct TFirmware *pFirmware,
 		n = strlen((char *)&pData[offset]);
 		n++;
 		if (offset + n > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		pCalibration->mpDescription = kmemdup(&pData[offset], n, GFP_KERNEL);
+		pCalibration->mpDescription = kmemdup(&pData[offset], n,
+			GFP_KERNEL);
 		if (pCalibration->mpDescription == NULL) {
-			pr_err("%s:%u:mpPrograms memory failed!\n", __func__, __LINE__);
+			pr_err("%s: mpPrograms memory failed!\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		offset  += n;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error, offset = %d\n", __func__, __LINE__, offset);
+			pr_err("%s: File Size error, offset = %d\n", __func__,
+				offset);
 			offset = -1;
 			goto out;
 		}
@@ -318,14 +328,16 @@ static int fw_parse_calibration_data(struct TFirmware *pFirmware,
 		offset++;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error, offset = %d\n", __func__, __LINE__, offset);
+			pr_err("%s: File Size error, offset = %d\n", __func__,
+				offset);
 			offset = -1;
 			goto out;
 		}
 		pCalibration->mnConfiguration = pData[offset];
 		offset++;
 
-		offset = fw_parse_data(pFirmware, &(pCalibration->mData), pFW, offset);
+		offset = fw_parse_data(pFirmware, &(pCalibration->mData), pFW,
+			offset);
 		if (offset < 0)
 			goto out;
 	}
@@ -343,7 +355,7 @@ static int fw_parse_program_data(struct TFirmware *pFirmware,
 	int nProgram = 0;
 
 	if (offset + 2 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -351,15 +363,16 @@ static int fw_parse_program_data(struct TFirmware *pFirmware,
 	offset  += 2;
 
 	if (pFirmware->mnPrograms == 0) {
-		pr_info("%s:%u:mnPrograms is null, maybe calbin\n", __func__, __LINE__);
+		pr_info("%s: mnPrograms is null, maybe calbin\n", __func__);
 		//Do not "offset = -1;", because of calbin
 		goto out;
 	}
 
 	pFirmware->mpPrograms =
-		kcalloc(pFirmware->mnPrograms, sizeof(struct TProgram), GFP_KERNEL);
+		kcalloc(pFirmware->mnPrograms, sizeof(struct TProgram),
+			GFP_KERNEL);
 	if (pFirmware->mpPrograms == NULL) {
-		pr_err("%s:%u:mpPrograms memory failed!\n", __func__, __LINE__);
+		pr_err("%s: mpPrograms memory failed!\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -368,7 +381,7 @@ static int fw_parse_program_data(struct TFirmware *pFirmware,
 
 		pProgram = &(pFirmware->mpPrograms[nProgram]);
 		if (offset + 64 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -378,13 +391,13 @@ static int fw_parse_program_data(struct TFirmware *pFirmware,
 		n = strlen((char *)&buf[offset]);
 		n++;
 		if (offset + n > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pProgram->mpDescription = kmemdup(&buf[offset], n, GFP_KERNEL);
 		if (pProgram->mpDescription == NULL) {
-			pr_err("%s:%u:mpPrograms memory failed!\n", __func__, __LINE__);
+			pr_err("%s: mpPrograms memory failed!\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -392,7 +405,7 @@ static int fw_parse_program_data(struct TFirmware *pFirmware,
 		offset  += n;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -400,35 +413,36 @@ static int fw_parse_program_data(struct TFirmware *pFirmware,
 		offset++;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pProgram->mnPDMI2SMode = buf[offset];
 		offset++;
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pProgram->mnISnsPD = buf[offset];
 		offset++;
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pProgram->mnVSnsPD = buf[offset];
 		offset++;
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pProgram->mnPowerLDG = buf[offset];
 		offset++;
 
-		offset = fw_parse_data(pFirmware, &(pProgram->mData), pFW, offset);
+		offset = fw_parse_data(pFirmware, &(pProgram->mData), pFW,
+			offset);
 		if (offset < 0)
 			goto out;
 	}
@@ -445,15 +459,16 @@ static int fw_parse_configuration_data(struct TFirmware *pFirmware,
 	struct TConfiguration *pConfiguration;
 
 	if (offset + 2 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	pFirmware->mnConfigurations = SMS_HTONS(pData[offset], pData[offset + 1]);
+	pFirmware->mnConfigurations = SMS_HTONS(pData[offset],
+		pData[offset + 1]);
 	offset  += 2;
 
 	if (pFirmware->mnConfigurations == 0) {
-		pr_err("%s:%u:mnConfigurations is zero\n", __func__, __LINE__);
+		pr_err("%s: mnConfigurations is zero\n", __func__);
 		//Do not "offset = -1;", because of calbin
 		goto out;
 	}
@@ -461,10 +476,12 @@ static int fw_parse_configuration_data(struct TFirmware *pFirmware,
 		kcalloc(pFirmware->mnConfigurations,
 				sizeof(struct TConfiguration), GFP_KERNEL);
 
-	for (nConfiguration = 0; nConfiguration < pFirmware->mnConfigurations; nConfiguration++) {
-		pConfiguration = &(pFirmware->mpConfigurations[nConfiguration]);
+	for (nConfiguration = 0; nConfiguration < pFirmware->mnConfigurations;
+		nConfiguration++) {
+		pConfiguration =
+			&(pFirmware->mpConfigurations[nConfiguration]);
 		if (offset + 64 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -474,19 +491,20 @@ static int fw_parse_configuration_data(struct TFirmware *pFirmware,
 		n = strlen((char *)&pData[offset]);
 		n++;
 		if (offset + n > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		pConfiguration->mpDescription = kmemdup(&pData[offset], n, GFP_KERNEL);
+		pConfiguration->mpDescription = kmemdup(&pData[offset], n,
+			GFP_KERNEL);
 
 		if (pConfiguration->mpDescription == NULL) {
-			pr_err("%s:%u:FW memory failed!\n", __func__, __LINE__);
+			pr_err("%s: FW memory failed!\n", __func__);
 			goto out;
 		}
 		offset  += n;
 		if (offset + 2 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -496,7 +514,7 @@ static int fw_parse_configuration_data(struct TFirmware *pFirmware,
 		offset  += 2;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -504,16 +522,17 @@ static int fw_parse_configuration_data(struct TFirmware *pFirmware,
 		offset++;
 
 		if (offset + 4 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pConfiguration->mnSamplingRate = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+			pData[offset + 1], pData[offset + 2],
+			pData[offset + 3]);
 		offset  += 4;
 
 		if (offset + 1 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
@@ -521,24 +540,26 @@ static int fw_parse_configuration_data(struct TFirmware *pFirmware,
 		offset++;
 
 		if (offset + 4 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
 		pConfiguration->mnPLLSrcRate = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+			pData[offset + 1], pData[offset + 2],
+			pData[offset + 3]);
 		offset  += 4;
 
 		if (offset + 2 > pFW->size) {
-			pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		pConfiguration->mnFsRate = SMS_HTONS(pData[offset], pData[offset + 1]);
+		pConfiguration->mnFsRate = SMS_HTONS(pData[offset],
+			pData[offset + 1]);
 		offset  += 2;
-		//dev_info(pTAS2781->dev, "Fs rate: %d", pConfiguration->mnFsRate);
 
-		offset = fw_parse_data(pFirmware, &(pConfiguration->mData), pFW, offset);
+		offset = fw_parse_data(pFirmware, &(pConfiguration->mData),
+			pFW, offset);
 		if (offset < 0)
 			goto out;
 	}
@@ -556,7 +577,7 @@ static int fw_parse_header(struct TFirmware *pFirmware,
 	unsigned char pMagicNumber[] = { 0x35, 0x35, 0x35, 0x32 };
 
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -EINVAL;
 		goto out;
 	}
@@ -569,7 +590,7 @@ static int fw_parse_header(struct TFirmware *pFirmware,
 		buf[offset + 1], buf[offset + 2], buf[offset + 3]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -577,17 +598,18 @@ static int fw_parse_header(struct TFirmware *pFirmware,
 		buf[offset + 1], buf[offset + 2], buf[offset + 3]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	if (pFw_fixed_hdr->mnFWSize != pFW->size) {
-		pr_err("File size not match, %d %d", pFW->size, pFw_fixed_hdr->mnFWSize);
+		pr_err("File size not match, %d %d", pFW->size,
+			pFw_fixed_hdr->mnFWSize);
 		offset = -1;
 		goto out;
 	}
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -595,7 +617,7 @@ static int fw_parse_header(struct TFirmware *pFirmware,
 		buf[offset + 1], buf[offset + 2], buf[offset + 3]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -603,7 +625,7 @@ static int fw_parse_header(struct TFirmware *pFirmware,
 		buf[offset + 1], buf[offset + 2], buf[offset + 3]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -611,7 +633,7 @@ static int fw_parse_header(struct TFirmware *pFirmware,
 		buf[offset + 1], buf[offset + 2], buf[offset + 3]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -619,13 +641,16 @@ static int fw_parse_header(struct TFirmware *pFirmware,
 		buf[offset + 1], buf[offset + 2], buf[offset + 3]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	for (i = 0; i < sizeof(BinFileformatVerInfo) / sizeof(BinFileformatVerInfo[0]); i++) {
-		if (BinFileformatVerInfo[i][DRVFWVER] == pFw_fixed_hdr->mnDriverVersion) {
-			pFw_hdr->mnBinFileDocVer = BinFileformatVerInfo[i][BINFILEDOCVER];
+	for (i = 0; i < sizeof(BinFileformatVerInfo) /
+		sizeof(BinFileformatVerInfo[0]); i++) {
+		if (BinFileformatVerInfo[i][DRVFWVER] ==
+			pFw_fixed_hdr->mnDriverVersion) {
+			pFw_hdr->mnBinFileDocVer =
+				BinFileformatVerInfo[i][BINFILEDOCVER];
 			break;
 		}
 	}
@@ -633,7 +658,7 @@ static int fw_parse_header(struct TFirmware *pFirmware,
 		buf[offset + 1], buf[offset + 2], buf[offset + 3]);
 	offset  += 4;
 	if (offset + 64 > pFW->size) {
-		pr_err("%s:%u:File Size error\n", __func__, __LINE__);
+		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
@@ -679,7 +704,8 @@ static const unsigned char crc8_lookup_table[CRC8_TABLE_SIZE] = {
 	0x06, 0x4B, 0x9C, 0xD1, 0x7F, 0x32, 0xE5, 0xA8
 };
 
-static int isInPageYRAM(struct tasdevice_priv *pTAS2781, struct TYCRC *pCRCData,
+static int isInPageYRAM(struct tasdevice_priv *pTAS2781,
+	struct TYCRC *pCRCData,
 	unsigned char nBook, unsigned char nPage,
 	unsigned char nReg, unsigned char len)
 {
@@ -713,7 +739,8 @@ static int isInPageYRAM(struct tasdevice_priv *pTAS2781, struct TYCRC *pCRCData,
 					nResult = 1;
 				}
 			} else {
-				if ((nReg + (len-1)) < TAS2781_YRAM3_START_REG)
+				if ((nReg + (len-1)) <
+					TAS2781_YRAM3_START_REG)
 					nResult = 0;
 				else {
 					pCRCData->mnOffset =
@@ -724,7 +751,8 @@ static int isInPageYRAM(struct tasdevice_priv *pTAS2781, struct TYCRC *pCRCData,
 				}
 			}
 		}
-	} else if (nBook == TAS2781_YRAM_BOOK2) {
+	} else if (nBook ==
+		TAS2781_YRAM_BOOK2) {
 		if (nPage == TAS2781_YRAM5_PAGE) {
 			if (nReg > TAS2781_YRAM5_END_REG) {
 				nResult = 0;
@@ -740,7 +768,8 @@ static int isInPageYRAM(struct tasdevice_priv *pTAS2781, struct TYCRC *pCRCData,
 					nResult = 1;
 				}
 			} else {
-				if ((nReg + (len-1)) < TAS2781_YRAM5_START_REG)
+				if ((nReg + (len-1)) <
+					TAS2781_YRAM5_START_REG)
 					nResult = 0;
 				else {
 					pCRCData->mnOffset =
@@ -775,7 +804,8 @@ static int isInBlockYRAM(struct tasdevice_priv *pTAS2781,
 				pCRCData->mnLen = len;
 				nResult = 1;
 			} else {
-				if ((nReg + (len-1)) < TAS2781_YRAM2_START_REG)
+				if ((nReg + (len-1)) <
+					TAS2781_YRAM2_START_REG)
 					nResult = 0;
 				else {
 					pCRCData->mnOffset =
@@ -787,7 +817,8 @@ static int isInBlockYRAM(struct tasdevice_priv *pTAS2781,
 			}
 		} else
 			nResult = 0;
-	} else if (nBook == TAS2781_YRAM_BOOK2) {
+	} else if (nBook ==
+		TAS2781_YRAM_BOOK2) {
 		if (nPage < TAS2781_YRAM4_START_PAGE)
 			nResult = 0;
 		else if (nPage <= TAS2781_YRAM4_END_PAGE) {
@@ -849,7 +880,8 @@ static u8 ti_crc8(const u8 table[CRC8_TABLE_SIZE], u8 *pdata,
 	return crc;
 }
 
-static int doSingleRegCheckSum(struct tasdevice_priv *pTAS2781, enum channel chl,
+static int doSingleRegCheckSum(struct tasdevice_priv *pTAS2781,
+	enum channel chl,
 		unsigned char nBook, unsigned char nPage,
 		unsigned char nReg, unsigned char nValue)
 {
@@ -860,7 +892,8 @@ static int doSingleRegCheckSum(struct tasdevice_priv *pTAS2781, enum channel chl
 	if ((nBook == TASDEVICE_BOOK_ID(TAS2781_SA_COEFF_SWAP_REG))
 		&& (nPage == TASDEVICE_PAGE_ID(TAS2781_SA_COEFF_SWAP_REG))
 		&& (nReg >= TASDEVICE_PAGE_REG(TAS2781_SA_COEFF_SWAP_REG))
-		&& (nReg <= (TASDEVICE_PAGE_REG(TAS2781_SA_COEFF_SWAP_REG) + 4))) {
+		&& (nReg <= (TASDEVICE_PAGE_REG(
+		TAS2781_SA_COEFF_SWAP_REG) + 4))) {
 		/*DSP swap command, pass */
 		nResult = 0;
 		goto end;
@@ -874,18 +907,19 @@ static int doSingleRegCheckSum(struct tasdevice_priv *pTAS2781, enum channel chl
 			goto end;
 
 		if (nData1 != nValue) {
-			dev_err(pTAS2781->dev,
-				"error2 (line %d), B[0x%x]P[0x%x]R[0x%x] W[0x%x], R[0x%x]\n",
-				__LINE__, nBook, nPage, nReg, nValue, nData1);
+			dev_err(pTAS2781->dev, "error2, B[0x%x]P[0x%x]R[0x%x] "
+				"W[0x%x], R[0x%x]\n", nBook, nPage, nReg,
+				nValue, nData1);
 			nResult = -EAGAIN;
-			pTAS2781->tasdevice[chl].mnErrCode |= ERROR_YRAM_CRCCHK;
+			pTAS2781->tasdevice[chl].mnErrCode |=
+				ERROR_YRAM_CRCCHK;
 			goto end;
 		}
 
 		if (nData1 != nValue) {
-			dev_err(pTAS2781->dev,
-				"error2 (line %d), B[0x%x]P[0x%x]R[0x%x] W[0x%x], R[0x%x]\n",
-				__LINE__, nBook, nPage, nReg, nValue, nData1);
+			dev_err(pTAS2781->dev, "error2, B[0x%x]P[0x%x]R[0x%x] "
+				"W[0x%x], R[0x%x]\n", nBook, nPage, nReg,
+				nValue, nData1);
 			nResult = -EAGAIN;
 			goto end;
 		}
@@ -897,9 +931,9 @@ end:
 	return nResult;
 }
 
-static int doMultiRegCheckSum(struct tasdevice_priv *pTAS2781, enum channel chn,
-		unsigned char nBook, unsigned char nPage,
-		unsigned char nReg, unsigned int len)
+static int doMultiRegCheckSum(struct tasdevice_priv *pTAS2781,
+	enum channel chn, unsigned char nBook, unsigned char nPage,
+	unsigned char nReg, unsigned int len)
 {
 	int nResult = 0, i = 0;
 	unsigned char nCRCChkSum = 0;
@@ -942,12 +976,17 @@ static int doMultiRegCheckSum(struct tasdevice_priv *pTAS2781, enum channel chn,
 				goto end;
 
 			for (i = 0; i < TCRCData.mnLen; i++) {
-				if ((nBook == TASDEVICE_BOOK_ID(TAS2781_SA_COEFF_SWAP_REG))
-					&& (nPage == TASDEVICE_PAGE_ID(TAS2781_SA_COEFF_SWAP_REG))
+				if ((nBook == TASDEVICE_BOOK_ID(
+					TAS2781_SA_COEFF_SWAP_REG))
+					&& (nPage == TASDEVICE_PAGE_ID(
+						TAS2781_SA_COEFF_SWAP_REG))
 					&& ((i + TCRCData.mnOffset)
-					>= TASDEVICE_PAGE_REG(TAS2781_SA_COEFF_SWAP_REG))
+					>= TASDEVICE_PAGE_REG(
+						TAS2781_SA_COEFF_SWAP_REG))
 					&& ((i + TCRCData.mnOffset)
-					<= (TASDEVICE_PAGE_REG(TAS2781_SA_COEFF_SWAP_REG) + 4))) {
+					<= (TASDEVICE_PAGE_REG(
+						TAS2781_SA_COEFF_SWAP_REG)
+						+ 4))) {
 					/*DSP swap command, bypass */
 					continue;
 				} else
@@ -981,7 +1020,8 @@ static int tasdevice_load_block(struct tasdevice_priv *tas_dev,
 	unsigned char *pData = pBlock->mpData;
 	int chn = 0, chnend = 0;
 
-	dev_info(tas_dev->dev, "TAS2781 load block: Type = %d, commands = %d\n",
+	dev_info(tas_dev->dev,
+		"TAS2781 load block: Type = %d, commands = %d\n",
 		pBlock->mnType, pBlock->mnCommands);
 	switch (pBlock->mnType) {
 	case MAIN_ALL_DEVICES:
@@ -1013,7 +1053,8 @@ static int tasdevice_load_block(struct tasdevice_priv *tas_dev,
 		chnend = 4;
 		break;
 	default:
-		dev_info(tas_dev->dev, "TAS2781 load block: Other Type = 0x%02x\n",
+		dev_info(tas_dev->dev,
+			"TAS2781 load block: Other Type = 0x%02x\n",
 			pBlock->mnType);
 		break;
 	}
@@ -1023,7 +1064,8 @@ static int tasdevice_load_block(struct tasdevice_priv *tas_dev,
 			continue;
 start:
 		if (pBlock->mbPChkSumPresent) {
-			nResult = tas_dev->write(tas_dev, chn, TASDEVICE_I2CChecksum, 0);
+			nResult = tas_dev->write(tas_dev, chn,
+				TASDEVICE_I2CChecksum, 0);
 			if (nResult < 0)
 				goto end;
 		}
@@ -1045,12 +1087,14 @@ start:
 
 			if (nOffset <= 0x7F) {
 				nResult = tas_dev->write(tas_dev, chn,
-					TASDEVICE_REG(nBook, nPage, nOffset), nData);
+					TASDEVICE_REG(nBook, nPage, nOffset),
+					nData);
 				if (nResult < 0)
 					goto end;
 				if (pBlock->mbYChkSumPresent) {
 					nResult = doSingleRegCheckSum(tas_dev,
-						chn, nBook, nPage, nOffset, nData);
+						chn, nBook, nPage, nOffset,
+						nData);
 					if (nResult < 0)
 						goto check;
 					nCRCChkSum  += (unsigned char)nResult;
@@ -1066,30 +1110,37 @@ start:
 				nOffset = pData[2];
 				if (nLength > 1) {
 					nResult = tas_dev->bulk_write(tas_dev,
-							chn, TASDEVICE_REG(nBook, nPage,
-							nOffset), pData + 3, nLength);
+						chn, TASDEVICE_REG(nBook,
+						nPage, nOffset), pData + 3,
+						nLength);
 					if (nResult < 0)
 						goto end;
 					if (pBlock->mbYChkSumPresent) {
-						nResult = doMultiRegCheckSum(tas_dev,
-							chn, nBook, nPage, nOffset,
+						nResult = doMultiRegCheckSum(
+							tas_dev, chn, nBook,
+							nPage, nOffset,
 							nLength);
 						if (nResult < 0)
 							goto check;
-						nCRCChkSum  += (unsigned char)nResult;
+						nCRCChkSum  +=
+							(unsigned char)nResult;
 					}
 				} else {
 					nResult = tas_dev->write(tas_dev, chn,
-						TASDEVICE_REG(nBook, nPage, nOffset),
+						TASDEVICE_REG(nBook, nPage,
+						nOffset),
 						pData[3]);
 					if (nResult < 0)
 						goto end;
 					if (pBlock->mbYChkSumPresent) {
-						nResult = doSingleRegCheckSum(tas_dev,
-						chn, nBook, nPage, nOffset, pData[3]);
+						nResult = doSingleRegCheckSum(
+							tas_dev, chn, nBook,
+							nPage, nOffset,
+							pData[3]);
 						if (nResult < 0)
 							goto check;
-						nCRCChkSum  += (unsigned char)nResult;
+						nCRCChkSum  +=
+							(unsigned char)nResult;
 					}
 				}
 
@@ -1103,30 +1154,35 @@ start:
 			nResult = tas_dev->read(tas_dev, chn,
 				TASDEVICE_I2CChecksum, &nValue);
 			if (nResult < 0) {
-				dev_err(tas_dev->dev, "%s:%u;Channel %d\n",
-					__func__, __LINE__, chn);
+				dev_err(tas_dev->dev, "%s: Channel %d\n",
+					__func__, chn);
 				goto check;
 			}
 			if ((nValue&0xff) != pBlock->mnPChkSum) {
 				dev_err(tas_dev->dev,
-					"Block PChkSum Channel %d Error: FW = 0x%x, Reg = 0x%x\n",
-					chn, pBlock->mnPChkSum, (nValue&0xff));
+					"Block PChkSum Channel %d Error: "
+					"FW = 0x%x, Reg = 0x%x\n", chn,
+					pBlock->mnPChkSum, (nValue&0xff));
 				nResult = -EAGAIN;
-				tas_dev->tasdevice[chn].mnErrCode |= ERROR_PRAM_CRCCHK;
+				tas_dev->tasdevice[chn].mnErrCode |=
+					ERROR_PRAM_CRCCHK;
 				goto check;
 			}
 			nResult = 0;
-			tas_dev->tasdevice[chn].mnErrCode &= ~ERROR_PRAM_CRCCHK;
-			dev_info(tas_dev->dev, "Block[0x%02x] PChkSum match\n", pBlock->mnType);
+			tas_dev->tasdevice[chn].mnErrCode &=
+				~ERROR_PRAM_CRCCHK;
+			dev_info(tas_dev->dev, "Block[0x%02x] PChkSum match\n",
+				pBlock->mnType);
 		}
 
 		if (pBlock->mbYChkSumPresent) {
 			//TBD, open it when FW ready
-			dev_err(tas_dev->dev,
-					"Block YChkSum: FW = 0x%x, YCRC = 0x%x\n",
-					pBlock->mnYChkSum, nCRCChkSum);
+			dev_err(tas_dev->dev, "Block YChkSum: FW = 0x%x, "
+				"YCRC = 0x%x\n", pBlock->mnYChkSum,
+				nCRCChkSum);
 
-			tas_dev->tasdevice[chn].mnErrCode &= ~ERROR_YRAM_CRCCHK;
+			tas_dev->tasdevice[chn].mnErrCode &=
+				~ERROR_YRAM_CRCCHK;
 			nResult = 0;
 			dev_info(tas_dev->dev,
 				"Block[0x%x] YChkSum match\n", pBlock->mnType);
@@ -1143,9 +1199,11 @@ check:
 					|| (MAIN_DEVICE_B == pBlock->mnType)
 					|| (MAIN_DEVICE_C == pBlock->mnType)
 					|| (MAIN_DEVICE_D == pBlock->mnType)) {
-					tas_dev->tasdevice[chn].mnCurrentProgram = -1;
+					tas_dev->tasdevice[chn].
+						mnCurrentProgram = -1;
 				} else {
-					tas_dev->tasdevice[chn].mnCurrentConfiguration = -1;
+					tas_dev->tasdevice[chn].
+						mnCurrentConfiguration = -1;
 				}
 				nRetry = 6;
 			}
@@ -1181,8 +1239,8 @@ static int tasdevice_load_data(struct tasdevice_priv *tas_dev,
 	return nResult;
 }
 
-static int tasdevice_load_calibrated_data(struct tasdevice_priv *tas_dev,
-	struct TData *pData)
+static int tasdevice_load_calibrated_data(
+	struct tasdevice_priv *tas_dev, struct TData *pData)
 {
 	int nResult = 0;
 	unsigned int nBlock = 0;
@@ -1274,33 +1332,33 @@ int tas2781_load_calibration(void *pContext,
 	mpCalFirmware = pTasdev->mpCalFirmware = kcalloc(1,
 		sizeof(struct TFirmware), GFP_KERNEL);
 	if (pTasdev->mpCalFirmware == NULL) {
-		dev_err(tas_dev->dev, "%s:%u:FW memory failed!\n", __func__, __LINE__);
+		dev_err(tas_dev->dev, "%s: FW memory failed!\n", __func__);
 		ret = -1;
 		goto out;
 	}
 	offset = fw_parse_header(mpCalFirmware, &FW, offset);
 	if (offset == -1) {
-		dev_err(tas_dev->dev, "%s:%u:EXIT!\n", __func__, __LINE__);
+		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
 		goto out;
 	}
 	offset = fw_parse_variable_header_cal(mpCalFirmware, &FW, offset);
 	if (offset == -1) {
-		dev_err(tas_dev->dev, "%s:%u:EXIT!\n", __func__, __LINE__);
+		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
 		goto out;
 	}
 	offset = fw_parse_program_data(mpCalFirmware, &FW, offset);
 	if (offset == -1) {
-		dev_err(tas_dev->dev, "%s:%u:EXIT!\n", __func__, __LINE__);
+		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
 		goto out;
 	}
 	offset = fw_parse_configuration_data(mpCalFirmware, &FW, offset);
 	if (offset == -1) {
-		dev_err(tas_dev->dev, "%s:%u:EXIT!\n", __func__, __LINE__);
+		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
 		goto out;
 	}
 	offset = fw_parse_calibration_data(mpCalFirmware, &FW, offset);
 	if (offset == -1) {
-		dev_err(tas_dev->dev, "%s:%u:EXIT!\n", __func__, __LINE__);
+		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
 		goto out;
 	}
 
@@ -1326,8 +1384,8 @@ int tasdevice_dspfw_ready(const void *pVoid, void *pContext)
 	int offset = 0, ret = 0;
 
 	if (!pFW || !pFW->data) {
-		pr_err("%s:%u:Failed to read firmware %s\n", __func__,
-			__LINE__, tas_dev->dsp_binaryname);
+		dev_err(tas_dev->dev, "%s: Failed to read firmware %s\n",
+			__func__, tas_dev->dsp_binaryname);
 		ret = -1;
 		goto out;
 	}
@@ -1335,7 +1393,7 @@ int tasdevice_dspfw_ready(const void *pVoid, void *pContext)
 	tas_dev->mpFirmware = kcalloc(1,
 		sizeof(struct TFirmware), GFP_KERNEL);
 	if (tas_dev->mpFirmware == NULL) {
-		pr_err("%s:%u:FW memory failed!\n", __func__, __LINE__);
+		dev_err(tas_dev->dev, "%s: FW memory failed!\n", __func__);
 		ret = -1;
 		goto out;
 	}
@@ -1350,49 +1408,68 @@ int tasdevice_dspfw_ready(const void *pVoid, void *pContext)
 	case 0x301:
 	case 0x302:
 	case 0x502:
-		tas_dev->fw_parse_variable_header = fw_parse_variable_header_kernel;
-		tas_dev->fw_parse_program_data = fw_parse_program_data_kernel;
-		tas_dev->fw_parse_configuration_data = fw_parse_configuration_data_kernel;
-		tas_dev->tasdevice_load_block = tasdevice_load_block_kernel;
+		tas_dev->fw_parse_variable_header =
+			fw_parse_variable_header_kernel;
+		tas_dev->fw_parse_program_data =
+			fw_parse_program_data_kernel;
+		tas_dev->fw_parse_configuration_data =
+			fw_parse_configuration_data_kernel;
+		tas_dev->tasdevice_load_block =
+			tasdevice_load_block_kernel;
 		pFirmware->bKernelFormat = true;
 		break;
 	case 0x202:
 	case 0x400:
-		tas_dev->fw_parse_variable_header = fw_parse_variable_header_git;
-		tas_dev->fw_parse_program_data = fw_parse_program_data;
-		tas_dev->fw_parse_configuration_data = fw_parse_configuration_data;
-		tas_dev->tasdevice_load_block = tasdevice_load_block;
+		tas_dev->fw_parse_variable_header =
+			fw_parse_variable_header_git;
+		tas_dev->fw_parse_program_data =
+			fw_parse_program_data;
+		tas_dev->fw_parse_configuration_data =
+			fw_parse_configuration_data;
+		tas_dev->tasdevice_load_block =
+			tasdevice_load_block;
 		pFirmware->bKernelFormat = false;
 		break;
 	default:
 	if (pFw_fixed_hdr->mnDriverVersion == 0x100) {
 		if (pFw_fixed_hdr->mnPPCVersion >= PPC3_VERSION) {
-			tas_dev->fw_parse_variable_header = fw_parse_variable_header_kernel;
-			tas_dev->fw_parse_program_data = fw_parse_program_data_kernel;
-			tas_dev->fw_parse_configuration_data = fw_parse_configuration_data_kernel;
-			tas_dev->tasdevice_load_block = tasdevice_load_block_kernel;
+			tas_dev->fw_parse_variable_header =
+				fw_parse_variable_header_kernel;
+			tas_dev->fw_parse_program_data =
+				fw_parse_program_data_kernel;
+			tas_dev->fw_parse_configuration_data =
+				fw_parse_configuration_data_kernel;
+			tas_dev->tasdevice_load_block =
+				tasdevice_load_block_kernel;
 			tas_dev->fw_parse_calibration_data = NULL;
 			break;
 		} else {
 			switch (pFw_fixed_hdr->mnPPCVersion) {
 			case 0x00:
-				tas_dev->fw_parse_variable_header = fw_parse_variable_header_git;
-				tas_dev->fw_parse_program_data = fw_parse_program_data;
-				tas_dev->fw_parse_configuration_data = fw_parse_configuration_data;
-				tas_dev->fw_parse_calibration_data = fw_parse_calibration_data;
-				tas_dev->tasdevice_load_block = tasdevice_load_block;
+				tas_dev->fw_parse_variable_header =
+					fw_parse_variable_header_git;
+				tas_dev->fw_parse_program_data =
+					fw_parse_program_data;
+				tas_dev->fw_parse_configuration_data =
+					fw_parse_configuration_data;
+				tas_dev->fw_parse_calibration_data =
+					fw_parse_calibration_data;
+				tas_dev->tasdevice_load_block =
+					tasdevice_load_block;
 				break;
 			default:
-				pr_err("%s:%u:PPCVersion must be 0x0 or 0x%02x Current:0x%02x\n",
-					__func__, __LINE__,
-					PPC3_VERSION, pFw_fixed_hdr->mnPPCVersion);
+				dev_err(tas_dev->dev, "%s: PPCVersion must be "
+					"0x0 or 0x%02x Current:0x%02x\n",
+					__func__, PPC3_VERSION,
+					pFw_fixed_hdr->mnPPCVersion);
 				offset = -1;
 				break;
 			}
 		}
 	} else {
-		pr_err("%s:%u:DriverVersion must be 0x0, 0x230 or above 0x230:0x%02x\n",
-			__func__, __LINE__, pFw_fixed_hdr->mnDriverVersion);
+		dev_err(tas_dev->dev, "%s: DriverVersion must be 0x0, 0x230 "
+			"or above 0x230:0x%02x\n", __func__,
+			pFw_fixed_hdr->mnDriverVersion);
 		offset = -1;
 	}
 		break;
@@ -1425,7 +1502,8 @@ void tasdevice_calbin_remove(void *pContext)
 		for (i = 0; i < tas_dev->ndev; i++) {
 			pTasdev = &(tas_dev->tasdevice[i]);
 			if (pTasdev->mpCalFirmware) {
-				tas2781_clear_Calfirmware(pTasdev->mpCalFirmware);
+				tas2781_clear_Calfirmware(
+					pTasdev->mpCalFirmware);
 				pTasdev->mpCalFirmware = NULL;
 			}
 		}
@@ -1447,16 +1525,19 @@ void tasdevice_dsp_remove(void *pContext)
 				for (i = 0; i < pFirmware->mnPrograms; i++) {
 					pProgram = &(pFirmware->mpPrograms[i]);
 					if (pProgram) {
-						struct TData *pImageData = &(pProgram->mData);
+						struct TData *pImageData =
+							&(pProgram->mData);
 
 						if (pImageData->mpBlocks) {
 							struct TBlock *pBlock;
 							unsigned int nBlock;
 
 							for (nBlock = 0;
-								nBlock < pImageData->mnBlocks;
+								nBlock <
+									pImageData->mnBlocks;
 								nBlock++) {
-								pBlock = &(pImageData->mpBlocks[nBlock]);
+								pBlock =
+									&(pImageData->mpBlocks[nBlock]);
 								if (pBlock) {
 									kfree(pBlock->mpData);
 								}
@@ -1472,19 +1553,23 @@ void tasdevice_dsp_remove(void *pContext)
 			if (pFirmware->mpConfigurations) {
 				struct TConfiguration *pConfig;
 
-				for (i = 0; i < pFirmware->mnConfigurations; i++) {
-					pConfig = &(pFirmware->mpConfigurations[i]);
+				for (i = 0; i < pFirmware->mnConfigurations;
+					i++) {
+					pConfig = &(pFirmware->
+						mpConfigurations[i]);
 					if (pConfig) {
-						struct TData *pImageData = &(pConfig->mData);
+						struct TData *pImageData =
+							&(pConfig->mData);
 
 						if (pImageData->mpBlocks) {
 							struct TBlock *pBlock;
 							unsigned int nBlock;
 
 							for (nBlock = 0;
-								nBlock < pImageData->mnBlocks;
+								nBlock <
+									pImageData->mnBlocks;
 								nBlock++) {
-								pBlock = 
+								pBlock =
 									&(pImageData->mpBlocks[nBlock]);
 								if (pBlock) {
 									kfree(pBlock->mpData);
@@ -1558,7 +1643,7 @@ void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 				tas_dev->tasdevice[i].bLoading = true;
 				status++;
 			}
-		} else 
+		} else
 			tas_dev->tasdevice[i].bLoading = false;
 		tas_dev->tasdevice[i].bLoaderr = false;
 	}
@@ -1591,7 +1676,7 @@ void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 	}
 	status = 0;
 	for (i = 0; i < tas_dev->ndev; i++) {
-		pr_err("%s,fun %d,%d,%d\n", __func__,
+		dev_info(tas_dev->dev, "%s,fun %d,%d,%d\n", __func__,
 			tas_dev->tasdevice[i].mnCurrentConfiguration,
 			cfg_info[regbin_conf_no]->active_dev,
 			tas_dev->tasdevice[i].bLoaderr);
@@ -1600,7 +1685,7 @@ void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 			&& (tas_dev->tasdevice[i].bLoaderr == false)) {
 			status++;
 			tas_dev->tasdevice[i].bLoading = true;
-		} else 
+		} else
 			tas_dev->tasdevice[i].bLoading = false;
 	}
 
@@ -1631,13 +1716,11 @@ out:
 	return;
 }
 
-int tas2781_set_calibration(void *pContext, enum channel i, int nCalibration)
+int tas2781_set_calibration(void *pContext, enum channel i,
+	int nCalibration)
 {
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
 	int nResult = 0;
-#if 0
-	const struct firmware *fw_entry = NULL;
-#endif
 	struct Ttasdevice *pTasdev = &(tas_dev->tasdevice[i]);
 	struct TFirmware *pCalFirmware = pTasdev->mpCalFirmware;
 
@@ -1654,13 +1737,14 @@ int tas2781_set_calibration(void *pContext, enum channel i, int nCalibration)
 			pCalFirmware = NULL;
 		}
 
-		scnprintf(tas_dev->cal_binaryname[i], 64, "%s_cal_%02X.bin",
+		scnprintf(tas_dev->cal_binaryname[i], 64, "%s_cal_0x%02x.bin",
 			tas_dev->dev_name, tas_dev->tasdevice[i].mnDevAddr);
-		nResult = tas2781_load_calibration(tas_dev, tas_dev->cal_binaryname[i], i);
+		nResult = tas2781_load_calibration(tas_dev,
+			tas_dev->cal_binaryname[i], i);
 		if (nResult != 0) {
-			dev_err(tas_dev->dev, "%s:%u: load %s error, "
+			dev_err(tas_dev->dev, "%s: load %s error, "
 				"no-side effect for playback\n",
-				__func__, __LINE__, tas_dev->cal_binaryname[i]);
+				__func__, tas_dev->cal_binaryname[i]);
 			nResult = 0;
 		}
 	}
@@ -1668,14 +1752,16 @@ int tas2781_set_calibration(void *pContext, enum channel i, int nCalibration)
 	pTasdev->bLoaderr = false;
 
 	if (pCalFirmware) {
-		struct TCalibration *pCalibration = pCalFirmware->mpCalibrations;
+		struct TCalibration *pCalibration =
+			pCalFirmware->mpCalibrations;
 
 		if (pCalibration)
-			tasdevice_load_calibrated_data(tas_dev, &(pCalibration->mData));
-	} else {
+			tasdevice_load_calibrated_data(tas_dev,
+				&(pCalibration->mData));
+	} else
 		dev_err(tas_dev->dev,
-			"%s:%u: No calibrated data for device %d\n", __func__, __LINE__, i);
-	}
+			"%s: No calibrated data for device %d\n", __func__, i);
+
 out:
 	return nResult;
 }

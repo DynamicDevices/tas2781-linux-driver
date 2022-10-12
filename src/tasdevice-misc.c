@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0 
+// SPDX-License-Identifier: GPL-2.0
 // PCMDEVICE Sound driver
 // Copyright (C) 2022 Texas Instruments Incorporated  -
 // https://www.ti.com/
@@ -64,8 +64,8 @@ static ssize_t tasdevice_read(struct file *file, char *buf,
 	}
 	if (ret < 0) {
 		dev_err(tas_dev->dev,
-			"%s, %u, ret=%d, count=%zu error happen!\n",
-			__func__, __LINE__, ret, count);
+			"%s, ret=%d, count=%zu error happen!\n",
+			__func__, ret, count);
 		size = ret;
 		goto out;
 	}
@@ -101,7 +101,8 @@ static ssize_t tasdevice_write(struct file *file, const char *buf,
 	mutex_lock(&tas_dev->file_lock);
 
 	if (count > MAX_LENGTH) {
-		dev_err(tas_dev->dev, "Max %d bytes can be read\n", MAX_LENGTH);
+		dev_err(tas_dev->dev, "Max %d bytes can be read\n",
+			MAX_LENGTH);
 		size = -EINVAL;
 		goto out;
 	}
@@ -109,7 +110,8 @@ static ssize_t tasdevice_write(struct file *file, const char *buf,
 	/* copy buffer from user space	*/
 	size = copy_from_user(wr_data, buf, count);
 	if (size != 0) {
-		dev_err(tas_dev->dev, "copy_from_user failure %d bytes\n", size);
+		dev_err(tas_dev->dev, "copy_from_user failure %d bytes\n",
+			size);
 		size = -EINVAL;
 		goto out;
 	}
@@ -133,15 +135,15 @@ static ssize_t tasdevice_write(struct file *file, const char *buf,
 		ret = tas_dev->write(tas_dev, tas_dev->rwinfo.mnCurrentChannel,
 					nCompositeRegister, pData[1]);
 	} else if (count > 2) {
-		ret = tas_dev->bulk_write(tas_dev, tas_dev->rwinfo.mnCurrentChannel,
-					nCompositeRegister, &pData[1], count-1);
+		ret = tas_dev->bulk_write(tas_dev,
+			tas_dev->rwinfo.mnCurrentChannel,
+			nCompositeRegister, &pData[1], count-1);
 	}
 
 	if (ret < 0) {
 		size = ret;
-		dev_err(tas_dev->dev,
-			"%s, %d, ret=%d, count=%zu, ERROR Happen\n",
-			__func__, __LINE__, ret, count);
+		dev_err(tas_dev->dev, "%s, ret=%d, count=%zu, ERROR Happen\n",
+			__func__, ret, count);
 	}
 
 out:
@@ -150,7 +152,8 @@ out:
 	return size;
 }
 
-static void tiload_route_IO(struct tasdevice_priv *tas_dev, unsigned int bLock)
+static void tiload_route_IO(struct tasdevice_priv *tas_dev,
+	unsigned int bLock)
 {
 	if (bLock)
 		tas_dev->write(tas_dev, tas_dev->rwinfo.mnCurrentChannel,
@@ -169,7 +172,7 @@ static long tasdevice_ioctl(struct file *f,
 	int ret = 0, i = 0;
 	unsigned long val = 0;
 	/* Misc Lock Hold */
-	dev_info(tas_dev->dev, "%s:%u:cmd = 0x%08x\n", __func__, __LINE__, cmd);
+	dev_info(tas_dev->dev, "%s: cmd = 0x%08x\n", __func__, cmd);
 	mutex_lock(&tas_dev->file_lock);
 	switch (cmd) {
 	case TILOAD_IOMAGICNUM_GET:
@@ -211,11 +214,13 @@ static long tasdevice_ioctl(struct file *f,
 			for (i = 0; i < tas_dev->ndev; i++) {
 				if (tas_dev->tasdevice[i].mnDevAddr == addr) {
 #ifdef CONFIG_TASDEV_CODEC_SPI
-					struct spi_device *pClient = (struct spi_device *)
+					struct spi_device *pClient =
+						(struct spi_device *)
 						tas_dev->client;
 					pClient->chip_select = addr;
 #else
-					struct i2c_client *pClient = (struct i2c_client *)
+					struct i2c_client *pClient =
+						(struct i2c_client *)
 						tas_dev->client;
 
 					pClient->addr = addr;
@@ -223,12 +228,14 @@ static long tasdevice_ioctl(struct file *f,
 					tas_dev->rwinfo.mnCurrentChannel = i;
 
 					dev_info(tas_dev->dev,
-						"TILOAD_IOCTL_SET_CHL(%d)=0x%x\n", i, addr);
+						"TILOAD_IOCTL_SET_CHL(%d) = "
+						"0x%x\n", i, addr);
 					break;
 				}
 			}
 			if (i == tas_dev->ndev)
-				dev_err(tas_dev->dev, "TILOAD_IOCTL_SET_CHL: err\n\r");
+				dev_err(tas_dev->dev, "TILOAD_IOCTL_SET_CHL: "
+					"err\n\r");
 		}
 		mutex_unlock(&tas_dev->dev_lock);
 		break;
@@ -236,14 +243,14 @@ static long tasdevice_ioctl(struct file *f,
 		dev_info(tas_dev->dev,
 			"%s, cmd=TILOAD_IOCTL_SET_CALIBRATION\n", __func__);
 		ret = copy_from_user(&val, arg, sizeof(val));
-		if (ret  == 0) {
+		if (ret  == 0)
 			for (i = 0; i < tas_dev->ndev; i++)
 				tas_dev->set_calibration(tas_dev, i, val);
-		} else {
+		else {
 			dev_err(tas_dev->dev,
-				"%s:%u: error copy from user "
+				"%s: error copy from user "
 				"cmd=TILOAD_IOCTL_SET_CALIBRATION=0x%08x\n",
-				__func__, __LINE__, TILOAD_IOCTL_SET_CALIBRATION);
+				__func__, TILOAD_IOCTL_SET_CALIBRATION);
 		}
 		break;
 	case TILOAD_IOC_MAGIC_PA_INFO_GET:
@@ -252,9 +259,11 @@ static long tasdevice_ioctl(struct file *f,
 
 			a.ndev = (tas_dev->ndev < MaxChn)?tas_dev->ndev:MaxChn;
 			for (i = 0; i < a.ndev; i++)
-				a.i2c_list[i] = tas_dev->tasdevice[i].mnDevAddr;
+				a.i2c_list[i] =
+					tas_dev->tasdevice[i].mnDevAddr;
 			a.bSPIEnable = tas_dev->mnSPIEnable?1:0;
-			ret = copy_to_user(arg, &a, sizeof(struct smartpa_info));
+			ret = copy_to_user(arg, &a,
+				sizeof(struct smartpa_info));
 		}
 		break;
 	case TILOAD_IOC_MAGIC_SET_DEFAULT_CALIB_PRI:
@@ -324,7 +333,8 @@ static long tasdevice_compat_ioctl(struct file *f,
 		cmd64 = TILOAD_IOCTL_SET_CALIBRATION;
 		break;
 	default:
-		dev_info(tas_dev->dev, "%s:COMMAND = 0x%08x Not Imple\n", __func__, cmd);
+		dev_info(tas_dev->dev, "%s:COMMAND = 0x%08x Not Imple\n",
+			__func__, cmd);
 		return 0;
 	}
 	return tasdevice_ioctl(f, cmd64, (void __user *)arg);
@@ -350,7 +360,7 @@ int tasdevice_misc_register(struct tasdevice_priv *tas_dev)
 
 	nResult = misc_register(&tas_dev->misc_dev);
 	if (nResult) {
-		pr_err("error creating misc device\n");
+		dev_err(tas_dev->dev, "error creating misc device\n");
 		goto out;
 	}
 

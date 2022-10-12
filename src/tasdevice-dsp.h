@@ -138,8 +138,11 @@ extern const char deviceNumber[TASDEVICE_DSP_TAS_MAX_DEVICE];
 int tasdevice_dspfw_ready(const void *pVoid, void *pContext);
 void tasdevice_dsp_remove(void *pContext);
 void tasdevice_calbin_remove(void *pContext);
-int tas2781_load_calibration(void *tas_dev, char *pFileName, enum channel i);
-int tas2781_set_calibration(void *pContext, enum channel i, int nCalibration);
-void tasdevice_select_tuningprm_cfg(void *pContext, int prm, int cfg_no, int regbin_conf_no);
+int tas2781_load_calibration(void *tas_dev, char *pFileName,
+	enum channel i);
+int tas2781_set_calibration(void *pContext, enum channel i,
+	int nCalibration);
+void tasdevice_select_tuningprm_cfg(void *pContext, int prm,
+	int cfg_no, int regbin_conf_no);
 
 #endif
