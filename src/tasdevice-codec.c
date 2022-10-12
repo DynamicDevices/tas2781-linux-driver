@@ -49,12 +49,13 @@ static int tasdevice_program_put(struct snd_kcontrol *pKcontrol,
 	return 0;
 }
 
-static int tasdevice_configuration_get(struct snd_kcontrol *pKcontrol,
-		struct snd_ctl_elem_value *pValue)
+static int tasdevice_configuration_get(
+	struct snd_kcontrol *pKcontrol,
+	struct snd_ctl_elem_value *pValue)
 {
 
 	struct snd_soc_component *codec
-					= snd_soc_kcontrol_component(pKcontrol);
+		= snd_soc_kcontrol_component(pKcontrol);
 	struct tasdevice_priv *pTAS2781 = snd_soc_component_get_drvdata(codec);
 
 	mutex_lock(&pTAS2781->codec_lock);
@@ -63,7 +64,8 @@ static int tasdevice_configuration_get(struct snd_kcontrol *pKcontrol,
 	return 0;
 }
 
-static int tasdevice_configuration_put(struct snd_kcontrol *pKcontrol,
+static int tasdevice_configuration_put(
+	struct snd_kcontrol *pKcontrol,
 	struct snd_ctl_elem_value *pValue)
 {
 	struct snd_soc_component *codec
@@ -107,7 +109,7 @@ static int tasdevice_dac_event(struct snd_soc_dapm_widget *w,
 static const struct snd_soc_dapm_widget tasdevice_dapm_widgets[] = {
 	SND_SOC_DAPM_AIF_IN("ASI", "ASI Playback", 0, SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_AIF_OUT("ASI OUT", "ASI Capture", 0, SND_SOC_NOPM, 0, 0),
-	SND_SOC_DAPM_DAC_E("DAC", NULL, SND_SOC_NOPM, 0, 0, 
+	SND_SOC_DAPM_DAC_E("DAC", NULL, SND_SOC_NOPM, 0, 0,
 		tasdevice_dac_event,
 		SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
 	SND_SOC_DAPM_OUTPUT("OUT"),
@@ -217,22 +219,26 @@ void powercontrol_routine(struct work_struct *work)
 		container_of(work, struct tasdevice_priv,
 		powercontrol_work.work);
 	struct TFirmware *pFw = NULL;
-	// struct tasdevice_config_info **cfg_info = tas_dev->mtRegbin.cfg_info;
 	int profile_cfg_id = 0;
 
 	dev_info(tas_dev->dev, "%s: enter\n", __func__);
+
 	mutex_lock(&tas_dev->codec_lock);
+	/*mnCurrentProgram != 0 is dsp mode or tuning mode*/
 	if (tas_dev->mnCurrentProgram) {
+		/*bypass all in regbin is profile id 0*/
 		profile_cfg_id = REGBIN_CONFIGID_BYPASS_ALL;
 	} else {
 		profile_cfg_id = tas_dev->mtRegbin.profile_cfg_id;
 		pFw = tas_dev->mpFirmware;
 		dev_info(tas_dev->dev, "%s: %s\n", __func__,
-			pFw->mpConfigurations[tas_dev->mnCurrentConfiguration].mpName);
+			pFw->mpConfigurations[tas_dev->mnCurrentConfiguration]
+			.mpName);
 		tasdevice_select_tuningprm_cfg(tas_dev,
-			tas_dev->mnCurrentProgram, tas_dev->mnCurrentConfiguration,
+			tas_dev->mnCurrentProgram,
+			tas_dev->mnCurrentConfiguration,
 			profile_cfg_id);
-			
+
 	}
 	tasdevice_select_cfg_blk(tas_dev, profile_cfg_id,
 		TASDEVICE_BIN_BLK_PRE_POWER_UP);
@@ -336,60 +342,40 @@ static int tasdevice_codec_probe(
 {
 	struct tasdevice_priv *tas_dev =
 		snd_soc_component_get_drvdata(codec);
-	int ret = 0, i = 0;
+	int ret = 0;
+	int i = 0;
 
-	dev_err(tas_dev->dev, "%s, enter\n", __func__);
+	dev_info(tas_dev->dev, "%s, enter\n", __func__);
 	/* Codec Lock Hold */
 	mutex_lock(&tas_dev->codec_lock);
 	tas_dev->codec = codec;
 	scnprintf(tas_dev->regbin_binaryname, 64, "%s_regbin.bin",
 		tas_dev->dev_name);
 	ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
-			tas_dev->regbin_binaryname, tas_dev->dev, GFP_KERNEL, tas_dev,
-			tasdevice_regbin_ready);
+		tas_dev->regbin_binaryname, tas_dev->dev, GFP_KERNEL, tas_dev,
+		tasdevice_regbin_ready);
 	if (ret)
 		dev_err(tas_dev->dev,
 			"%s: request_firmware_nowait error:0x%08x\n",
 			__func__, ret);
 
 	for (i = 0; i < tas_dev->ndev; i++) {
-			ret = tasdevice_dev_write(tas_dev, i,
-				TASDEVICE_REG_SWRESET,
-				TASDEVICE_REG_SWRESET_RESET);
-			if (ret < 0) {
-				pr_err("%s:%u: chn %d I2c fail, %d\n",
-					__func__, __LINE__, i, ret);
-				goto out;
-			}
+		ret = tasdevice_dev_write(tas_dev, i,
+			TASDEVICE_REG_SWRESET,
+			TASDEVICE_REG_SWRESET_RESET);
+		if (ret < 0) {
+			dev_err(tas_dev->dev, "%s: chn %d I2c fail, %d\n",
+				__func__, i, ret);
+			goto out;
 		}
-		usleep_range(1000, 1050);
-		for (i = 0; i < tas_dev->ndev; i++) {
-			ret = tasdevice_dev_read(tas_dev, i,
-						TASDEVICE_REG_REV_PGID,
-						&(tas_dev->tasdevice[i].mPGID));
-			if (ret < 0) {
-				pr_err("%s:%u: chn %d dev communication fail, %d\n",
-					__func__, __LINE__, i, ret);
-				goto out;
-			}
-			//unlock Page0xFD
-			ret = tasdevice_dev_write(tas_dev, i, TAS2781_REG_UNLCK, 0xD);
-			if (ret != 0) {
-				pr_err("%s:%u: error\n", __func__, __LINE__);
-				goto out;
-			}
-			ret = tasdevice_dev_read(tas_dev, i,
-						TAS2781_DEVICEID, &(tas_dev->tasdevice[i].mDeviceID));
-			if (ret < 0) {
-				pr_err("%s:%u: chn %d I2c fail, %d\n",
-					__func__, __LINE__, i, ret);
-				goto out;
-			}
-		}
+	}
+
+	//usleep_range(1000, 1050);
+
 out:
 	/* Codec Lock Release*/
 	mutex_unlock(&tas_dev->codec_lock);
-	dev_err(tas_dev->dev, "%s, codec probe success\n", __func__);
+	dev_info(tas_dev->dev, "%s, codec probe success\n", __func__);
 
 	return ret;
 }
@@ -408,8 +394,6 @@ static void tasdevice_codec_remove(
 	return;
 
 }
-/*#define __PRINT_MACRO(x) #x
-#define PRINT_MACRO(x) #x"="__PRINT_MACRO(x)*/
 
 static const struct snd_soc_component_driver
 	soc_codec_driver_tasdevice = {
@@ -549,7 +533,7 @@ static int tasdevice_info_dsp(struct snd_kcontrol *kcontrol,
 		__func__, (int)Tfw->mnConfigurations);
 	for (i = 0; i < Tfw->mnConfigurations; i++) {
 		dev_info(p_tasdevice->dev, "%s: conf%d. %s\n",
-			__func__, i, Tfw->mpConfigurations[i].mpName);		
+			__func__, i, Tfw->mpConfigurations[i].mpName);
 	}
 
 	return 0;
