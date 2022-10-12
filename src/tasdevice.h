@@ -13,6 +13,9 @@
 #include <linux/pm.h>
 #include <linux/i2c.h>
 #include <linux/of.h>
+#ifdef CONFIG_COMPAT
+	#include <linux/compat.h>
+#endif
 
 #define SMARTAMP_MODULE_NAME	("tas2781")
 #define MAX_LENGTH				(128)
@@ -74,16 +77,18 @@
 #define TASDEVICE_InterruptMaskReg2_Disable (0xff)
 
 	/*Latched-Interrupt Reg0 */
-#define TASDEVICE_LATCHEDINTERRUPTREG0  TASDEVICE_REG(0x0, 0x0, 0x49)
-#define TASDEVICE_LATCHEDINTERRUPTREG0_TDMCLOCKERRORSTICKY_MASK  (0x1 << 2)
-#define TASDEVICE_LATCHEDINTERRUPTREG0_TDMCLOCKERRORSTICKY_NOINTERRUPT  (0x0 << 2)
-#define TASDEVICE_LATCHEDINTERRUPTREG0_TDMCLOCKERRORSTICKY_INTERRUPT  (0x1 << 2)
+#define TASDEVICE_LATCHEDINTERRUPTREG0	TASDEVICE_REG(0x0, 0x0, 0x49)
+#define TASDEVICE_LATCHEDINTERRUPTREG0_TDMCLOCKERRORSTICKY_MASK	(0x1 << 2)
+#define TASDEVICE_LATCHEDINTERRUPTREG0_TDMCLOCKERRORSTICKY_NOINTERRUPT	\
+	(0x0 << 2)
+#define TASDEVICE_LATCHEDINTERRUPTREG0_TDMCLOCKERRORSTICKY_INTERRUPT	\
+	(0x1 << 2)
 #define TASDEVICE_LATCHEDINTERRUPTREG0_OCEFLAGSTICKY_MASK  (0x1 << 1)
 #define TASDEVICE_LATCHEDINTERRUPTREG0_OCEFLAGSTICKY_NOINTERRUPT  (0x0 << 1)
 #define TASDEVICE_LATCHEDINTERRUPTREG0_OCEFLAGSTICKY_INTERRUPT  (0x1 << 1)
 
 	/*Interrupt Configuration */
-#define TASDEVICE_INTERRUPTCONFIGURATION  TASDEVICE_REG(0x0, 0x0, 0x5C)
+#define TASDEVICE_INTERRUPTCONFIGURATION	TASDEVICE_REG(0x0, 0x0, 0x5C)
 #define TASDEVICE_INTERRUPTCONFIGURATION_LTCHINTCLEAR_MASK (0x1 << 2)
 #define TASDEVICE_INTERRUPTCONFIGURATION_LTCHINTCLEAR (0x1 << 2)
 
@@ -98,7 +103,8 @@
 #define TASDEVICE_I2CChecksum  TASDEVICE_REG(0x0, 0x0, 0x7E)
 
 #define TAS2781_REG_MISC_DSP  TASDEVICE_REG(0x0, 0x1, 0x02)
-#define TAS2781_REG_MISC_DSP_ROM_MODE_MASK				(0xf << 1)
+#define TAS2781_REG_MISC_DSP_ROM_MODE_MASK			\
+	(0xf << 1)
 /*DSP mode*/
 #define TAS2781_REG_MISC_DSP_ROM_MODE_RAM_MODE			(0x0 << 1)
 /*bypass mode*/
@@ -143,9 +149,10 @@ struct smartpa_gpio_info {
 #define TILOAD_IOCTL_SET_CHL		_IOW(TILOAD_IOC_MAGIC, 5, int)
 #define TILOAD_IOCTL_SET_CALIBRATION	_IOW(TILOAD_IOC_MAGIC, 7, int)
 
-#define TILOAD_IOC_MAGIC_SET_DEFAULT_CALIB_PRI	_IOWR(TILOAD_IOC_MAGIC, 15,	\
-										void *)
-#define TILOAD_IOC_MAGIC_PA_INFO_GET	_IOR(TILOAD_IOC_MAGIC, 34, struct smartpa_info)
+#define TILOAD_IOC_MAGIC_SET_DEFAULT_CALIB_PRI	_IOWR(TILOAD_IOC_MAGIC, 15, \
+	void *)
+#define TILOAD_IOC_MAGIC_PA_INFO_GET	_IOR(TILOAD_IOC_MAGIC, 34, \
+	struct smartpa_info)
 
 #ifdef CONFIG_COMPAT
 #define TILOAD_COMPAT_IOMAGICNUM_GET	_IOR(TILOAD_IOC_MAGIC, 1, compat_int_t)
@@ -153,24 +160,18 @@ struct smartpa_gpio_info {
 #define TILOAD_COMPAT_BPR_READ		_IOR(TILOAD_IOC_MAGIC, 3, struct BPR)
 #define TILOAD_COMPAT_BPR_WRITE		_IOW(TILOAD_IOC_MAGIC, 4, struct BPR)
 #define TILOAD_COMPAT_IOCTL_SET_CHL	_IOW(TILOAD_IOC_MAGIC, 5, compat_int_t)
-//#define TILOAD_COMPAT_IOCTL_SET_CONFIG	_IOW(TILOAD_IOC_MAGIC, 6, compat_int_t)
-#define TILOAD_COMPAT_IOCTL_SET_CALIBRATION	_IOW(TILOAD_IOC_MAGIC, 7, compat_int_t)
-#define TILOAD_IOC_MAGIC_PA_DEINIT_COMPAT	_IOWR(TILOAD_IOC_MAGIC, 13,	\
-							compat_uptr_t)
-#define TILOAD_IOC_MAGIC_PA_INIT_COMPAT		_IOWR(TILOAD_IOC_MAGIC, 14, struct smartpa_info)
-#define TILOAD_IOC_MAGIC_SET_DEFAULT_CALIB_PRI_COMPAT	_IOWR(TILOAD_IOC_MAGIC, 15,	\
-									compat_uptr_t)
-#define TILOAD_IOC_MAGIC_POWERON_COMPAT		_IOWR(TILOAD_IOC_MAGIC, 16, struct smartpa_params)
-#define TILOAD_IOC_MAGIC_POWER_OFF_COMPAT	_IOWR(TILOAD_IOC_MAGIC, 23, struct smartpa_params)
-#define TILOAD_IOC_COMPAT_MAGIC_PA_INFO_GET	_IOR(TILOAD_IOC_MAGIC, 34, struct smartpa_info)
+#define TILOAD_COMPAT_IOCTL_SET_CALIBRATION	_IOW(TILOAD_IOC_MAGIC, 7, \
+	compat_int_t)
+#define TILOAD_IOC_MAGIC_SET_DEFAULT_CALIB_PRI_COMPAT	\
+ 	_IOWR(TILOAD_IOC_MAGIC, 15, compat_uptr_t)
+#define TILOAD_IOC_COMPAT_MAGIC_PA_INFO_GET	\
+	_IOR(TILOAD_IOC_MAGIC, 34, struct smartpa_info)
 #endif
 
-#define SMS_HTONS(a, b)  ((((a)&0x00FF)<<8) | \
-				((b)&0x00FF))
-#define SMS_HTONL(a, b, c, d) ((((a)&0x000000FF)<<24) |\
-					(((b)&0x000000FF)<<16) | \
-					(((c)&0x000000FF)<<8) | \
-					((d)&0x000000FF))
+#define SMS_HTONS(a, b)  ((((a)&0x00FF)<<8) | ((b)&0x00FF))
+#define SMS_HTONL(a, b, c, d) ((((a)&0x000000FF)<<24) | \
+	(((b)&0x000000FF)<<16) | (((c)&0x000000FF)<<8) | \
+	((d)&0x000000FF))
 
 /*typedefs required for the included header files */
 struct BPR {
@@ -187,8 +188,6 @@ struct Tbookpage {
 struct Ttasdevice {
 	unsigned int mnDevAddr;
 	unsigned int mnErrCode;
-	int mPGID;
-	int mDeviceID;
 	short mnCurrentProgram;
 	short mnCurrentConfiguration;
 	short mnCurrentRegConf;
@@ -242,7 +241,6 @@ struct tasdevice_irqinfo {
 	bool mb_irq_enable;
 };
 
-
 struct tasdevice_priv {
 	struct device *dev;
 	void *client;//struct i2c_client
@@ -271,7 +269,8 @@ struct tasdevice_priv {
 		unsigned int reg, unsigned char *pData, unsigned int len);
 	int (*update_bits)(struct tasdevice_priv *tas_dev, enum channel chn,
 		unsigned int reg, unsigned int mask, unsigned int value);
-	int (*set_calibration)(void *pTAS2563, enum channel chl, int calibration);
+	int (*set_calibration)(void *pTAS2563, enum channel chl,
+		int calibration);
 	int (*fw_parse_variable_header)(struct tasdevice_priv *tas_dev,
 		const struct firmware *pFW, int offset);
 	int (*fw_parse_program_data)(struct TFirmware *pFirmware,
@@ -282,6 +281,7 @@ struct tasdevice_priv {
 		struct TBlock *pBlock);
 	int (*fw_parse_calibration_data)(struct TFirmware *pFirmware,
 		const struct firmware *pFW, int offset);
+	void (*irq_work_func)(struct tasdevice_priv *pcm_dev);
 	int fw_state;
 	unsigned int magic_num;
 	int mnSPIEnable;
@@ -317,6 +317,6 @@ int tasdevice_probe_next(struct tasdevice_priv *tas_dev);
 void tasdevice_remove(struct tasdevice_priv *tas_dev);
 void tasdevice_enable_irq(
 	struct tasdevice_priv *tas_dev, bool enable);
-void tasdevice_irq_work_func(struct tasdevice_priv *tas_dev);
+void tas2781_irq_work_func(struct tasdevice_priv *tas_dev);
 
 #endif /*__PCMDEVICE_H__ */
