@@ -436,16 +436,6 @@ ssize_t regdump_show(struct device *dev,
 			goto out;
 		}
 
-		if (len + 30 <= size) {
-			len  += scnprintf(buf + len, size - len,
-				"DeviceID: 0x%02x\n\r", tas_dev->tasdevice
-				[pSysCmd->mnCurrentChannel].mDeviceID);
-		} else {
-			scnprintf(buf + PAGE_SIZE - 64, 64,
-				"[tasdevice]regdump: mem is not enough: "
-				"PAGE_SIZE = %lu\n", PAGE_SIZE);
-			len = PAGE_SIZE;
-		}
 		//2560 bytes
 		for (i = 0; i < 128; i++) {
 			n_result = tasdevice_dev_read(tas_dev,
@@ -454,26 +444,30 @@ ssize_t regdump_show(struct device *dev,
 				pSysCmd->mnPage, i), &data);
 			if (n_result < 0) {
 				len  += scnprintf(buf + len, size - len,
-					"[tasdevice]regdump: read register failed!\n\r");
+					"[tasdevice]regdump: read register "
+					"failed!\n\r");
 				break;
 			}
 			//20 bytes
-			if (len + 20 <= size) {
+			if (len + 20 <= size)
 				len  += scnprintf(buf + len, size - len,
 					"Chn%dB0x%02xP0x%02xR0x%02x:0x%02x\n",
-					pSysCmd->mnCurrentChannel, pSysCmd->mnBook,
+					pSysCmd->mnCurrentChannel,
+					pSysCmd->mnBook,
 					pSysCmd->mnPage, i, data);
-			} else {
+			else {
 				scnprintf(buf + PAGE_SIZE - 64, 64,
-					"[tasdevice]regdump: mem is not enough: "
-					"PAGE_SIZE = %lu\n", PAGE_SIZE);
+					"[tasdevice]regdump: mem is not "
+					"enough: PAGE_SIZE = %lu\n",
+					PAGE_SIZE);
 				len = PAGE_SIZE;
 				break;
 			}
 		}
 		if (len + 40 <= size)
 			len  += scnprintf(buf + len, size - len,
-				" == == == caught smartpa reg end == ==  == \n\r");
+				" == == == caught smartpa reg end "
+				"== ==  == \n\r");
 	}
 out:
 	return len;
@@ -550,10 +544,11 @@ ssize_t regbininfo_list_show(struct device *dev,
 	int n = 0, i = 0;
 
 	if (tas_dev == NULL) {
-		if (n + 42 < PAGE_SIZE) {
+		if (n + 42 < PAGE_SIZE)
 			n  += scnprintf(buf + n, PAGE_SIZE  - n,
-				"ERROR: Can't find tasdevice_priv handle!\n\r");
-		} else {
+				"ERROR: Can't find tasdevice_priv "
+				"handle!\n\r");
+		else {
 			scnprintf(buf + PAGE_SIZE - 64, 64,
 				"\n[regbininfo] Out of memory!\n\r");
 			n = PAGE_SIZE;
@@ -578,7 +573,8 @@ ssize_t regbininfo_list_show(struct device *dev,
 
 	for (i = 0; i < regbin->ncfgs; i++) {
 		if (n + 16 < PAGE_SIZE)
-			n  += scnprintf(buf + n, PAGE_SIZE  - n, "conf %02d", i);
+			n  += scnprintf(buf + n, PAGE_SIZE  - n,
+				"conf %02d", i);
 		else {
 			scnprintf(buf + PAGE_SIZE - 64, 64,
 				"\n[regbininfo] Out of memory!\n\r");
@@ -586,18 +582,17 @@ ssize_t regbininfo_list_show(struct device *dev,
 			break;
 		}
 		if (regbin->fw_hdr.binary_version_num >= 0x105) {
-			if (n + 100 < PAGE_SIZE) {
+			if (n + 100 < PAGE_SIZE)
 				n  += scnprintf(buf + n, PAGE_SIZE - n,
 					": %s\n\r", cfg_info[i]->mpName);
-			} else {
+			else {
 				scnprintf(buf + PAGE_SIZE - 64, 64,
 					"\n[regbininfo] Out of memory!\n\r");
 				n = PAGE_SIZE;
 				break;
 			}
-		} else {
+		} else
 			n  += scnprintf(buf + n, PAGE_SIZE - n, "\n\r");
-		}
 	}
 out:
 	mutex_unlock(&tas_dev->codec_lock);
@@ -682,43 +677,54 @@ ssize_t regcfg_list_show(struct device *dev,
 		len  += scnprintf(buf + len, PAGE_SIZE - len,
 			"Conf %02d", pSysCmd->mnPage);
 		if (regbin->fw_hdr.binary_version_num >= 0x105) {
-			if (len + 100 < PAGE_SIZE) {
+			if (len + 100 < PAGE_SIZE)
 				len  += scnprintf(buf + len, PAGE_SIZE - len,
-					": %s\n\r", cfg_info[pSysCmd->mnPage]->mpName);
-			} else {
+					": %s\n\r",
+					cfg_info[pSysCmd->mnPage]->mpName);
+			else {
 				scnprintf(buf + PAGE_SIZE - 64, 64,
-					"\n[tasdevice-regcfg_list] Out of memory!\n\r");
+					"\n[tasdevice-regcfg_list] Out of "
+					"memory!\n\r");
 				len = PAGE_SIZE;
 				goto out;
 			}
-		} else {
+		} else
 			len  += scnprintf(buf + len, PAGE_SIZE - len, "\n\r");
-		}
+
 		for (j = 0; j < (int)cfg_info[pSysCmd->mnPage]->real_nblocks;
 			j++) {
 			unsigned int length = 0, rc = 0;
 
 			len  += scnprintf(buf + len, PAGE_SIZE - len,
 				"block type:%s\t device idx = 0x%02x\n",
-				blocktype[cfg_info[pSysCmd->mnPage]->blk_data[j]->block_type
-				- 1],
-				cfg_info[pSysCmd->mnPage]->blk_data[j]->dev_idx);
+				blocktype[cfg_info[pSysCmd->mnPage]->
+					blk_data[j]->block_type - 1],
+				cfg_info[pSysCmd->mnPage]->blk_data[j]
+					->dev_idx);
 			for (k = 0; k <
-				(int)cfg_info[pSysCmd->mnPage]->blk_data[j]->nSublocks;
+				(int)cfg_info[pSysCmd->mnPage]->
+					blk_data[j]->nSublocks;
 				k++) {
 				rc = tasdevice_process_block_show(tas_dev,
-					cfg_info[pSysCmd->mnPage]->blk_data[j]->regdata
+					cfg_info[pSysCmd->mnPage]->
+						blk_data[j]->regdata
 						 +  length,
-					cfg_info[pSysCmd->mnBook]->blk_data[j]->dev_idx,
-					cfg_info[pSysCmd->mnPage]->blk_data[j]->block_size
+					cfg_info[pSysCmd->mnBook]->
+						blk_data[j]->dev_idx,
+					cfg_info[pSysCmd->mnPage]->
+						blk_data[j]->block_size
 					- length, buf, &len);
 				length  += rc;
-				if (cfg_info[pSysCmd->mnPage]->blk_data[j]->block_size
+				if (cfg_info[pSysCmd->mnPage]->
+					blk_data[j]->block_size
 					< length) {
-					len  += scnprintf(buf + len, PAGE_SIZE - len,
-						"tasdevice-regcfg_list: ERROR:%u %u "
+					len  += scnprintf(buf + len,
+						PAGE_SIZE - len,
+						"tasdevice-regcfg_list: "
+						"ERROR:%u %u "
 						"out of memory\n", length,
-						cfg_info[pSysCmd->mnPage]->blk_data[j]->block_size);
+						cfg_info[pSysCmd->mnPage]->
+						blk_data[j]->block_size);
 					break;
 				}
 			}
@@ -734,45 +740,17 @@ ssize_t regcfg_list_show(struct device *dev,
 out:
 		mutex_unlock(&tas_dev->codec_lock);
 	} else {
-		if (len + 42 < PAGE_SIZE) {
+		if (len + 42 < PAGE_SIZE)
 			len  += scnprintf(buf + len, PAGE_SIZE - len,
-				"ERROR: Can't find tasdevice_priv handle!\n\r");
-		} else {
+				"ERROR: Can't find tasdevice_priv "
+				"handle!\n\r");
+		else {
 			scnprintf(buf + PAGE_SIZE - 100, 100,
 				"\n[regbininfo] Out of memory!\n\r");
 			len = PAGE_SIZE;
 		}
 	}
 	return len;
-}
-
-ssize_t fwload_store(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
-{
-	struct tasdevice_priv *tas_dev = dev_get_drvdata(dev);
-	int ret = 0;
-
-	dev_info(tas_dev->dev, "fwload: count = %d\n", count);
-	if (tas_dev) {
-		mutex_lock(&tas_dev->codec_lock);
-		if (tas_dev->tas_ctrl.tasdevice_profile_controls) {
-			dev_info(tas_dev->dev, "fw %s already loaded\n",
-				tas_dev->regbin_binaryname);
-			goto out;
-		}
-
-		ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
-			tas_dev->regbin_binaryname, tas_dev->dev, GFP_KERNEL, tas_dev,
-			tasdevice_regbin_ready);
-		if (ret) {
-			dev_err(tas_dev->dev, "load %s error = %d\n",
-				tas_dev->regbin_binaryname, ret);
-		}
-out:
-		mutex_unlock(&tas_dev->codec_lock);
-	}
-
-	return count;
 }
 
 ssize_t dspfw_config_show(struct device *dev,
@@ -784,32 +762,13 @@ ssize_t dspfw_config_show(struct device *dev,
 
 	mutex_lock(&tas_dev->file_lock);
 	pFirmware = tas_dev->mpFirmware;
-	if (!tas_dev->mnCurrentProgram) {
+	if (!tas_dev->mnCurrentProgram)
 		n = scnprintf(buf, 64, "%s\n",
-			pFirmware->mpConfigurations[tas_dev->mnCurrentConfiguration]
-			.mpName);
-	} else {
+			pFirmware->mpConfigurations
+			[tas_dev->mnCurrentConfiguration].mpName);
+	else
 		n = scnprintf(buf, 64, "Current mode is bypass\n");
-	}
 
 	mutex_unlock(&tas_dev->file_lock);
-	return n;
-}
-
-ssize_t dev_addr_show(struct device *dev,
-	struct device_attribute *attr, char *buf)
-{
-	int n = 0;
-	int i;
-	struct tasdevice_priv *tas_dev = dev_get_drvdata(dev);
-
-	if (tas_dev->ndev) {
-		n = scnprintf(buf, 64, "ndev:%d\n", tas_dev->ndev);
-		for (i = 0; i < tas_dev->ndev; i++) {
-			n += scnprintf(buf+n, 64, "addr%d:%02X\n", i,
-			tas_dev->tasdevice[i].mnDevAddr);
-		}		
-	}
-
 	return n;
 }
