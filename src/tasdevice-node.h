@@ -24,8 +24,6 @@ ssize_t regcfg_list_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count);
 ssize_t regcfg_list_show(struct device *dev,
 	struct device_attribute *attr, char *buf);
-ssize_t fwload_store(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count);
 ssize_t dspfw_config_show(struct device *dev,
 	struct device_attribute *attr, char *buf);
 ssize_t dev_addr_show(struct device *dev,
