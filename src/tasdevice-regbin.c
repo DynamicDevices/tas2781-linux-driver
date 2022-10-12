@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0 
+// SPDX-License-Identifier: GPL-2.0
 // PCMDEVICE Sound driver
 // Copyright (C) 2022 Texas Instruments Incorporated  -
 // https://www.ti.com/
@@ -357,36 +357,37 @@ int tasdevice_process_block_show(void *pContext,
 
 void tasdevice_powerup_regcfg_dev(void *pContext, unsigned char dev)
 {
-	struct tasdevice_priv *p_tasdevice = (struct tasdevice_priv *) pContext;
-	struct tasdevice_regbin *regbin = &(p_tasdevice->mtRegbin);
+	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
+	struct tasdevice_regbin *regbin = &(tas_dev->mtRegbin);
 	struct tasdevice_config_info **cfg_info = regbin->cfg_info;
 	int j = 0, k = 0, conf_no = 0;
 
-	if (dev >= p_tasdevice->ndev) {
-		pr_err("%s:%u: dev:%d\n", __func__, __LINE__, dev);
+	if (dev >= tas_dev->ndev) {
+		dev_err(tas_dev->dev, "%s: dev:%d\n", __func__, dev);
 		goto out;
 	}
 
-	if (0 == p_tasdevice->tasdevice[dev].PowerStatus) {
-		pr_info("%s:%u:dev %d is power off\n",
-			__func__, __LINE__, dev);
+	if (0 == tas_dev->tasdevice[dev].PowerStatus) {
+		dev_info(tas_dev->dev, "%s: dev %d is power off\n",
+			__func__, dev);
 		goto out;
 	}
 
-	conf_no = (int)p_tasdevice->tasdevice[dev].mnCurrentRegConf;
+	conf_no = (int)tas_dev->tasdevice[dev].mnCurrentRegConf;
 
 	if (conf_no >= regbin->ncfgs || conf_no < 0 || NULL == cfg_info) {
-		pr_err("conf_no should be in range from 0 to %d\n",
+		dev_err(tas_dev->dev,
+			"conf_no should be in range from 0 to %d\n",
 			regbin->ncfgs-1);
 		goto out;
 	} else {
-		pr_info("%s:%u:profile_conf_id = %d\n", __func__, __LINE__,
-			conf_no);
+		dev_info(tas_dev->dev, "%s: profile_conf_id = %d\n",
+			__func__, conf_no);
 	}
 
-	for (k = 0; k < p_tasdevice->ndev; k++) {
-		p_tasdevice->tasdevice[k].bLoading = false;
-		p_tasdevice->tasdevice[k].bLoaderr = false;
+	for (k = 0; k < tas_dev->ndev; k++) {
+		tas_dev->tasdevice[k].bLoading = false;
+		tas_dev->tasdevice[k].bLoaderr = false;
 	}
 
 	for (j = 0; j < (int)cfg_info[conf_no]->real_nblocks; j++) {
@@ -395,36 +396,44 @@ void tasdevice_powerup_regcfg_dev(void *pContext, unsigned char dev)
 		if (TASDEVICE_BIN_BLK_PRE_POWER_UP !=
 			cfg_info[conf_no]->blk_data[j]->block_type)
 			continue;
-		pr_info("%s:%u:conf %d\n", __func__, __LINE__, conf_no);
-		pr_info("%s:%u:block type:%s\t device idx = 0x%02x\n",
-			__func__, __LINE__,
-			blocktype[cfg_info[conf_no]->blk_data[j]->block_type-1],
+		dev_info(tas_dev->dev, "%s: conf %d\n", __func__, conf_no);
+		dev_info(tas_dev->dev,
+			"%s: block type:%s\t device idx = 0x%02x\n", __func__,
+			blocktype[cfg_info[conf_no]->blk_data[j]->
+				block_type-1],
 			cfg_info[conf_no]->blk_data[j]->dev_idx);
 		if ((cfg_info[conf_no]->blk_data[j]->dev_idx != 0)
-			&& (cfg_info[conf_no]->blk_data[j]->dev_idx-1 != dev)) {
-			pr_info("%s:%u:No device %u in conf %d\n", __func__, __LINE__,
-				dev, conf_no);
+			&& (cfg_info[conf_no]->blk_data[j]->
+				dev_idx-1 != dev)) {
+			dev_info(tas_dev->dev, "%s: No device %u in conf %d\n",
+				__func__, dev, conf_no);
 			goto out;
 		}
 
-		p_tasdevice->tasdevice[dev].bLoading = true;
-		for (k = 0; k < (int)cfg_info[conf_no]->blk_data[j]->nSublocks; k++) {
-			rc = tasdevice_process_block(p_tasdevice,
-				cfg_info[conf_no]->blk_data[j]->regdata + length,
-				dev + 1,
-				cfg_info[conf_no]->blk_data[j]->block_size - length);
-			length  += rc;
-			if (cfg_info[conf_no]->blk_data[j]->block_size < length) {
-				pr_err("%s:%u:ERROR:%u %u out of memory\n",
-					__func__, __LINE__,
+		tas_dev->tasdevice[dev].bLoading = true;
+		for (k = 0; k < (int)cfg_info[conf_no]->blk_data[j]->nSublocks;
+			k++) {
+			rc = tasdevice_process_block(tas_dev,
+				cfg_info[conf_no]->blk_data[j]->regdata +
 					length,
-					cfg_info[conf_no]->blk_data[j]->block_size);
+				dev + 1,
+				cfg_info[conf_no]->blk_data[j]->block_size -
+					length);
+			length  += rc;
+			if (cfg_info[conf_no]->blk_data[j]->block_size <
+				length) {
+				dev_err(tas_dev->dev,
+					"%s: ERROR:%u %u out of memory\n",
+					__func__, length,
+					cfg_info[conf_no]->blk_data[j]->
+						block_size);
 				break;
 			}
 		}
 		if (length != cfg_info[conf_no]->blk_data[j]->block_size) {
-			pr_err("%s:%u:ERROR: %u %u size is not same\n",
-				__func__, __LINE__, length,
+			dev_err(tas_dev->dev,
+				"%s: ERROR: %u %u size is not same\n",
+				__func__, length,
 				cfg_info[conf_no]->blk_data[j]->block_size);
 		}
 	}
@@ -452,13 +461,14 @@ void tasdevice_select_cfg_blk(void *pContext, int conf_no,
 			"select_cfg_blk: profile_conf_id = %d\n",
 			conf_no);
 	}
-//TODO:INTR
+
 	for (j = 0; j < (int)cfg_info[conf_no]->real_nblocks; j++) {
 		unsigned int length = 0, rc = 0;
 
 		if (block_type > 5 || block_type < 2) {
 			dev_err(tas_dev->dev,
-				"ERROR!!!block_type should be in range from 2 to 5\n");
+				"ERROR!!!block_type should be in range from 2 "
+				"to 5\n");
 			goto out;
 		}
 		if (block_type != cfg_info[conf_no]->blk_data[j]->block_type)
@@ -482,24 +492,29 @@ void tasdevice_select_cfg_blk(void *pContext, int conf_no,
 				tas_dev->tasdevice[chn].bLoading = true;
 			}
 			rc = tasdevice_process_block(tas_dev,
-				cfg_info[conf_no]->blk_data[j]->regdata + length,
+				cfg_info[conf_no]->blk_data[j]->regdata +
+					length,
 				cfg_info[conf_no]->blk_data[j]->dev_idx,
-				cfg_info[conf_no]->blk_data[j]->block_size - length);
+				cfg_info[conf_no]->blk_data[j]->block_size -
+					length);
 			length  += rc;
-			if (cfg_info[conf_no]->blk_data[j]->block_size < length) {
+			if (cfg_info[conf_no]->blk_data[j]->block_size <
+				length) {
 				dev_err(tas_dev->dev, "select_cfg_blk: "
 					"ERROR:%u %u out of memory\n", length,
-					cfg_info[conf_no]->blk_data[j]->block_size);
+					cfg_info[conf_no]->blk_data[j]->
+						block_size);
 				break;
 			}
 		}
 		if (length != cfg_info[conf_no]->blk_data[j]->block_size) {
 			dev_err(tas_dev->dev,
-				"select_cfg_blk: ERROR: %u %u size is not same\n",
-				length, cfg_info[conf_no]->blk_data[j]->block_size);
+				"select_cfg_blk: ERROR: %u %u size is not "
+				"same\n", length,
+				cfg_info[conf_no]->blk_data[j]->block_size);
 		}
 	}
-//TODO: INTR
+
 out:
 	return;
 }
@@ -554,8 +569,8 @@ static struct tasdevice_config_info *tasdevice_add_config(
 	for (i = 0; i < (int)cfg_info->nblocks; i++) {
 		if (config_offset + 12 > config_size) {
 			dev_err(tas_dev->dev,
-				"add config: Out of memory: i = %d nblocks = %u!\n",
-				i, cfg_info->nblocks);
+				"add config: Out of memory: i = %d nblocks = "
+				"%u!\n", i, cfg_info->nblocks);
 			break;
 		}
 		cfg_info->blk_data[i] = kzalloc(
@@ -577,7 +592,8 @@ static struct tasdevice_config_info *tasdevice_add_config(
 				cfg_info->active_dev = 1;
 			} else {
 				cfg_info->active_dev =
-					(1 << (cfg_info->blk_data[i]->dev_idx-1));
+					(1 << (cfg_info->blk_data[i]->
+					dev_idx-1));
 			}
 		}
 		cfg_info->blk_data[i]->yram_checksum =
@@ -609,7 +625,8 @@ static struct tasdevice_config_info *tasdevice_add_config(
 			> config_size) {
 			dev_err(tas_dev->dev,
 				"add config: block_size Out of memory: "
-				"i = %d nblocks = %u!\n", i, cfg_info->nblocks);
+				"i = %d nblocks = %u!\n", i,
+				cfg_info->nblocks);
 			break;
 		}
 		memcpy(cfg_info->blk_data[i]->regdata,
@@ -645,13 +662,12 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 	regbin = &(tas_dev->mtRegbin);
 	fw_hdr = &(regbin->fw_hdr);
 	if (unlikely(!pFW) || unlikely(!pFW->data)) {
-		dev_err(tas_dev->dev,
-			"Failed to read %s, no side - effect on driver running\n",
-			tas_dev->regbin_binaryname);
+		dev_err(tas_dev->dev, "Failed to read %s, no side - effect on "
+			"driver running\n", tas_dev->regbin_binaryname);
 		ret = -1;
 		goto out;
 	}
-	buf = (unsigned char *)pFW->data;//¿½±´buf
+	buf = (unsigned char *)pFW->data;
 
 	dev_info(tas_dev->dev, "tasdev: regbin_ready start\n");
 	fw_hdr->img_sz = SMS_HTONL(buf[offset], buf[offset + 1],
@@ -751,13 +767,14 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 		regbin->ncfgs  += 1;
 	}
 	tasdevice_create_controls(tas_dev);
-	
+
 	tasdevice_dsp_remove(tas_dev);
 	tasdevice_calbin_remove(tas_dev);
 	tas_dev->fw_state = TASDEVICE_DSP_FW_PENDING;
 	scnprintf(tas_dev->dsp_binaryname, 64, "%s_dsp.bin",
 		tas_dev->dev_name);
-	ret = request_firmware(&fw_entry, tas_dev->dsp_binaryname, tas_dev->dev);
+	ret = request_firmware(&fw_entry, tas_dev->dsp_binaryname,
+		tas_dev->dev);
 	if (!ret) {
 		ret = tasdevice_dspfw_ready(fw_entry, tas_dev);
 		release_firmware(fw_entry);
@@ -773,12 +790,14 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 	tas_dev->fw_state = TASDEVICE_DSP_FW_ALL_OK;
 
 	for (i = 0; i < tas_dev->ndev; i++) {
-		scnprintf(tas_dev->cal_binaryname[i], 64, "%s_cal_%02X.bin",
+		scnprintf(tas_dev->cal_binaryname[i], 64, "%s_cal_0x%02x.bin",
 			tas_dev->dev_name, tas_dev->tasdevice[i].mnDevAddr);
-		ret = tas2781_load_calibration(tas_dev, tas_dev->cal_binaryname[i], i);
+		ret = tas2781_load_calibration(tas_dev,
+			tas_dev->cal_binaryname[i], i);
 		if (ret != 0) {
-			dev_err(tas_dev->dev, "%s: load %s error, no-side effect for playback\n",
-				__func__, tas_dev->cal_binaryname[i]);
+			dev_err(tas_dev->dev, "%s: load %s error, no-side "
+				"effect for playback\n", __func__,
+				tas_dev->cal_binaryname[i]);
 			ret = 0;
 		}
 	}
@@ -803,7 +822,8 @@ void tasdevice_config_info_remove(void *pContext)
 			if (cfg_info[i]) {
 				for (j = 0; j < (int)cfg_info[i]->real_nblocks;
 					j++) {
-					kfree(cfg_info[i]->blk_data[j]->regdata);
+					kfree(cfg_info[i]->blk_data[j]->
+						regdata);
 					kfree(cfg_info[i]->blk_data[j]);
 				}
 				kfree(cfg_info[i]->blk_data);

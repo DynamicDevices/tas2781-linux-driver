@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0 
+// SPDX-License-Identifier: GPL-2.0
 // PCMDEVICE Sound driver
 // Copyright (C) 2022 Texas Instruments Incorporated  -
 // https://www.ti.com/
@@ -135,16 +135,16 @@ static int tasdevice_change_chn_book_page(
 			n_result = tasdevice_regmap_write(tas_dev,
 				TASDEVICE_BOOKCTL_PAGE, 0);
 			if (n_result < 0) {
-				dev_err(tas_dev->dev, "%s, ERROR, L=%d, E=%d\n",
-					__func__, __LINE__, n_result);
+				dev_err(tas_dev->dev, "%s, ERROR, E=%d\n",
+					__func__, n_result);
 				goto out;
 			}
 			tas_dev->tasdevice[chn].mnBkPg.mnPage = 0;
 			n_result = tasdevice_regmap_write(tas_dev,
 				TASDEVICE_BOOKCTL_REG, book);
 			if (n_result < 0) {
-				dev_err(tas_dev->dev, "%s, ERROR, L=%d, E=%d\n",
-					__func__, __LINE__, n_result);
+				dev_err(tas_dev->dev, "%s, ERROR, E=%d\n",
+					__func__, n_result);
 				goto out;
 			}
 			tas_dev->tasdevice[chn].mnBkPg.mnBook = book;
@@ -154,18 +154,15 @@ static int tasdevice_change_chn_book_page(
 			n_result = tasdevice_regmap_write(tas_dev,
 				TASDEVICE_BOOKCTL_PAGE, page);
 			if (n_result < 0) {
-				dev_err(tas_dev->dev,
-					"%s, ERROR, L=%d, E=%d\n",
-					__func__, __LINE__, n_result);
+				dev_err(tas_dev->dev, "%s, ERROR, E=%d\n",
+					__func__, n_result);
 				goto out;
 			}
 			tas_dev->tasdevice[chn].mnBkPg.mnPage = page;
 		}
-	} else {
-		dev_err(tas_dev->dev,
-			"%s, ERROR, L=%d no such channel(%d)\n",
-			__func__, __LINE__, chn);
-	}
+	} else
+		dev_err(tas_dev->dev, "%s, ERROR, no such channel(%d)\n",
+			__func__, chn);
 
 out:
 	return n_result;
@@ -198,18 +195,19 @@ int tasdevice_dev_read(struct tasdevice_priv *tas_dev,
 		n_result = tasdevice_regmap_read(tas_dev,
 			TASDEVICE_PAGE_REG(reg), pValue);
 		if (n_result < 0)
-			dev_err(tas_dev->dev, "%s, ERROR, L=%d, E=%d\n",
-				__func__, __LINE__, n_result);
+			dev_err(tas_dev->dev, "%s, ERROR,E=%d\n",
+				__func__, n_result);
 		else
 			dev_dbg(tas_dev->dev,
-				"%s: chn:0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:0x%02x, "
-				"0x%02x\n", __func__, tas_dev->tasdevice[chn].mnDevAddr,
+				"%s: chn:0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:"
+				"0x%02x, 0x%02x\n", __func__,
+				tas_dev->tasdevice[chn].mnDevAddr,
 				TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg),
 				TASDEVICE_PAGE_REG(reg), *pValue);
-	} else {
-		dev_err(tas_dev->dev, "%s, ERROR, L=%d no such channel(%d)\n",
-			__func__, __LINE__, chn);
-	}
+	} else
+		dev_err(tas_dev->dev, "%s, ERROR, no such channel(%d)\n",
+			__func__, chn);
+
 out:
 	mutex_unlock(&tas_dev->dev_lock);
 	return n_result;
@@ -244,8 +242,8 @@ int tasdevice_dev_write(struct tasdevice_priv *tas_dev,
 		n_result = tasdevice_regmap_write(tas_dev,
 			TASDEVICE_PAGE_REG(reg), value);
 		if (n_result < 0)
-			dev_err(tas_dev->dev, "%s, ERROR, L=%d, E=%d\n",
-				__func__, __LINE__, n_result);
+			dev_err(tas_dev->dev, "%s, ERROR, E=%d\n",
+				__func__, n_result);
 		else
 			dev_dbg(tas_dev->dev, "%s: chn0x%02x:BOOK:PAGE:REG "
 				"0x%02x:0x%02x:0x%02x, VAL: 0x%02x\n",
@@ -253,9 +251,8 @@ int tasdevice_dev_write(struct tasdevice_priv *tas_dev,
 				TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg),
 				TASDEVICE_PAGE_REG(reg), value);
 	} else
-		dev_err(tas_dev->dev,
-			"%s, ERROR, L=%d no such channel(%d)\n",
-			__func__, __LINE__, chn);
+		dev_err(tas_dev->dev, "%s, ERROR, no such channel(%d)\n",
+			__func__, chn);
 out:
 	mutex_unlock(&tas_dev->dev_lock);
 	return n_result;
@@ -290,18 +287,18 @@ int tasdevice_dev_bulk_write(
 		n_result = tasdevice_regmap_bulk_write(tas_dev,
 			TASDEVICE_PAGE_REG(reg), p_data, n_length);
 		if (n_result < 0)
-			dev_err(tas_dev->dev, "%s, ERROR, L=%d, E=%d\n",
-				__func__, __LINE__, n_result);
+			dev_err(tas_dev->dev, "%s, ERROR, E=%d\n",
+				__func__, n_result);
 		else
 			dev_dbg(tas_dev->dev,
-				"%s: chn0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:0x%02x, "
-				"len: 0x%02x\n", __func__, tas_dev->tasdevice[chn].mnDevAddr,
+				"%s: chn0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:"
+				"0x%02x, len: 0x%02x\n", __func__,
+				tas_dev->tasdevice[chn].mnDevAddr,
 				TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg),
 				TASDEVICE_PAGE_REG(reg), n_length);
 	} else
-		dev_err(tas_dev->dev,
-			"%s, ERROR, L=%d no such channel(%d)\n",
-			__func__, __LINE__, chn);
+		dev_err(tas_dev->dev, "%s, ERROR, no such channel(%d)\n",
+			__func__, chn);
 out:
 	mutex_unlock(&tas_dev->dev_lock);
 	return n_result;
@@ -334,17 +331,18 @@ int tasdevice_dev_bulk_read(struct tasdevice_priv *tas_dev,
 		n_result = tasdevice_regmap_bulk_read(tas_dev,
 			TASDEVICE_PAGE_REG(reg), p_data, n_length);
 		if (n_result < 0)
-			dev_err(tas_dev->dev, "%s, ERROR, L=%d, E=%d\n",
-				__func__, __LINE__, n_result);
+			dev_err(tas_dev->dev, "%s, ERROR, E=%d\n",
+				__func__, n_result);
 		else
 			dev_dbg(tas_dev->dev,
-				"%s: chn0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:0x%02x, "
-				"len: 0x%02x\n", __func__, tas_dev->tasdevice[chn].mnDevAddr,
+				"%s: chn0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:"
+				"0x%02x, len: 0x%02x\n", __func__,
+				tas_dev->tasdevice[chn].mnDevAddr,
 				TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg),
 				TASDEVICE_PAGE_REG(reg), n_length);
 	} else
-		dev_err(tas_dev->dev, "%s, ERROR, L=%d "
-			"no such channel(%d)\n", __func__, __LINE__, chn);
+		dev_err(tas_dev->dev, "%s, ERROR, no such channel(%d)\n",
+			__func__, chn);
 
 out:
 	mutex_unlock(&tas_dev->dev_lock);
@@ -378,8 +376,8 @@ int tasdevice_dev_update_bits(
 		n_result = tasdevice_regmap_update_bits(tas_dev,
 			TASDEVICE_PAGE_REG(reg), mask, value);
 		if (n_result < 0)
-			dev_err(tas_dev->dev, "%s, ERROR, L=%d, E=%d\n",
-				__func__, __LINE__, n_result);
+			dev_err(tas_dev->dev, "%s, ERROR, E=%d\n",
+				__func__, n_result);
 		else
 			dev_dbg(tas_dev->dev,
 			"%s: chn0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:0x%02x, "
@@ -388,8 +386,8 @@ int tasdevice_dev_update_bits(
 				TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg),
 				TASDEVICE_PAGE_REG(reg), mask, value);
 	} else
-		dev_err(tas_dev->dev, "%s, ERROR, L=%d "
-			"no such channel(%d)\n", __func__, __LINE__, chn);
+		dev_err(tas_dev->dev, "%s, ERROR, no such channel(%d)\n",
+			__func__, chn);
 
 out:
 	mutex_unlock(&tas_dev->dev_lock);
