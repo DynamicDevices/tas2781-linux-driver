@@ -1,14 +1,10 @@
-menuconfig SND_SOC_TASDEVICE
-	bool "Texas Instruments TASDEVICE"
-
-if SND_SOC_TASEVICE
-menu "Texas Instruments TASDEVICE"
-config TASDEVICE_CODEC
+config SND_SOC_TASDEVICE
+	tristate "Texas Instruments TASDEVICE"
 	select REGMAP
 	select REGMAP_I2C
 	select I2C
 	select SYSFS
-	def_bool y
-
-endmenu
-endif #SND_SOC_TASDEVICE
+	help
+	  Enable support Texas Instruments tasdevice.
+	  To compile this driver as a module, choose M here.
+	  If unsure select "N".
