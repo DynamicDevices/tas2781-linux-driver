@@ -1363,7 +1363,7 @@ int tas2781_load_calibration(void *pContext,
 	}
 	pTasdev->mbCalibrationLoaded = true;
 out:
-	if(!IS_ERR_OR_NULL(filp)) {
+	if (!IS_ERR_OR_NULL(filp)) {
 		set_fs(fs);
 		filp_close(filp, NULL);
 		kfree(data);
@@ -1674,6 +1674,16 @@ void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 			}
 		}
 	}
+
+	if(tas_dev->mbCalibrationLoaded == false) {
+		for (i = 0; i < tas_dev->ndev; i++)
+			tas_dev->set_calibration(tas_dev, i, 0x100);
+		tas_dev->mbCalibrationLoaded = true;
+		/* We don't want to reload calibrationdata everytime,
+		this part will work once detected
+		tas_dev->mbCalibrationLoaded == false at first time */
+	}
+
 	status = 0;
 	for (i = 0; i < tas_dev->ndev; i++) {
 		dev_info(tas_dev->dev, "%s,fun %d,%d,%d\n", __func__,
@@ -1731,8 +1741,11 @@ int tas2781_set_calibration(void *pContext, enum channel i,
 		nResult = 0;
 		goto out;
 	}
-	if (nCalibration == 0xFF) {
+
+	if (nCalibration == 0xFF || (nCalibration == 0x100
+		&& pTasdev->mbCalibrationLoaded == false)) {
 		if (pCalFirmware) {
+			pTasdev->mbCalibrationLoaded = false;
 			tas2781_clear_Calfirmware(pCalFirmware);
 			pCalFirmware = NULL;
 		}

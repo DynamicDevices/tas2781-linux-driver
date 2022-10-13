@@ -6,7 +6,6 @@
 #ifndef __TASDEV_CTL_H__
 #define __TASDEV_CTL_H__
 
-long tasdevice_init(void *pContext, int);
 void tasdevice_deinit(void *pContext);
 
 #endif
