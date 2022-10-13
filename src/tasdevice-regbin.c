@@ -788,7 +788,7 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 	tasdevice_dsp_create_control(tas_dev);
 
 	tas_dev->fw_state = TASDEVICE_DSP_FW_ALL_OK;
-
+	tas_dev->mbCalibrationLoaded = true;
 	for (i = 0; i < tas_dev->ndev; i++) {
 		scnprintf(tas_dev->cal_binaryname[i], 64, "%s_cal_0x%02x.bin",
 			tas_dev->dev_name, tas_dev->tasdevice[i].mnDevAddr);
@@ -799,8 +799,10 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 				"effect for playback\n", __func__,
 				tas_dev->cal_binaryname[i]);
 			ret = 0;
+			tas_dev->mbCalibrationLoaded = false;
 		}
 	}
+
 out:
 	mutex_unlock(&tas_dev->codec_lock);
 	if (pFW)

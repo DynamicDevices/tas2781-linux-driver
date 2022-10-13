@@ -199,6 +199,7 @@ struct Ttasdevice {
 	bool bIrq_enabled;
 	bool bLoading;
 	bool bLoaderr;
+	bool mbCalibrationLoaded;
 	struct Tbookpage mnBkPg;
 	struct TFirmware *mpCalFirmware;
 };
@@ -298,6 +299,7 @@ struct tasdevice_priv {
 	int cstream;
 	struct mutex codec_lock;
 	struct delayed_work powercontrol_work;
+	bool mbCalibrationLoaded;
 };
 
 extern const char *blocktype[5];
