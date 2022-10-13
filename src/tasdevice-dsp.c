@@ -1296,7 +1296,6 @@ int tas2781_load_calibration(void *pContext,
 			__func__);
 		fs = get_fs();
 		set_fs(KERNEL_DS);
-		//path+pFileName
 		scnprintf(pHint, sizeof(pHint), "%s%s\n",
 			TAS2781_CAL_BIN_PATH, pFileName);
 		filp = filp_open(pHint, O_RDONLY, 664);
@@ -1363,7 +1362,7 @@ int tas2781_load_calibration(void *pContext,
 	}
 
 out:
-	if(filp) {
+	if (!IS_ERR_OR_NULL(filp)) {
 		set_fs(fs);
 		filp_close(filp, NULL);
 		kfree(data);
