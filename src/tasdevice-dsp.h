@@ -25,9 +25,9 @@
 
 enum channel {
 	TopLeftChn = 0x00,
-	// TopRightChn = 0x01,
-	// BottomLeftChn = 0x02,
-	// BottomRightChn = 0x03,
+	TopRightChn = 0x01,
+	BottomLeftChn = 0x02,
+	BottomRightChn = 0x03,
 	MaxChn
 };
 
