@@ -414,7 +414,6 @@ static int tasdevice_info_profile(struct snd_kcontrol *kcontrol,
 
 	uinfo->value.integer.min = 0;
 	uinfo->value.integer.max = max(0, p_tasdevice->mtRegbin.ncfgs);
-	uinfo->value.integer.step = 1;
 
 	return 0;
 }
