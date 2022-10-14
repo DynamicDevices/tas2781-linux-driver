@@ -43,7 +43,6 @@ static int tasdevice_program_put(struct snd_kcontrol *pKcontrol,
 	unsigned int nProgram = pValue->value.integer.value[0];
 
 	mutex_lock(&pTAS2781->codec_lock);
-	dev_info(pTAS2781->dev, "%s: nProgram = %u\n", __func__, nProgram);
 	pTAS2781->mnCurrentProgram = nProgram;
 	mutex_unlock(&pTAS2781->codec_lock);
 	return 0;
@@ -74,19 +73,10 @@ static int tasdevice_configuration_put(
 	unsigned int nConfiguration = pValue->value.integer.value[0];
 
 	mutex_lock(&pTAS2781->codec_lock);
-	dev_info(pTAS2781->dev, "%s: nConfiguration = %u\n", __func__,
-		nConfiguration);
 	pTAS2781->mnCurrentConfiguration = nConfiguration;
 	mutex_unlock(&pTAS2781->codec_lock);
 	return 0;
 }
-
-
-static const struct snd_kcontrol_new tasdevice_snd_controls[] = {
-	SOC_SINGLE_EXT("Program", SND_SOC_NOPM,
-		0, 0x00FF, 0, tasdevice_program_get,
-		tasdevice_program_put),
-};
 
 static int tasdevice_dac_event(struct snd_soc_dapm_widget *w,
 			struct snd_kcontrol *kcontrol, int event)
@@ -399,8 +389,6 @@ static const struct snd_soc_component_driver
 	soc_codec_driver_tasdevice = {
 	.probe			= tasdevice_codec_probe,
 	.remove			= tasdevice_codec_remove,
-	.controls		= tasdevice_snd_controls,
-	.num_controls		= ARRAY_SIZE(tasdevice_snd_controls),
 	.dapm_widgets		= tasdevice_dapm_widgets,
 	.num_dapm_widgets	= ARRAY_SIZE(tasdevice_dapm_widgets),
 	.dapm_routes		= tasdevice_audio_map,
@@ -426,8 +414,7 @@ static int tasdevice_info_profile(struct snd_kcontrol *kcontrol,
 
 	uinfo->value.integer.min = 0;
 	uinfo->value.integer.max = max(0, p_tasdevice->mtRegbin.ncfgs);
-	dev_info(p_tasdevice->dev, "%s: max profile = %d\n",
-		__func__, (int)uinfo->value.integer.max);
+	uinfo->value.integer.step = 1;
 
 	return 0;
 }
@@ -510,7 +497,8 @@ int tasdevice_create_controls(struct tasdevice_priv *p_tasdevice)
 out:
 	return ret;
 }
-static int tasdevice_info_dsp(struct snd_kcontrol *kcontrol,
+
+static int tasdevice_info_programs(struct snd_kcontrol *kcontrol,
 			struct snd_ctl_elem_info *uinfo)
 {
 	struct snd_soc_component *codec
@@ -518,7 +506,6 @@ static int tasdevice_info_dsp(struct snd_kcontrol *kcontrol,
 	struct tasdevice_priv *p_tasdevice =
 		snd_soc_component_get_drvdata(codec);
 	struct TFirmware *Tfw = p_tasdevice->mpFirmware;
-	int i;
 
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	/* Codec Lock Hold*/
@@ -527,22 +514,40 @@ static int tasdevice_info_dsp(struct snd_kcontrol *kcontrol,
 	/* Codec Lock Release*/
 	mutex_unlock(&p_tasdevice->codec_lock);
 
-	dev_info(p_tasdevice->dev, "%s: max program num = %d\n",
-		__func__, (int)Tfw->mnPrograms);
-	dev_info(p_tasdevice->dev, "%s: max configuration num = %d\n",
-		__func__, (int)Tfw->mnConfigurations);
-	for (i = 0; i < Tfw->mnConfigurations; i++) {
-		dev_info(p_tasdevice->dev, "%s: conf%d. %s\n",
-			__func__, i, Tfw->mpConfigurations[i].mpName);
-	}
+	uinfo->value.integer.min = 0;
+	uinfo->value.integer.max = (int)Tfw->mnPrograms;
+
+	return 0;
+}
+
+static int tasdevice_info_configurations(struct snd_kcontrol *kcontrol,
+			struct snd_ctl_elem_info *uinfo)
+{
+	struct snd_soc_component *codec
+		= snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *p_tasdevice =
+		snd_soc_component_get_drvdata(codec);
+	struct TFirmware *Tfw = p_tasdevice->mpFirmware;
+
+	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+	/* Codec Lock Hold*/
+	mutex_lock(&p_tasdevice->codec_lock);
+	uinfo->count = 1;
+
+	uinfo->value.integer.min = 0;
+	uinfo->value.integer.max = (int)Tfw->mnConfigurations - 1;
+
+	/* Codec Lock Release*/
+	mutex_unlock(&p_tasdevice->codec_lock);
 
 	return 0;
 }
 
 int tasdevice_dsp_create_control(struct tasdevice_priv *p_tasdevice)
 {
-	int  nr_controls = 1, ret = 0, mix_index = 0;
-	char *name = NULL;
+	int  nr_controls = 2, ret = 0, mix_index = 0;
+	char *program_name = NULL;
+	char *configuraton_name = NULL;
 	struct snd_kcontrol_new *tasdevice_dsp_controls = NULL;
 
 	tasdevice_dsp_controls = devm_kzalloc(p_tasdevice->dev,
@@ -554,24 +559,37 @@ int tasdevice_dsp_create_control(struct tasdevice_priv *p_tasdevice)
 	}
 
 	/* Create a mixer item for selecting the active profile */
-	name = devm_kzalloc(p_tasdevice->dev,
+	program_name = devm_kzalloc(p_tasdevice->dev,
 		MAX_CONTROL_NAME, GFP_KERNEL);
-	if (!name) {
+	configuraton_name = devm_kzalloc(p_tasdevice->dev,
+		MAX_CONTROL_NAME, GFP_KERNEL);
+	if (!program_name || !configuraton_name) {
 		ret = -ENOMEM;
 		goto out;
 	}
-	scnprintf(name, MAX_CONTROL_NAME, "Configuration");
-	tasdevice_dsp_controls[mix_index].name = name;
+
+	scnprintf(program_name, MAX_CONTROL_NAME, "Program");
+	tasdevice_dsp_controls[mix_index].name = program_name;
 	tasdevice_dsp_controls[mix_index].iface =
 		SNDRV_CTL_ELEM_IFACE_MIXER;
 	tasdevice_dsp_controls[mix_index].info =
-		tasdevice_info_dsp;
+		tasdevice_info_programs;
+	tasdevice_dsp_controls[mix_index].get =
+		tasdevice_program_get;
+	tasdevice_dsp_controls[mix_index].put =
+		tasdevice_program_put;
+	mix_index++;
+
+	scnprintf(configuraton_name, MAX_CONTROL_NAME, "Configuration");
+	tasdevice_dsp_controls[mix_index].name = configuraton_name;
+	tasdevice_dsp_controls[mix_index].iface =
+		SNDRV_CTL_ELEM_IFACE_MIXER;
+	tasdevice_dsp_controls[mix_index].info =
+		tasdevice_info_configurations;
 	tasdevice_dsp_controls[mix_index].get =
 		tasdevice_configuration_get;
 	tasdevice_dsp_controls[mix_index].put =
 		tasdevice_configuration_put;
-	tasdevice_dsp_controls[mix_index].private_value =
-		SOC_SINGLE_VALUE(-1, 0, 0x003F, 0, 0);
 	mix_index++;
 
 	ret = snd_soc_add_component_controls(p_tasdevice->codec,
