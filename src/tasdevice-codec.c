@@ -349,16 +349,6 @@ static int tasdevice_codec_probe(
 	/* Codec Lock Hold */
 	mutex_lock(&tas_dev->codec_lock);
 	tas_dev->codec = codec;
-	scnprintf(tas_dev->regbin_binaryname, 64, "%s_regbin.bin",
-		tas_dev->dev_name);
-	ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
-		tas_dev->regbin_binaryname, tas_dev->dev, GFP_KERNEL, tas_dev,
-		tasdevice_regbin_ready);
-	if (ret)
-		dev_err(tas_dev->dev,
-			"%s: request_firmware_nowait error:0x%08x\n",
-			__func__, ret);
-
 	for (i = 0; i < tas_dev->ndev; i++) {
 		ret = tasdevice_dev_write(tas_dev, i,
 			TASDEVICE_REG_SWRESET,
@@ -370,7 +360,15 @@ static int tasdevice_codec_probe(
 		}
 	}
 
-	//usleep_range(1000, 1050);
+	scnprintf(tas_dev->regbin_binaryname, 64, "%s_regbin.bin",
+		tas_dev->dev_name);
+	ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
+		tas_dev->regbin_binaryname, tas_dev->dev, GFP_KERNEL, tas_dev,
+		tasdevice_regbin_ready);
+	if (ret)
+		dev_err(tas_dev->dev,
+			"%s: request_firmware_nowait error:0x%08x\n",
+			__func__, ret);
 
 out:
 	/* Codec Lock Release*/

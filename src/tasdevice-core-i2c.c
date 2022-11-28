@@ -13,7 +13,6 @@
  * GNU General Public License for more details.
  */
 
-#ifndef CONFIG_TASDEV_CODEC_SPI
 #include <linux/module.h>
 #include <linux/regmap.h>
 //#include <linux/moduleparam.h>
@@ -28,6 +27,14 @@
 #include "tasdevice.h"
 #include "tasdevice-rw.h"
 #include "tasdevice-node.h"
+#ifndef CONFIG_TASDEV_CODEC_SPI
+
+const struct regmap_config tasdevice_i2c_regmap = {
+	.reg_bits = 8,
+	.val_bits = 8,
+	.cache_type = REGCACHE_FLAT,
+	.max_register = 1 * 128,
+};
 
 static int tasdevice_i2c_probe(struct i2c_client *i2c,
 	const struct i2c_device_id *id)
@@ -61,7 +68,7 @@ static int tasdevice_i2c_probe(struct i2c_client *i2c,
 	}
 
 	tas_dev->regmap = devm_regmap_init_i2c(i2c,
-		&tasdevice_regmap);
+		&tasdevice_i2c_regmap);
 	if (IS_ERR(tas_dev->regmap)) {
 		ret = PTR_ERR(tas_dev->regmap);
 		dev_err(&i2c->dev, "Failed to allocate register map: %d\n",

@@ -18,16 +18,14 @@
 #include <linux/miscdevice.h>
 #include <linux/firmware.h>
 #include <linux/fs.h>
-#ifdef CONFIG_TASDEV_CODEC_SPI
-	#include <linux/spi/spi.h>
-#else
-	#include <linux/i2c.h>
-#endif
+#include <linux/spi/spi.h>
+#include <linux/i2c.h>
+
 #ifdef CONFIG_COMPAT
 	#include <linux/compat.h>
 #endif
-#include "tasdevice.h"
 
+#include "tasdevice.h"
 
 static ssize_t tasdevice_read(struct file *file, char *buf,
 			size_t count, loff_t *ppos)

@@ -13,10 +13,8 @@
  * GNU General Public License for more details.
  */
 
-#ifdef CONFIG_TASDEV_CODEC_SPI
 #include <linux/module.h>
 #include <linux/regmap.h>
-//#include <linux/moduleparam.h>
 #include <linux/init.h>
 #include <linux/pm.h>
 #include <linux/spi/spi.h>
@@ -28,6 +26,16 @@
 #include "tasdevice.h"
 #include "tasdevice-rw.h"
 #include "tasdevice-node.h"
+#ifdef CONFIG_TASDEV_CODEC_SPI
+
+const struct regmap_config tasdevice_spi_regmap = {
+	.reg_bits = 7,
+	.val_bits = 8,
+	.cache_type = REGCACHE_NONE,
+	.max_register = 1 * 128,
+	.read_flag_mask = 0x1,
+	.pad_bits = 1,
+};
 
 static int tasdevice_spi_probe(struct spi_device *spi)
 {
@@ -55,8 +63,9 @@ static int tasdevice_spi_probe(struct spi_device *spi)
 		goto out;
 	}
 	spi->mode = SPI_MODE_1;
+	spi->bits_per_word = 8;
 	tas_dev->regmap = devm_regmap_init_spi(spi,
-		&tasdevice_regmap);
+		&tasdevice_spi_regmap);
 	if (IS_ERR(tas_dev->regmap)) {
 		ret = PTR_ERR(tas_dev->regmap);
 		dev_err(&spi->dev, "Failed to allocate register map: %d\n",

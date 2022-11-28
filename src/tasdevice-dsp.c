@@ -14,11 +14,6 @@
  */
 
 #include <linux/regmap.h>
-#ifdef CONFIG_TASDEV_CODEC_SPI
-	#include <linux/spi/spi.h>
-#else
-	#include <linux/i2c.h>
-#endif
 #include <linux/miscdevice.h>
 #include <linux/string.h>
 #include <linux/crc8.h>
@@ -34,7 +29,8 @@
 #include "tasdevice.h"
 #include "tasdevice-dsp_git.h"
 #include "tasdevice-dsp_kernel.h"
-
+#include <linux/spi/spi.h>
+#include <linux/i2c.h>
 #define TAS2781_CAL_BIN_PATH	("/lib/firmware/")
 
 #define ERROR_PRAM_CRCCHK			(0x0000000)

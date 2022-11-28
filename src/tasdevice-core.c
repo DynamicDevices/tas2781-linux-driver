@@ -14,17 +14,14 @@
  */
 
 #include <linux/module.h>
-#ifdef CONFIG_TASDEV_CODEC_SPI
-	#include <linux/spi/spi.h>
-#else
-	#include <linux/i2c.h>
-#endif
 #include <linux/interrupt.h>
 #include <linux/regmap.h>
 #include <linux/miscdevice.h>
 #include <linux/uaccess.h>
 #include <linux/firmware.h>
 #include <linux/of_gpio.h>
+#include <linux/spi/spi.h>
+#include <linux/i2c.h>
 #ifdef CONFIG_COMPAT
 	#include <linux/compat.h>
 #endif
@@ -37,7 +34,6 @@
 #include "tasdevice-codec.h"
 #include "tasdevice-dsp.h"
 #include "tasdevice-misc.h"
-
 #define TASDEVICE_IRQ_DET_TIMEOUT		(30000)
 #define TASDEVICE_IRQ_DET_CNT_LIMIT	(500)
 
@@ -87,25 +83,6 @@ static ssize_t devinfo_show(struct device *dev,
 
 	return n;
 }
-
-static bool tasdevice_volatile(struct device *dev, unsigned int reg)
-{
-	return true;
-}
-
-static bool tasdevice_writeable(struct device *dev, unsigned int reg)
-{
-	return true;
-}
-
-const struct regmap_config tasdevice_regmap = {
-	.reg_bits = 8,
-	.val_bits = 8,
-	.writeable_reg = tasdevice_writeable,
-	.volatile_reg = tasdevice_volatile,
-	.cache_type = REGCACHE_FLAT,
-	.max_register = 1 * 128,
-};
 
 const struct of_device_id tasdevice_of_match[] = {
 	{ .compatible = "ti,audev" },

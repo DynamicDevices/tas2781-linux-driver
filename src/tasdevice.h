@@ -319,7 +319,6 @@ extern const struct spi_device_id tasdevice_id[];
 extern const struct i2c_device_id tasdevice_id[];
 #endif
 extern const struct dev_pm_ops tasdevice_pm_ops;
-extern const struct regmap_config tasdevice_regmap;
 extern const struct of_device_id tasdevice_of_match[];
 
 int tasdevice_create_controls(
