@@ -1,10 +1,10 @@
 /*
  * TAS2871 Linux Driver
  *
- * Copyright (C) 2022 Texas Instruments Incorporated 
- * 
+ * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ *
  * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as 
+ * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation version 2.
  *
  * This program is distributed "as is" WITHOUT ANY WARRANTY of any
@@ -19,7 +19,6 @@
 #include <linux/crc8.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
-// #include <linux/fcntl.h>
 #include <linux/fs.h>
 #include <linux/firmware.h>
 #include <linux/time.h>
