@@ -247,6 +247,7 @@ struct tasdevice_priv {
 	int (*set_calibration)(void *pTAS2563, enum channel chl,
 		int calibration);
 	void (*set_global_mode)(struct tasdevice_priv *tas_dev);
+	void (*reset)(struct tasdevice_priv *tas_dev);
 	int (*fw_parse_variable_header)(struct tasdevice_priv *tas_dev,
 		const struct firmware *pFW, int offset);
 	int (*fw_parse_program_data)(struct TFirmware *pFirmware,
