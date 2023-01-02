@@ -30,36 +30,37 @@
 #include "tasdevice-dsp_kernel.h"
 #include <linux/spi/spi.h>
 #include <linux/i2c.h>
-#define TAS2781_CAL_BIN_PATH	("/lib/firmware/")
 
-#define ERROR_PRAM_CRCCHK			(0x0000000)
-#define ERROR_YRAM_CRCCHK			(0x0000001)
-#define BINFILEDOCVER				(0)
-#define DRVFWVER					(1)
-#define	PPC_DRIVER_CRCCHK			(0x00000200)
+#define TAS2781_CAL_BIN_PATH			"/lib/firmware/"
 
-#define TAS2781_SA_COEFF_SWAP_REG	TASDEVICE_REG(0, 0x35, 0x2c)
-#define TAS2781_YRAM_BOOK1			(140)
-#define TAS2781_YRAM1_PAGE			(42)
-#define TAS2781_YRAM1_START_REG		(88)
+#define ERROR_PRAM_CRCCHK			0x0000000
+#define ERROR_YRAM_CRCCHK			0x0000001
+#define BINFILEDOCVER				0
+#define DRVFWVER				1
+#define	PPC_DRIVER_CRCCHK			0x00000200
 
-#define TAS2781_YRAM2_START_PAGE	(43)
-#define TAS2781_YRAM2_END_PAGE		(49)
-#define TAS2781_YRAM2_START_REG		(8)
-#define TAS2781_YRAM2_END_REG		(127)
+#define TAS2781_SA_COEFF_SWAP_REG		TASDEVICE_REG(0, 0x35, 0x2c)
+#define TAS2781_YRAM_BOOK1			140
+#define TAS2781_YRAM1_PAGE			42
+#define TAS2781_YRAM1_START_REG			88
 
-#define TAS2781_YRAM3_PAGE			(50)
-#define TAS2781_YRAM3_START_REG		(8)
-#define TAS2781_YRAM3_END_REG		(27)
+#define TAS2781_YRAM2_START_PAGE		43
+#define TAS2781_YRAM2_END_PAGE			49
+#define TAS2781_YRAM2_START_REG			8
+#define TAS2781_YRAM2_END_REG			127
+
+#define TAS2781_YRAM3_PAGE			50
+#define TAS2781_YRAM3_START_REG			8
+#define TAS2781_YRAM3_END_REG			27
 
 /*should not include B0_P53_R44-R47 */
-#define TAS2781_YRAM_BOOK2			(0)
-#define TAS2781_YRAM4_START_PAGE	(50)
-#define TAS2781_YRAM4_END_PAGE		(60)
+#define TAS2781_YRAM_BOOK2			0
+#define TAS2781_YRAM4_START_PAGE		50
+#define TAS2781_YRAM4_END_PAGE			60
 
-#define TAS2781_YRAM5_PAGE			(61)
-#define TAS2781_YRAM5_START_REG		(8)
-#define TAS2781_YRAM5_END_REG		(27)
+#define TAS2781_YRAM5_PAGE			61
+#define TAS2781_YRAM5_START_REG			8
+#define TAS2781_YRAM5_END_REG			27
 
 struct TYCRC {
 	unsigned char mnOffset;
