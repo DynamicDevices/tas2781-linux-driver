@@ -55,8 +55,12 @@
 					(page * 128)) + reg)
 
 	/*Software Reset */
-#define TASDEVICE_REG_SWRESET  TASDEVICE_REG(0x0, 0X0, 0x02)
-#define TASDEVICE_REG_SWRESET_RESET  (0x1 << 0)
+#define TAS2781_REG_SWRESET		TASDEVICE_REG(0x0, 0X0, 0x02)
+#define TAS2781_REG_SWRESET_RESET	BIT(0)
+	/* Enable Global addresses */
+#define TAS2871_MISC_CFG2		TASDEVICE_REG(0x0, 0X0, 0x07)
+#define TAS2871_GLOBAL_ADDR_MASK	BIT(1)
+#define TAS2871_GLOBAL_ADDR_ENABLE	BIT(1)
 
 #define SMS_HTONS(a, b)  ((((a)&0x00FF)<<8) | \
 				((b)&0x00FF))
@@ -65,71 +69,20 @@
 					(((c)&0x000000FF)<<8) | \
 					((d)&0x000000FF))
 
-	/*Power Control */
-#define TASDEVICE_REG_POWERCONTROL  TASDEVICE_REG(0x0, 0x0, 0x02)
-#define TASDEVICE_REG_POWERCONTROL_PWRON  (0)
-		/*Interrupt Mask Reg0 */
-#define TASDEVICE_InterruptMaskReg0  TASDEVICE_REG(0x0, 0x0, 0x3B)
-#define TASDEVICE_InterruptMaskReg0_TDMClockErrorINTMASK_Mask  (0x1 << 2)
-#define TASDEVICE_InterruptMaskReg0_TDMClockErrorINTMASK_ENABLE  (0x0 << 2)
-#define TASDEVICE_InterruptMaskReg0_TDMClockErrorINTMASK_Disable  (0x1 << 2)
-#define TASDEVICE_InterruptMaskReg0_OCEINTMASK_Mask  (0x1 << 1)
-#define TASDEVICE_InterruptMaskReg0_OCEINTMASK_ENABLE  (0x0 << 1)
-#define TASDEVICE_InterruptMaskReg0_OCEINTMASK_Disable  (0x1 << 1)
-#define TASDEVICE_InterruptMaskReg0_Disable (0xff)
-
-		/*Interrupt Mask Reg1 */
-#define TASDEVICE_InterruptMaskReg1  TASDEVICE_REG(0x0, 0x0, 0x3C)
-#define TASDEVICE_InterruptMaskReg1_Disable (0xff)
-
-		/*Interrupt Mask Reg2 */
-#define TASDEVICE_InterruptMaskReg2  TASDEVICE_REG(0x0, 0x0, 0x3D)
-#define TASDEVICE_InterruptMaskReg2_Disable (0xff)
-
-	/*Latched-Interrupt Reg0 */
-#define TASDEVICE_LATCHEDINTERRUPTREG0	TASDEVICE_REG(0x0, 0x0, 0x49)
-#define TASDEVICE_LATCHEDINTERRUPTREG0_TDMCLOCKERRORSTICKY_MASK	(0x1 << 2)
-#define TASDEVICE_LATCHEDINTERRUPTREG0_TDMCLOCKERRORSTICKY_NOINTERRUPT	\
-	(0x0 << 2)
-#define TASDEVICE_LATCHEDINTERRUPTREG0_TDMCLOCKERRORSTICKY_INTERRUPT	\
-	(0x1 << 2)
-#define TASDEVICE_LATCHEDINTERRUPTREG0_OCEFLAGSTICKY_MASK  (0x1 << 1)
-#define TASDEVICE_LATCHEDINTERRUPTREG0_OCEFLAGSTICKY_NOINTERRUPT  (0x0 << 1)
-#define TASDEVICE_LATCHEDINTERRUPTREG0_OCEFLAGSTICKY_INTERRUPT  (0x1 << 1)
-
-	/*Interrupt Configuration */
-#define TASDEVICE_INTERRUPTCONFIGURATION	TASDEVICE_REG(0x0, 0x0, 0x5C)
-#define TASDEVICE_INTERRUPTCONFIGURATION_LTCHINTCLEAR_MASK (0x1 << 2)
-#define TASDEVICE_INTERRUPTCONFIGURATION_LTCHINTCLEAR (0x1 << 2)
-
-	/*Revision and PG ID */
-#define TASDEVICE_REG_REV_PGID  TASDEVICE_REG(0x0, 0x0, 0x7D)
-
-#define TAS2781_REG_INT_STATUS  TASDEVICE_REG(0x0, 0X0, 0x78)
-#define TAS2781_REG_INT_STATUS_DAC_CLASSD_ISNS_VSNS_STATUS_MASK		(0xF)
-#define TAS2781_REG_INT_STATUS_DAC_CLASSD_ISNS_VSNS_STATUS_POWERUP	(0xF)
-
 	/*I2C Checksum */
 #define TASDEVICE_I2CChecksum  TASDEVICE_REG(0x0, 0x0, 0x7E)
 
-#define TAS2781_REG_MISC_DSP  TASDEVICE_REG(0x0, 0x1, 0x02)
-#define TAS2781_REG_MISC_DSP_ROM_MODE_MASK			\
-	(0xf << 1)
-/*DSP mode*/
-#define TAS2781_REG_MISC_DSP_ROM_MODE_RAM_MODE			(0x0 << 1)
-/*bypass mode*/
-#define TAS2781_REG_MISC_DSP_ROM_MODE_ROM_MODE			(0x1 << 1)
-
-#define TAS2781_DEVICEID  TASDEVICE_REG(0x0, 0xFD, 0x7C)
-#define TAS2781_REG_UNLCK		TASDEVICE_REG(0x0, 0xFD, 0x0D)
+	/* Volume control */
+#define TAS2781_DVC_LVL			TASDEVICE_REG(0x0, 0x0, 0x1A)
+#define TAS2781_AMP_LEVEL		TASDEVICE_REG(0x0, 0x0, 0x03)
+#define TAS2781_AMP_LEVEL_MASK		GENMASK(5, 1)
 
 #define TASDEVICE_CMD_SING_W	(0x1)
 #define TASDEVICE_CMD_BURST	(0x2)
 #define TASDEVICE_CMD_DELAY	(0x3)
 
 enum audio_device {
-	GENERAL_AUDEV = 0,
-	TAS2781	  = 1,
+	TAS2781,
 };
 
 struct smartpa_params {
@@ -201,7 +154,6 @@ struct Ttasdevice {
 	short mnCurrentProgram;
 	short mnCurrentConfiguration;
 	short mnCurrentRegConf;
-	int mnIRQGPIO;
 	int mnResetGpio;
 	int mn_irq;
 	int PowerStatus;
