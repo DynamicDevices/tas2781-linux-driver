@@ -18,6 +18,8 @@
 #include <sound/pcm_params.h>
 #include <linux/miscdevice.h>
 #include <linux/firmware.h>
+#include <linux/of_gpio.h>
+#include <sound/tlv.h>
 
 #include "tasdevice-dsp.h"
 #include "tasdevice-ctl.h"
@@ -89,7 +91,7 @@ static int tasdevice_configuration_put(
 }
 
 static int tasdevice_dac_event(struct snd_soc_dapm_widget *w,
-			struct snd_kcontrol *kcontrol, int event)
+	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_component *codec = snd_soc_dapm_to_component(w->dapm);
 	struct tasdevice_priv *tas_dev = snd_soc_component_get_drvdata(codec);
@@ -218,32 +220,38 @@ void powercontrol_routine(struct work_struct *work)
 	struct tasdevice_priv *tas_dev =
 		container_of(work, struct tasdevice_priv,
 		powercontrol_work.work);
-	struct TFirmware *pFw = NULL;
-	int profile_cfg_id = 0;
+	struct TFirmware *pFw = tas_dev->mpFirmware;
+	int profile_cfg_id = REGBIN_CONFIGID_BYPASS_ALL;
+	int is_set_glb_mode = 0;
 
 	dev_info(tas_dev->dev, "%s: enter\n", __func__);
 
 	mutex_lock(&tas_dev->codec_lock);
-	/*mnCurrentProgram != 0 is dsp mode or tuning mode*/
-	if (tas_dev->mnCurrentProgram) {
-		/*bypass all in regbin is profile id 0*/
-		profile_cfg_id = REGBIN_CONFIGID_BYPASS_ALL;
-	} else {
-		profile_cfg_id = tas_dev->mtRegbin.profile_cfg_id;
-		pFw = tas_dev->mpFirmware;
-		dev_info(tas_dev->dev, "%s: %s\n", __func__,
-			pFw->mpConfigurations[tas_dev->mnCurrentConfiguration]
-			.mpName);
-		tasdevice_select_tuningprm_cfg(tas_dev,
-			tas_dev->mnCurrentProgram,
-			tas_dev->mnCurrentConfiguration,
-			profile_cfg_id);
+	if (pFw) {
+		if (tas_dev->mnCurrentProgram >= pFw->mnPrograms)
+			/*bypass all in regbin is profile id 0*/
+			profile_cfg_id = REGBIN_CONFIGID_BYPASS_ALL;
+		else {
+			/*dsp mode or tuning mode*/
+			profile_cfg_id = tas_dev->mtRegbin.profile_cfg_id;
+			dev_info(tas_dev->dev, "%s: %s\n", __func__,
+				pFw->mpConfigurations[tas_dev->mnCurrentConfiguration]
+				.mpName);
+			is_set_glb_mode =
+				tasdevice_select_tuningprm_cfg(tas_dev,
+					tas_dev->mnCurrentProgram,
+					tas_dev->mnCurrentConfiguration,
+					profile_cfg_id);
 
-	}
+		}
+	} else
+		profile_cfg_id = REGBIN_CONFIGID_BYPASS_ALL;
+
 	tasdevice_select_cfg_blk(tas_dev, profile_cfg_id,
 		TASDEVICE_BIN_BLK_PRE_POWER_UP);
-
-	if (tas_dev->chip_id != GENERAL_AUDEV)
+	if (is_set_glb_mode && tas_dev->set_global_mode)
+		tas_dev->set_global_mode(tas_dev);
+	if (gpio_is_valid(tas_dev->mIrqInfo.mn_irq_gpio))
 		tasdevice_enable_irq(tas_dev, true);
 	mutex_unlock(&tas_dev->codec_lock);
 	dev_info(tas_dev->dev, "%s: leave\n", __func__);
@@ -259,7 +267,7 @@ static void tasdevice_set_power_state(
 		break;
 	default:
 		if (!(tas_dev->pstream || tas_dev->cstream)) {
-			if (tas_dev->chip_id != GENERAL_AUDEV)
+			if (gpio_is_valid(tas_dev->mIrqInfo.mn_irq_gpio))
 				tasdevice_enable_irq(tas_dev, false);
 			tasdevice_select_cfg_blk(tas_dev,
 				tas_dev->mnCurrentConfiguration,
@@ -343,22 +351,11 @@ static int tasdevice_codec_probe(
 	struct tasdevice_priv *tas_dev =
 		snd_soc_component_get_drvdata(codec);
 	int ret = 0;
-	int i = 0;
 
 	dev_info(tas_dev->dev, "%s, enter\n", __func__);
 	/* Codec Lock Hold */
 	mutex_lock(&tas_dev->codec_lock);
 	tas_dev->codec = codec;
-	for (i = 0; i < tas_dev->ndev; i++) {
-		ret = tasdevice_dev_write(tas_dev, i,
-			TASDEVICE_REG_SWRESET,
-			TASDEVICE_REG_SWRESET_RESET);
-		if (ret < 0) {
-			dev_err(tas_dev->dev, "%s: chn %d I2c fail, %d\n",
-				__func__, i, ret);
-			goto out;
-		}
-	}
 
 	scnprintf(tas_dev->regbin_binaryname, 64, "%s_regbin.bin",
 		tas_dev->dev_name);
@@ -370,7 +367,11 @@ static int tasdevice_codec_probe(
 			"%s: request_firmware_nowait error:0x%08x\n",
 			__func__, ret);
 
-out:
+	if (tas_dev->reset)
+		tas_dev->reset(tas_dev);
+
+	if (tas_dev->set_global_mode != NULL)
+		tas_dev->set_global_mode(tas_dev);
 	/* Codec Lock Release*/
 	mutex_unlock(&tas_dev->codec_lock);
 	dev_info(tas_dev->dev, "%s, codec probe success\n", __func__);
@@ -403,6 +404,149 @@ static const struct snd_soc_component_driver
 	.num_dapm_routes	= ARRAY_SIZE(tasdevice_audio_map),
 	.idle_bias_on		= 1,
 	.endianness		= 1,
+};
+
+static int tasdevice_digital_getvol(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *codec
+		= snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_dev =
+		snd_soc_component_get_drvdata(codec);
+	struct soc_mixer_control *mc =
+		(struct soc_mixer_control *)kcontrol->private_value;
+	unsigned int val;
+	int ret = 0;
+
+	/* Read the primary device as the whole */
+	ret = tasdevice_dev_read(tas_dev, 0, mc->reg, &val);
+	if (ret) {
+		dev_err(tas_dev->dev,
+		"%s, get digital vol error\n",
+		__func__);
+		goto out;
+	}
+	val = (val > mc->max) ? mc->max : val;
+	val = mc->invert ? mc->max - val : val;
+	ucontrol->value.integer.value[0] = val;
+
+out:
+	return ret;
+}
+
+static int tasdevice_digital_putvol(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *codec
+		= snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_dev =
+		snd_soc_component_get_drvdata(codec);
+	struct soc_mixer_control *mc =
+		(struct soc_mixer_control *)kcontrol->private_value;
+	unsigned int val;
+	int i, ret = 0;
+
+	val = ucontrol->value.integer.value[0];
+	val = (val > mc->max) ? mc->max : val;
+	val = mc->invert ? mc->max - val : val;
+	val = (val < 0) ? 0 : val;
+	if (tas_dev->set_global_mode != NULL) {
+		ret = tasdevice_dev_write(tas_dev, tas_dev->ndev,
+			mc->reg, val);
+		if (ret)
+			dev_err(tas_dev->dev,
+			"%s, set digital vol error in global mode\n",
+			__func__);
+	} else {
+		for (i = 0; i < tas_dev->ndev; i++) {
+			ret = tasdevice_dev_write(tas_dev, i,
+				mc->reg, val);
+			if (ret)
+				dev_err(tas_dev->dev,
+				"%s, set digital vol error in device %d\n",
+				__func__, i);
+		}
+	}
+
+	return ret;
+}
+
+static int tasdevice_amp_getvol(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *codec
+		= snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_dev =
+		snd_soc_component_get_drvdata(codec);
+	struct soc_mixer_control *mc =
+		(struct soc_mixer_control *)kcontrol->private_value;
+	unsigned int val;
+	unsigned char mask = 0;
+	int ret = 0;
+
+	/* Read the primary device */
+	ret = tasdevice_dev_read(tas_dev, 0, mc->reg, &val);
+	if (ret) {
+		dev_err(tas_dev->dev,
+		"%s, get AMP vol error\n",
+		__func__);
+		goto out;
+	}
+
+	mask = (1 << fls(mc->max)) - 1;
+	mask <<= mc->shift;
+	val = (val & mask) >> mc->shift;
+	val = (val > mc->max) ? mc->max : val;
+	val = mc->invert ? mc->max - val : val;
+	ucontrol->value.integer.value[0] = val;
+
+out:
+	return ret;
+}
+
+static int tasdevice_amp_putvol(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *codec
+		= snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_dev =
+		snd_soc_component_get_drvdata(codec);
+	struct soc_mixer_control *mc =
+		(struct soc_mixer_control *)kcontrol->private_value;
+	unsigned int val;
+	int i, ret = 0;
+	unsigned char mask = 0;
+
+	mask = (1 << fls(mc->max)) - 1;
+	mask <<= mc->shift;
+	val = ucontrol->value.integer.value[0];
+	val = (val > mc->max) ? mc->max : val;
+	val = mc->invert ? mc->max - val : val;
+	val = (val < 0) ? 0 : val;
+	for (i = 0; i < tas_dev->ndev; i++) {
+		ret = tasdevice_dev_update_bits(tas_dev, i,
+			mc->reg,
+			mask,
+			val << mc->shift);
+		if (ret)
+			dev_err(tas_dev->dev,
+			"%s, set AMP vol error in device %d\n",
+			__func__, i);
+	}
+
+	return ret;
+}
+
+static const DECLARE_TLV_DB_SCALE(tas2781_dvc_tlv, -10000, 100, 0);
+static const DECLARE_TLV_DB_SCALE(tas2781_amp_vol_tlv, 1100, 50, 0);
+
+static const struct snd_kcontrol_new tas2781_snd_controls[] = {
+	SOC_SINGLE_RANGE_EXT_TLV("Amp Gain Volume", TAS2781_AMP_LEVEL,
+		1, 0, 20, 0, tasdevice_amp_getvol,
+		tasdevice_amp_putvol, tas2781_amp_vol_tlv),
+	SOC_SINGLE_RANGE_EXT_TLV("Digital Volume Control", TAS2781_DVC_LVL,
+		0, 0, 200, 1, tasdevice_digital_getvol,
+		tasdevice_digital_putvol, tas2781_dvc_tlv),
 };
 
 static int tasdevice_info_profile(struct snd_kcontrol *kcontrol,
@@ -498,9 +642,25 @@ int tasdevice_create_controls(struct tasdevice_priv *p_tasdevice)
 	ret = snd_soc_add_component_controls(p_tasdevice->codec,
 		tasdevice_profile_controls,
 		nr_controls < mix_index ? nr_controls : mix_index);
-
+	if (ret < 0) {
+		dev_err(p_tasdevice->dev, "%s, add regbin ctrl failed\n",
+			__func__);
+		goto out;
+	}
 	p_tasdevice->tas_ctrl.nr_controls =
 		nr_controls < mix_index ? nr_controls : mix_index;
+
+	if (p_tasdevice->chip_id == TAS2781) {
+		mix_index = ARRAY_SIZE(tas2781_snd_controls);
+		ret = snd_soc_add_component_controls(p_tasdevice->codec,
+			tas2781_snd_controls, mix_index);
+		if(ret < 0) {
+			dev_err(p_tasdevice->dev, "%s, add vol ctrl failed\n",
+				__func__);
+			goto out;
+		}
+	 	p_tasdevice->tas_ctrl.nr_controls += mix_index;
+	}
 out:
 	return ret;
 }
@@ -561,6 +721,8 @@ int tasdevice_dsp_create_control(struct tasdevice_priv *p_tasdevice)
 			nr_controls * sizeof(tasdevice_dsp_controls[0]),
 			GFP_KERNEL);
 	if (tasdevice_dsp_controls == NULL) {
+		dev_err(p_tasdevice->dev, "%s, allocate mem failed\n",
+			__func__);
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -571,6 +733,8 @@ int tasdevice_dsp_create_control(struct tasdevice_priv *p_tasdevice)
 	configuraton_name = devm_kzalloc(p_tasdevice->dev,
 		MAX_CONTROL_NAME, GFP_KERNEL);
 	if (!program_name || !configuraton_name) {
+		dev_err(p_tasdevice->dev, "%s, allocate pro or conf failed\n",
+			__func__);
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -602,7 +766,11 @@ int tasdevice_dsp_create_control(struct tasdevice_priv *p_tasdevice)
 	ret = snd_soc_add_component_controls(p_tasdevice->codec,
 		tasdevice_dsp_controls,
 		nr_controls < mix_index ? nr_controls : mix_index);
-
+	if(ret < 0) {
+		dev_err(p_tasdevice->dev, "%s, add dsp ctrl failed\n",
+			__func__);
+		goto out;
+	}
 	p_tasdevice->tas_ctrl.nr_controls += nr_controls;
 out:
 	return ret;
