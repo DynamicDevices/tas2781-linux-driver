@@ -204,6 +204,17 @@ struct tasdevice_irqinfo {
 	bool mb_irq_enable;
 };
 
+/*
+* This item is used to store the generic i2c address of
+* all the tas2781 devices for I2C broadcast during the multi-device
+*  writes, useless in mono case.
+*/
+struct global_addr {
+	struct Tbookpage mnBkPg;
+	unsigned int dev_addr;
+	int ref_cnt;
+};
+
 struct tasdevice_priv {
 	struct device *dev;
 	void *client;//struct i2c_client
@@ -219,6 +230,7 @@ struct tasdevice_priv {
 	struct smartpa_gpio_info mtRstGPIOs;
 	struct tasdevice_irqinfo mIrqInfo;
 	struct tas_control tas_ctrl;
+	struct global_addr glb_addr;
 	int mnCurrentProgram;
 	int mnCurrentConfiguration;
 	unsigned int chip_id;
@@ -234,6 +246,7 @@ struct tasdevice_priv {
 		unsigned int reg, unsigned int mask, unsigned int value);
 	int (*set_calibration)(void *pTAS2563, enum channel chl,
 		int calibration);
+	void (*set_global_mode)(struct tasdevice_priv *tas_dev);
 	int (*fw_parse_variable_header)(struct tasdevice_priv *tas_dev,
 		const struct firmware *pFW, int offset);
 	int (*fw_parse_program_data)(struct TFirmware *pFirmware,
