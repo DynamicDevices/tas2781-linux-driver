@@ -36,6 +36,23 @@ const struct regmap_config tasdevice_i2c_regmap = {
 	.max_register = 1 * 128,
 };
 
+static void tas2781_set_global_mode(struct tasdevice_priv *tas_dev)
+{
+	int i = 0;
+	int ret = 0;
+
+	for (; i < tas_dev->ndev; i++) {
+		ret = tasdevice_dev_update_bits(tas_dev, i,
+			TAS2871_MISC_CFG2, TAS2871_GLOBAL_ADDR_MASK,
+			TAS2871_GLOBAL_ADDR_ENABLE);
+		if (ret < 0) {
+			dev_err(tas_dev->dev, "%s: chn %d set global fail, %d\n",
+				__func__, i, ret);
+			continue;
+		}
+	}
+}
+
 static int tasdevice_i2c_probe(struct i2c_client *i2c,
 	const struct i2c_device_id *id)
 {
@@ -75,6 +92,10 @@ static int tasdevice_i2c_probe(struct i2c_client *i2c,
 			ret);
 		return ret;
 	}
+
+	if (tas_dev->glb_addr.dev_addr != 0
+		&& tas_dev->glb_addr.dev_addr < 0x7F)
+		tas_dev->set_global_mode = tas2781_set_global_mode;
 
 	ret = tasdevice_probe_next(tas_dev);
 
