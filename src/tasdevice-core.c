@@ -47,9 +47,10 @@ static const char * dts_tag[] = {
 
 static const char *dts_xxx_tag = "ti,%s-gpio%d";
 
+static const char *dts_glb_addr_tag = "ti,global-address";
+
 #ifdef CONFIG_TASDEV_CODEC_SPI
 const struct spi_device_id tasdevice_id[] = {
-	{ "audev", GENERAL_AUDEV },
 	{ "tas2781", TAS2781	 },
 	{}
 };
@@ -57,7 +58,6 @@ MODULE_DEVICE_TABLE(spi, tasdevice_id);
 
 #else
 const struct i2c_device_id tasdevice_id[] = {
-	{ "audev", GENERAL_AUDEV },
 	{ "tas2781", TAS2781	 },
 	{}
 };
@@ -85,7 +85,6 @@ static ssize_t devinfo_show(struct device *dev,
 }
 
 const struct of_device_id tasdevice_of_match[] = {
-	{ .compatible = "ti,audev" },
 	{ .compatible = "ti,tas2781" },
 	{},
 };
@@ -203,6 +202,15 @@ int tasdevice_parse_dt(struct tasdevice_priv *tas_dev)
 		}
 	}
 
+	rc = of_property_read_u32(np, dts_glb_addr_tag,
+			&(tas_dev->glb_addr.dev_addr));
+	if (rc) {
+		dev_err(tas_dev->dev,
+		"Looking up %s property in node %s failed %d\n",
+		dts_glb_addr_tag, np->full_name, rc);
+		tas_dev->glb_addr.dev_addr = 0;
+	}
+
 	tas_dev->ndev = (ndev == 0) ? 1 : ndev;
 
 	for (i = 0, ndev = 0; i < tas_dev->ndev; i++) {
@@ -288,6 +296,24 @@ int tasdevice_parse_dt(struct tasdevice_priv *tas_dev)
 	return 0;
 }
 
+static void tas2781_reset(struct tasdevice_priv *tas_dev)
+{
+	int ret = 0;
+	int i = 0;
+
+	for (; i < tas_dev->ndev; i++) {
+		ret = tasdevice_dev_write(tas_dev, i,
+			TAS2781_REG_SWRESET,
+			TAS2781_REG_SWRESET_RESET);
+		if (ret < 0) {
+			dev_err(tas_dev->dev, "%s: chn %d reset fail, %d\n",
+				__func__, i, ret);
+			continue;
+		}
+	}
+	usleep_range(1000, 1050);
+}
+
 int tasdevice_probe_next(struct tasdevice_priv *tas_dev)
 {
 	int nResult = 0, i = 0;
@@ -303,6 +329,7 @@ int tasdevice_probe_next(struct tasdevice_priv *tas_dev)
 	}
 	mutex_init(&tas_dev->dev_lock);
 	mutex_init(&tas_dev->file_lock);
+	tas_dev->reset = tas2781_reset;
 	tas_dev->read = tasdevice_dev_read;
 	tas_dev->write = tasdevice_dev_write;
 	tas_dev->bulk_read = tasdevice_dev_bulk_read;
@@ -351,10 +378,6 @@ void tasdevice_remove(struct tasdevice_priv *tas_dev)
 	}
 	if (gpio_is_valid(tas_dev->mnI2CSPIGpio))
 		gpio_free(tas_dev->mnI2CSPIGpio);
-	for (i = 0; i < tas_dev->ndev; i++) {
-		if (gpio_is_valid(tas_dev->tasdevice[i].mnIRQGPIO))
-			gpio_free(tas_dev->tasdevice[i].mnIRQGPIO);
-	}
 
 	if (delayed_work_pending(&tas_dev->mIrqInfo.irq_work)) {
 		dev_info(tas_dev->dev, "cancel IRQ work\n");
@@ -383,7 +406,7 @@ static int tasdevice_pm_suspend(struct device *dev)
 
 	tas_dev->mb_runtime_suspend = true;
 
-	if (tas_dev->chip_id != GENERAL_AUDEV) {
+	if (gpio_is_valid(tas_dev->mIrqInfo.mn_irq_gpio)) {
 		if (delayed_work_pending(&tas_dev->mIrqInfo.irq_work)) {
 			dev_dbg(tas_dev->dev, "cancel IRQ work\n");
 			cancel_delayed_work_sync(&tas_dev->mIrqInfo.irq_work);
