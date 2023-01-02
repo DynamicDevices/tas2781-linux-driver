@@ -16,22 +16,22 @@
 #ifndef __TASDEVICE_DSP_H__
 #define __TASDEVICE_DSP_H__
 
-#define MAIN_ALL_DEVICES			(0x0d)
-#define MAIN_DEVICE_A				(0x01)
-#define MAIN_DEVICE_B				(0x08)
-#define MAIN_DEVICE_C				(0x10)
-#define MAIN_DEVICE_D				(0x14)
-#define COEFF_DEVICE_A				(0x03)
-#define COEFF_DEVICE_B				(0x0a)
-#define COEFF_DEVICE_C				(0x11)
-#define COEFF_DEVICE_D				(0x15)
-#define PRE_DEVICE_A				(0x04)
-#define PRE_DEVICE_B				(0x0b)
-#define PRE_DEVICE_C				(0x12)
-#define PRE_DEVICE_D				(0x16)
+#define MAIN_ALL_DEVICES			0x0d
+#define MAIN_DEVICE_A				0x01
+#define MAIN_DEVICE_B				0x08
+#define MAIN_DEVICE_C				0x10
+#define MAIN_DEVICE_D				0x14
+#define COEFF_DEVICE_A				0x03
+#define COEFF_DEVICE_B				0x0a
+#define COEFF_DEVICE_C				0x11
+#define COEFF_DEVICE_D				0x15
+#define PRE_DEVICE_A				0x04
+#define PRE_DEVICE_B				0x0b
+#define PRE_DEVICE_C				0x12
+#define PRE_DEVICE_D				0x16
 
-#define PPC3_VERSION 0x4100
-#define REGBIN_CONFIGID_BYPASS_ALL	(0)
+#define PPC3_VERSION				0x4100
+#define REGBIN_CONFIGID_BYPASS_ALL		0
 
 enum channel {
 	TopLeftChn = 0x00,
@@ -152,7 +152,7 @@ int tas2781_load_calibration(void *tas_dev, char *pFileName,
 	enum channel i);
 int tas2781_set_calibration(void *pContext, enum channel i,
 	int nCalibration);
-void tasdevice_select_tuningprm_cfg(void *pContext, int prm,
+int tasdevice_select_tuningprm_cfg(void *pContext, int prm,
 	int cfg_no, int regbin_conf_no);
 
 #endif
