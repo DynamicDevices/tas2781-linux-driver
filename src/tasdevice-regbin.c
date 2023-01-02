@@ -52,12 +52,18 @@ int tasdevice_process_block(void *pContext,
 		chn = idx-1;
 		chnend = idx;
 	} else {
-		chn = 0;
-		chnend = tas_dev->ndev;
+		if (tas_dev->set_global_mode) {
+			chn = tas_dev->ndev;
+			chnend = tas_dev->ndev + 1;
+		} else {
+			chn = 0;
+			chnend = tas_dev->ndev;
+		}
 	}
 
 	for (; chn < chnend; chn++) {
-		if (tas_dev->tasdevice[chn].bLoading == false)
+		if (tas_dev->set_global_mode == NULL &&
+			tas_dev->tasdevice[chn].bLoading == false)
 			continue;
 
 		bError = false;
