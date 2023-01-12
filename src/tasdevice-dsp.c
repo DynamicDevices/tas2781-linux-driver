@@ -1,10 +1,10 @@
 /*
  * TAS2871 Linux Driver
  *
- * Copyright (C) 2022 Texas Instruments Incorporated 
- * 
+ * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ *
  * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as 
+ * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation version 2.
  *
  * This program is distributed "as is" WITHOUT ANY WARRANTY of any
@@ -19,7 +19,6 @@
 #include <linux/crc8.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
-// #include <linux/fcntl.h>
 #include <linux/fs.h>
 #include <linux/firmware.h>
 #include <linux/time.h>
@@ -31,36 +30,37 @@
 #include "tasdevice-dsp_kernel.h"
 #include <linux/spi/spi.h>
 #include <linux/i2c.h>
-#define TAS2781_CAL_BIN_PATH	("/lib/firmware/")
 
-#define ERROR_PRAM_CRCCHK			(0x0000000)
-#define ERROR_YRAM_CRCCHK			(0x0000001)
-#define BINFILEDOCVER				(0)
-#define DRVFWVER					(1)
-#define	PPC_DRIVER_CRCCHK			(0x00000200)
+#define TAS2781_CAL_BIN_PATH			"/lib/firmware/"
 
-#define TAS2781_SA_COEFF_SWAP_REG	TASDEVICE_REG(0, 0x35, 0x2c)
-#define TAS2781_YRAM_BOOK1			(140)
-#define TAS2781_YRAM1_PAGE			(42)
-#define TAS2781_YRAM1_START_REG		(88)
+#define ERROR_PRAM_CRCCHK			0x0000000
+#define ERROR_YRAM_CRCCHK			0x0000001
+#define BINFILEDOCVER				0
+#define DRVFWVER				1
+#define	PPC_DRIVER_CRCCHK			0x00000200
 
-#define TAS2781_YRAM2_START_PAGE	(43)
-#define TAS2781_YRAM2_END_PAGE		(49)
-#define TAS2781_YRAM2_START_REG		(8)
-#define TAS2781_YRAM2_END_REG		(127)
+#define TAS2781_SA_COEFF_SWAP_REG		TASDEVICE_REG(0, 0x35, 0x2c)
+#define TAS2781_YRAM_BOOK1			140
+#define TAS2781_YRAM1_PAGE			42
+#define TAS2781_YRAM1_START_REG			88
 
-#define TAS2781_YRAM3_PAGE			(50)
-#define TAS2781_YRAM3_START_REG		(8)
-#define TAS2781_YRAM3_END_REG		(27)
+#define TAS2781_YRAM2_START_PAGE		43
+#define TAS2781_YRAM2_END_PAGE			49
+#define TAS2781_YRAM2_START_REG			8
+#define TAS2781_YRAM2_END_REG			127
+
+#define TAS2781_YRAM3_PAGE			50
+#define TAS2781_YRAM3_START_REG			8
+#define TAS2781_YRAM3_END_REG			27
 
 /*should not include B0_P53_R44-R47 */
-#define TAS2781_YRAM_BOOK2			(0)
-#define TAS2781_YRAM4_START_PAGE	(50)
-#define TAS2781_YRAM4_END_PAGE		(60)
+#define TAS2781_YRAM_BOOK2			0
+#define TAS2781_YRAM4_START_PAGE		50
+#define TAS2781_YRAM4_END_PAGE			60
 
-#define TAS2781_YRAM5_PAGE			(61)
-#define TAS2781_YRAM5_START_REG		(8)
-#define TAS2781_YRAM5_END_REG		(27)
+#define TAS2781_YRAM5_PAGE			61
+#define TAS2781_YRAM5_START_REG			8
+#define TAS2781_YRAM5_END_REG			27
 
 struct TYCRC {
 	unsigned char mnOffset;
@@ -123,7 +123,10 @@ static inline void tas2781_clear_Calfirmware(struct TFirmware
 					}
 				kfree(pImageData->mpBlocks);
 				}
-				kfree(pCalibration->mpDescription);
+				if((pImageData->mpDescription))
+					kfree(pImageData->mpDescription);
+				if((pCalibration->mpDescription))
+					kfree(pCalibration->mpDescription);
 			}
 		}
 		kfree(mpCalFirmware->mpCalibrations);
@@ -868,24 +871,6 @@ static int isYRAM(struct tasdevice_priv *pTAS2781, struct TYCRC *pCRCData,
 	return nResult;
 }
 
-/*
- * crc8-calculate a crc8 over the given input data.
- *
- * table: crc table used for calculation.
- * pdata: pointer to data buffer.
- * nbytes: number of bytes in data buffer.
- * crc: previous returned crc8 value.
- */
-static u8 ti_crc8(const u8 table[CRC8_TABLE_SIZE], u8 *pdata,
-			size_t nbytes, u8 crc)
-{
-	/*loop over the buffer data */
-	while (nbytes-- > 0)
-		crc = table[(crc ^ *(pdata  += 1)) & 0xff];
-
-	return crc;
-}
-
 static int doSingleRegCheckSum(struct tasdevice_priv *pTAS2781,
 	enum channel chl,
 		unsigned char nBook, unsigned char nPage,
@@ -930,7 +915,7 @@ static int doSingleRegCheckSum(struct tasdevice_priv *pTAS2781,
 			goto end;
 		}
 
-		nResult = ti_crc8(crc8_lookup_table, &nValue, 1, 0);
+		nResult = crc8(crc8_lookup_table, &nValue, 1, 0);
 	}
 
 end:
@@ -997,7 +982,7 @@ static int doMultiRegCheckSum(struct tasdevice_priv *pTAS2781,
 					continue;
 				} else
 					nCRCChkSum  +=
-					ti_crc8(crc8_lookup_table, &nBuf1[i],
+					crc8(crc8_lookup_table, &nBuf1[i],
 						1, 0);
 			}
 
@@ -1548,9 +1533,12 @@ void tasdevice_dsp_remove(void *pContext)
 									kfree(pBlock->mpData);
 								}
 							}
-						kfree(pImageData->mpBlocks);
+							kfree(pImageData->mpBlocks);
 						}
-						kfree(pProgram->mpDescription);
+						if(pImageData->mpDescription)
+							kfree(pImageData->mpDescription);
+						if(pProgram->mpDescription)
+							kfree(pProgram->mpDescription);
 					}
 				}
 				kfree(pFirmware->mpPrograms);
@@ -1583,6 +1571,8 @@ void tasdevice_dsp_remove(void *pContext)
 							}
 							kfree(pImageData->mpBlocks);
 						}
+						if(pImageData->mpDescription)
+							kfree(pImageData->mpDescription);
 						kfree(pConfig->mpDescription);
 					}
 				}
@@ -1595,7 +1585,7 @@ void tasdevice_dsp_remove(void *pContext)
 	}
 }
 
-void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
+int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 	int cfg_no, int regbin_conf_no)
 {
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
@@ -1606,6 +1596,7 @@ void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 	struct TProgram *pProgram = NULL;
 	int i = 0;
 	int status = 0;
+	int prog_status = 0;
 
 	if (pFirmware == NULL) {
 		dev_err(tas_dev->dev, "%s: Firmware is NULL\n", __func__);
@@ -1619,7 +1610,7 @@ void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 		goto out;
 	}
 
-	if (prm_no >= pFirmware->mnPrograms || prm_no == 1) {
+	if (prm_no >= pFirmware->mnPrograms) {
 		dev_err(tas_dev->dev,
 			"%s: prm(%d) is not in range of Programs %u\n",
 			__func__,  prm_no, pFirmware->mnPrograms);
@@ -1632,13 +1623,10 @@ void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 			"conf_no:%d should be in range from 0 to %u\n",
 			regbin_conf_no, regbin->ncfgs-1);
 		goto out;
-	} else {
+	} else
 		dev_info(tas_dev->dev, "%s: regbin_profile_conf_id = %d\n",
 			__func__, regbin_conf_no);
-	}
 
-	tas_dev->mnCurrentConfiguration = cfg_no;
-	tas_dev->mnCurrentProgram = prm_no;
 
 	pConfigurations = &(pFirmware->mpConfigurations[cfg_no]);
 	for (i = 0; i < tas_dev->ndev; i++) {
@@ -1647,14 +1635,14 @@ void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 				tas_dev->tasdevice[i].mnCurrentConfiguration
 					= -1;
 				tas_dev->tasdevice[i].bLoading = true;
-				status++;
+				prog_status++;
 			}
 		} else
 			tas_dev->tasdevice[i].bLoading = false;
 		tas_dev->tasdevice[i].bLoaderr = false;
 	}
 
-	if (status) {
+	if (prog_status) {
 		pProgram = &(pFirmware->mpPrograms[prm_no]);
 		tasdevice_load_data(tas_dev, &(pProgram->mData));
 		for (i = 0; i < tas_dev->ndev; i++) {
@@ -1690,7 +1678,6 @@ void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 		tas_dev->mbCalibrationLoaded == false at first time */
 	}
 
-	status = 0;
 	for (i = 0; i < tas_dev->ndev; i++) {
 		dev_info(tas_dev->dev, "%s,fun %d,%d,%d\n", __func__,
 			tas_dev->tasdevice[i].mnCurrentConfiguration,
@@ -1729,7 +1716,7 @@ void tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 	dev_info(tas_dev->dev, "%s: DSP mode: load status is %08x\n",
 		__func__, status);
 out:
-	return;
+	return prog_status;
 }
 
 int tas2781_set_calibration(void *pContext, enum channel i,

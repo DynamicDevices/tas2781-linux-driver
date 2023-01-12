@@ -1,10 +1,10 @@
 /*
  * TAS2871 Linux Driver
  *
- * Copyright (C) 2022 Texas Instruments Incorporated 
- * 
+ * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ *
  * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as 
+ * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation version 2.
  *
  * This program is distributed "as is" WITHOUT ANY WARRANTY of any
@@ -138,6 +138,11 @@ static int tasdevice_change_chn_book_page(
 #ifdef CONFIG_TASDEV_CODEC_SPI
 		pClient->chip_select = tas_dev->tasdevice[chn].mnDevAddr;
 #else
+		if (tas_dev->glb_addr.ref_cnt != 0) {
+			tas_dev->glb_addr.ref_cnt = 0;
+			tas_dev->glb_addr.mnBkPg.mnBook = -1;
+			tas_dev->glb_addr.mnBkPg.mnPage = -1;
+		}
 		pClient->addr = tas_dev->tasdevice[chn].mnDevAddr;
 #endif
 
@@ -170,6 +175,50 @@ static int tasdevice_change_chn_book_page(
 			}
 			tas_dev->tasdevice[chn].mnBkPg.mnPage = page;
 		}
+	} else if (chn == tas_dev->ndev) {
+		int i = 0;
+
+		if (tas_dev->glb_addr.ref_cnt == 0)
+			for (i = 0; i < tas_dev->ndev; i++) {
+				tas_dev->tasdevice[i].mnBkPg.mnBook
+					= -1;
+				tas_dev->tasdevice[i].mnBkPg.mnPage
+					= -1;
+			}
+		pClient->addr = tas_dev->glb_addr.dev_addr;
+		if (tas_dev->glb_addr.mnBkPg.mnBook != book) {
+			n_result = tasdevice_regmap_write(tas_dev,
+				TASDEVICE_BOOKCTL_PAGE, 0);
+			if (n_result < 0) {
+				dev_err(tas_dev->dev,
+					"%s, 0ERROR, E=%d\n",
+					__func__, n_result);
+				goto out;
+			}
+			tas_dev->glb_addr.mnBkPg.mnPage = 0;
+			n_result = tasdevice_regmap_write(tas_dev,
+				TASDEVICE_BOOKCTL_REG, book);
+			if (n_result < 0) {
+				dev_err(tas_dev->dev,
+					"%s, book%xERROR, E=%d\n",
+					__func__, book, n_result);
+				goto out;
+			}
+			tas_dev->glb_addr.mnBkPg.mnBook = book;
+		}
+
+		if (tas_dev->glb_addr.mnBkPg.mnPage != page) {
+			n_result = tasdevice_regmap_write(tas_dev,
+				TASDEVICE_BOOKCTL_PAGE, page);
+			if (n_result < 0) {
+				dev_err(tas_dev->dev,
+					"%s, page%xERROR, E=%d\n",
+					__func__, page, n_result);
+				goto out;
+			}
+			tas_dev->glb_addr.mnBkPg.mnPage = page;
+		}
+		tas_dev->glb_addr.ref_cnt++;
 	} else
 		dev_err(tas_dev->dev, "%s, ERROR, no such channel(%d)\n",
 			__func__, chn);
@@ -182,13 +231,6 @@ int tasdevice_dev_read(struct tasdevice_priv *tas_dev,
 	enum channel chn, unsigned int reg, unsigned int *pValue)
 {
 	int n_result = 0;
-#ifdef CONFIG_TASDEV_CODEC_SPI
-	struct spi_device *pClient =
-		(struct spi_device *)tas_dev->client;
-#else
-	struct i2c_client *pClient =
-		(struct i2c_client *)tas_dev->client;
-#endif
 
 	mutex_lock(&tas_dev->dev_lock);
 	if (chn < tas_dev->ndev) {
@@ -197,11 +239,6 @@ int tasdevice_dev_read(struct tasdevice_priv *tas_dev,
 		if (n_result < 0)
 			goto out;
 
-#ifdef CONFIG_TASDEV_CODEC_SPI
-		pClient->chip_select = tas_dev->tasdevice[chn].mnDevAddr;
-#else
-		pClient->addr = tas_dev->tasdevice[chn].mnDevAddr;
-#endif
 		n_result = tasdevice_regmap_read(tas_dev,
 			TASDEVICE_PAGE_REG(reg), pValue);
 		if (n_result < 0)
@@ -229,36 +266,27 @@ int tasdevice_dev_write(struct tasdevice_priv *tas_dev,
 {
 	int n_result = 0;
 
-#ifdef CONFIG_TASDEV_CODEC_SPI
-	struct spi_device *pClient =
-		(struct spi_device *)tas_dev->client;
-#else
-	struct i2c_client *pClient =
-		(struct i2c_client *)tas_dev->client;
-#endif
-
 	mutex_lock(&tas_dev->dev_lock);
-	if (chn < tas_dev->ndev) {
+	if (chn <= tas_dev->ndev) {
 		n_result = tasdevice_change_chn_book_page(tas_dev, chn,
 			TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg));
 		if (n_result < 0)
 			goto out;
 
-#ifdef CONFIG_TASDEV_CODEC_SPI
-		pClient->chip_select = tas_dev->tasdevice[chn].mnDevAddr;
-#else
-		pClient->addr = tas_dev->tasdevice[chn].mnDevAddr;
-#endif
 		n_result = tasdevice_regmap_write(tas_dev,
 			TASDEVICE_PAGE_REG(reg), value);
 		if (n_result < 0)
 			dev_err(tas_dev->dev, "%s, ERROR, E=%d\n",
 				__func__, n_result);
 		else
-			dev_dbg(tas_dev->dev, "%s: chn0x%02x:BOOK:PAGE:REG "
-				"0x%02x:0x%02x:0x%02x, VAL: 0x%02x\n",
-				__func__, tas_dev->tasdevice[chn].mnDevAddr,
-				TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg),
+			dev_dbg(tas_dev->dev,
+				"%s: %s-0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:0x%02x, VAL: 0x%02x\n",
+				__func__, (chn == tas_dev->ndev)?"glb":"chn",
+				(chn == tas_dev->ndev) ?
+				tas_dev->glb_addr.dev_addr
+				: tas_dev->tasdevice[chn].mnDevAddr,
+				TASDEVICE_BOOK_ID(reg),
+				TASDEVICE_PAGE_ID(reg),
 				TASDEVICE_PAGE_REG(reg), value);
 	} else
 		dev_err(tas_dev->dev, "%s, ERROR, no such channel(%d)\n",
@@ -275,25 +303,14 @@ int tasdevice_dev_bulk_write(
 	unsigned int n_length)
 {
 	int n_result = 0;
-#ifdef CONFIG_TASDEV_CODEC_SPI
-	struct spi_device *pClient =
-		(struct spi_device *)tas_dev->client;
-#else
-	struct i2c_client *pClient =
-		(struct i2c_client *)tas_dev->client;
-#endif
+
 	mutex_lock(&tas_dev->dev_lock);
-	if (chn < tas_dev->ndev) {
+	if (chn <= tas_dev->ndev) {
 		n_result = tasdevice_change_chn_book_page(tas_dev, chn,
 			TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg));
 		if (n_result < 0)
 			goto out;
 
-#ifdef CONFIG_TASDEV_CODEC_SPI
-		pClient->chip_select = tas_dev->tasdevice[chn].mnDevAddr;
-#else
-		pClient->addr = tas_dev->tasdevice[chn].mnDevAddr;
-#endif
 		n_result = tasdevice_regmap_bulk_write(tas_dev,
 			TASDEVICE_PAGE_REG(reg), p_data, n_length);
 		if (n_result < 0)
@@ -301,9 +318,12 @@ int tasdevice_dev_bulk_write(
 				__func__, n_result);
 		else
 			dev_dbg(tas_dev->dev,
-				"%s: chn0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:"
-				"0x%02x, len: 0x%02x\n", __func__,
-				tas_dev->tasdevice[chn].mnDevAddr,
+				"%s: %s-0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x: 0x%02x, len: 0x%02x\n",
+				__func__,
+				(chn == tas_dev->ndev)?"glb":"chn",
+				(chn == tas_dev->ndev) ?
+				tas_dev->glb_addr.dev_addr
+				: tas_dev->tasdevice[chn].mnDevAddr,
 				TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg),
 				TASDEVICE_PAGE_REG(reg), n_length);
 	} else
@@ -320,24 +340,14 @@ int tasdevice_dev_bulk_read(struct tasdevice_priv *tas_dev,
 	unsigned int n_length)
 {
 	int n_result = 0;
-#ifdef CONFIG_TASDEV_CODEC_SPI
-	struct spi_device *pClient =
-		(struct spi_device *)tas_dev->client;
-#else
-	struct i2c_client *pClient =
-		(struct i2c_client *)tas_dev->client;
-#endif
+
 	mutex_lock(&tas_dev->dev_lock);
 	if (chn < tas_dev->ndev) {
 		n_result = tasdevice_change_chn_book_page(tas_dev, chn,
 			TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg));
 		if (n_result < 0)
 			goto out;
-#ifdef CONFIG_TASDEV_CODEC_SPI
-		pClient->chip_select = tas_dev->tasdevice[chn].mnDevAddr;
-#else
-		pClient->addr = tas_dev->tasdevice[chn].mnDevAddr;
-#endif
+
 		n_result = tasdevice_regmap_bulk_read(tas_dev,
 			TASDEVICE_PAGE_REG(reg), p_data, n_length);
 		if (n_result < 0)
@@ -365,24 +375,14 @@ int tasdevice_dev_update_bits(
 	unsigned int reg, unsigned int mask, unsigned int value)
 {
 	int n_result = 0;
-#ifdef CONFIG_TASDEV_CODEC_SPI
-	struct spi_device *pClient =
-		(struct spi_device *)tas_dev->client;
-#else
-	struct i2c_client *pClient =
-		(struct i2c_client *)tas_dev->client;
-#endif
+
 	mutex_lock(&tas_dev->dev_lock);
 	if (chn < tas_dev->ndev) {
 		n_result = tasdevice_change_chn_book_page(tas_dev, chn,
 			TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg));
 		if (n_result < 0)
 			goto out;
-#ifdef CONFIG_TASDEV_CODEC_SPI
-		pClient->chip_select = tas_dev->tasdevice[chn].mnDevAddr;
-#else
-		pClient->addr = tas_dev->tasdevice[chn].mnDevAddr;
-#endif
+
 		n_result = tasdevice_regmap_update_bits(tas_dev,
 			TASDEVICE_PAGE_REG(reg), mask, value);
 		if (n_result < 0)
@@ -390,7 +390,7 @@ int tasdevice_dev_update_bits(
 				__func__, n_result);
 		else
 			dev_dbg(tas_dev->dev,
-			"%s: chn0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:0x%02x, "
+				"%s: chn0x%02x:BOOK:PAGE:REG 0x%02x:0x%02x:0x%02x, "
 				"mask: 0x%02x, val: 0x%02x\n",
 				__func__, tas_dev->tasdevice[chn].mnDevAddr,
 				TASDEVICE_BOOK_ID(reg), TASDEVICE_PAGE_ID(reg),

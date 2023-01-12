@@ -1,10 +1,10 @@
 /*
  * TAS2871 Linux Driver
  *
- * Copyright (C) 2022 Texas Instruments Incorporated 
- * 
+ * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ *
  * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as 
+ * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation version 2.
  *
  * This program is distributed "as is" WITHOUT ANY WARRANTY of any
@@ -52,12 +52,18 @@ int tasdevice_process_block(void *pContext,
 		chn = idx-1;
 		chnend = idx;
 	} else {
-		chn = 0;
-		chnend = tas_dev->ndev;
+		if (tas_dev->set_global_mode) {
+			chn = tas_dev->ndev;
+			chnend = tas_dev->ndev + 1;
+		} else {
+			chn = 0;
+			chnend = tas_dev->ndev;
+		}
 	}
 
 	for (; chn < chnend; chn++) {
-		if (tas_dev->tasdevice[chn].bLoading == false)
+		if (tas_dev->set_global_mode == NULL &&
+			tas_dev->tasdevice[chn].bLoading == false)
 			continue;
 
 		bError = false;
