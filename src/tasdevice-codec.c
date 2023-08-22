@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -13,12 +13,13 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/version.h>
-#include <sound/soc.h>
-#include <sound/pcm_params.h>
-#include <linux/miscdevice.h>
+#include <linux/crc8.h>
 #include <linux/firmware.h>
+#include <linux/miscdevice.h>
 #include <linux/of_gpio.h>
+#include <linux/version.h>
+#include <sound/pcm_params.h>
+#include <sound/soc.h>
 #include <sound/tlv.h>
 
 #include "tasdevice-dsp.h"
@@ -28,6 +29,7 @@
 #include "tasdevice.h"
 #include "tasdevice-rw.h"
 
+#define TASDEVICE_CRC8_POLYNOMIAL	0x4d
 /* max. length of a alsa mixer control name */
 #define MAX_CONTROL_NAME		(48)
 #define TASDEVICE_CLK_DIR_IN		(0)
@@ -220,20 +222,16 @@ void powercontrol_routine(struct work_struct *work)
 	struct tasdevice_priv *tas_dev =
 		container_of(work, struct tasdevice_priv,
 		powercontrol_work.work);
-	struct TFirmware *pFw = tas_dev->mpFirmware;
-	int profile_cfg_id = REGBIN_CONFIGID_BYPASS_ALL;
+	struct tasdevice_fw *pFw = tas_dev->mpFirmware;
+	int profile_cfg_id = tas_dev->mtRegbin.profile_cfg_id;
 	int is_set_glb_mode = 0;
 
 	dev_info(tas_dev->dev, "%s: enter\n", __func__);
 
 	mutex_lock(&tas_dev->codec_lock);
 	if (pFw) {
-		if (tas_dev->mnCurrentProgram >= pFw->mnPrograms)
-			/*bypass all in regbin is profile id 0*/
-			profile_cfg_id = REGBIN_CONFIGID_BYPASS_ALL;
-		else {
+		if (tas_dev->mnCurrentProgram == 0) {
 			/*dsp mode or tuning mode*/
-			profile_cfg_id = tas_dev->mtRegbin.profile_cfg_id;
 			dev_info(tas_dev->dev, "%s: %s\n", __func__,
 				pFw->mpConfigurations[tas_dev->mnCurrentConfiguration]
 				.mpName);
@@ -242,16 +240,16 @@ void powercontrol_routine(struct work_struct *work)
 					tas_dev->mnCurrentProgram,
 					tas_dev->mnCurrentConfiguration,
 					profile_cfg_id);
-
+			if (is_set_glb_mode && tas_dev->set_global_mode)
+				tas_dev->set_global_mode(tas_dev);
 		}
-	} else
-		profile_cfg_id = REGBIN_CONFIGID_BYPASS_ALL;
+	}
 
 	tasdevice_select_cfg_blk(tas_dev, profile_cfg_id,
 		TASDEVICE_BIN_BLK_PRE_POWER_UP);
-	if (is_set_glb_mode && tas_dev->set_global_mode)
-		tas_dev->set_global_mode(tas_dev);
-	if (gpio_is_valid(tas_dev->mIrqInfo.mn_irq_gpio))
+	tas_dev->mtRegbin.profile_id = profile_cfg_id;
+
+	if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
 		tasdevice_enable_irq(tas_dev, true);
 	mutex_unlock(&tas_dev->codec_lock);
 	dev_info(tas_dev->dev, "%s: leave\n", __func__);
@@ -267,10 +265,10 @@ static void tasdevice_set_power_state(
 		break;
 	default:
 		if (!(tas_dev->pstream || tas_dev->cstream)) {
-			if (gpio_is_valid(tas_dev->mIrqInfo.mn_irq_gpio))
+			if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
 				tasdevice_enable_irq(tas_dev, false);
 			tasdevice_select_cfg_blk(tas_dev,
-				tas_dev->mnCurrentConfiguration,
+				tas_dev->mtRegbin.profile_id,
 				TASDEVICE_BIN_BLK_PRE_SHUTDOWN);
 		}
 		break;
@@ -348,33 +346,34 @@ static struct snd_soc_dai_driver tasdevice_dai_driver[] = {
 static int tasdevice_codec_probe(
 	struct snd_soc_component *codec)
 {
-	struct tasdevice_priv *tas_dev =
+	struct tasdevice_priv *tas_priv =
 		snd_soc_component_get_drvdata(codec);
 	int ret = 0;
 
-	dev_info(tas_dev->dev, "%s, enter\n", __func__);
+	dev_info(tas_priv->dev, "%s, enter\n", __func__);
 	/* Codec Lock Hold */
-	mutex_lock(&tas_dev->codec_lock);
-	tas_dev->codec = codec;
+	mutex_lock(&tas_priv->codec_lock);
+	tas_priv->codec = codec;
 
-	scnprintf(tas_dev->regbin_binaryname, 64, "%s_regbin.bin",
-		tas_dev->dev_name);
+	scnprintf(tas_priv->regbin_binaryname, 64, "%s_regbin.bin",
+		tas_priv->dev_name);
 	ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
-		tas_dev->regbin_binaryname, tas_dev->dev, GFP_KERNEL, tas_dev,
-		tasdevice_regbin_ready);
+		tas_priv->regbin_binaryname, tas_priv->dev, GFP_KERNEL,
+		tas_priv, tasdevice_regbin_ready);
 	if (ret)
-		dev_err(tas_dev->dev,
+		dev_err(tas_priv->dev,
 			"%s: request_firmware_nowait error:0x%08x\n",
 			__func__, ret);
 
-	if (tas_dev->reset)
-		tas_dev->reset(tas_dev);
+	crc8_populate_msb(tas_priv->crc8_lkp_tbl, TASDEVICE_CRC8_POLYNOMIAL);
+	if (tas_priv->reset)
+		tas_priv->hwreset(tas_priv);
 
-	if (tas_dev->set_global_mode != NULL)
-		tas_dev->set_global_mode(tas_dev);
+	if (tas_priv->set_global_mode != NULL)
+		tas_priv->set_global_mode(tas_priv);
 	/* Codec Lock Release*/
-	mutex_unlock(&tas_dev->codec_lock);
-	dev_info(tas_dev->dev, "%s, codec probe success\n", __func__);
+	mutex_unlock(&tas_priv->codec_lock);
+	dev_info(tas_priv->dev, "%s, codec probe success\n", __func__);
 
 	return ret;
 }
@@ -672,7 +671,7 @@ static int tasdevice_info_programs(struct snd_kcontrol *kcontrol,
 		= snd_soc_kcontrol_component(kcontrol);
 	struct tasdevice_priv *p_tasdevice =
 		snd_soc_component_get_drvdata(codec);
-	struct TFirmware *Tfw = p_tasdevice->mpFirmware;
+	struct tasdevice_fw *Tfw = p_tasdevice->mpFirmware;
 
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	/* Codec Lock Hold*/
@@ -694,7 +693,7 @@ static int tasdevice_info_configurations(struct snd_kcontrol *kcontrol,
 		= snd_soc_kcontrol_component(kcontrol);
 	struct tasdevice_priv *p_tasdevice =
 		snd_soc_component_get_drvdata(codec);
-	struct TFirmware *Tfw = p_tasdevice->mpFirmware;
+	struct tasdevice_fw *Tfw = p_tasdevice->mpFirmware;
 
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	/* Codec Lock Hold*/

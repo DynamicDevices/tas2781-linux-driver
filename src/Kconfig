@@ -1,11 +1,11 @@
-config SND_SOC_TASDEVICE
-	tristate "Texas Instruments TASDEVICE"
+config SND_SOC_INTEGRATED_TASDEVICE
+	tristate "Texas Instruments INTEGRATED TASDEVICE"
 	select REGMAP
 	select REGMAP_I2C
 	select I2C
 	select SYSFS
 	select CRC8
 	help
-	  Enable support Texas Instruments tasdevice.
+	  Enable support Texas Instruments integrated tasdevice.
 	  To compile this driver as a module, choose M here.
 	  If unsure select "N".

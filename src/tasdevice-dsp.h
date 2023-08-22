@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -31,7 +31,7 @@
 #define PRE_DEVICE_D				0x16
 
 #define PPC3_VERSION				0x4100
-#define REGBIN_CONFIGID_BYPASS_ALL		0
+#define PPC3_VERSION_TAS2781			0x14600
 
 enum channel {
 	TopLeftChn = 0x00,
@@ -62,9 +62,9 @@ struct tasdevice_fw_fixed_hdr {
 	unsigned int mnMagicNumber;
 	unsigned int mnFWSize;
 	unsigned int mnChecksum;
-	unsigned int mnPPCVersion;
+	unsigned int ppcver;
 	unsigned int mnFWVersion;
-	unsigned int mnDriverVersion;
+	unsigned int drv_ver;
 	unsigned int mnTimeStamp;
 	char mpDDCName[64];
 };
@@ -79,7 +79,7 @@ struct tasdevice_dspfw_hdr {
 };
 
 struct TBlock {
-	unsigned int mnType;
+	unsigned int type;
 	unsigned char mbPChkSumPresent;
 	unsigned char mnPChkSum;
 	unsigned char mbYChkSumPresent;
@@ -130,7 +130,7 @@ struct TCalibration {
 	struct TData mData;
 };
 
-struct TFirmware {
+struct tasdevice_fw {
 	struct tasdevice_dspfw_hdr fw_hdr;
 	unsigned int prog_start_offset;
 	unsigned short mnPrograms;

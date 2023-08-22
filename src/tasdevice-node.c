@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -13,11 +13,15 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/module.h>
-#include <linux/i2c.h>
-#include <linux/spi/spi.h>
-#include <linux/uaccess.h>
+#include <linux/crc8.h>
 #include <linux/firmware.h>
+#include <linux/module.h>
+#ifdef CONFIG_TASDEV_CODEC_SPI
+	#include <linux/spi/spi.h>
+#else
+	#include <linux/i2c.h>
+#endif
+#include <linux/uaccess.h>
 #include <sound/soc.h>
 
 #include "tasdevice.h"
@@ -33,7 +37,7 @@ ssize_t dspfwinfo_list_show(struct device *dev,
 				  struct device_attribute *attr, char *buf)
 {
 	struct tasdevice_priv *tas_dev = dev_get_drvdata(dev);
-	struct TFirmware *pFirmware = NULL;
+	struct tasdevice_fw *pFirmware = NULL;
 	struct TProgram *pProgram = NULL;
 	struct TConfiguration *pConfiguration = NULL;
 	struct tasdevice_dspfw_hdr *pFw_hdr = NULL;
@@ -86,7 +90,7 @@ ssize_t dspfwinfo_list_show(struct device *dev,
 			tas_dev->dsp_binaryname,
 			pFirmware->bKernelFormat == true ?
 			"Kernel" : "Git",
-			pFw_hdr->mnFixedHdr.mnPPCVersion);
+			pFw_hdr->mnFixedHdr.ppcver);
 	else {
 		scnprintf(buf + PAGE_SIZE - 100, 100, "\n[SmartPA]:%s "
 			"Out of memory!\n\r", __func__);
@@ -767,7 +771,7 @@ ssize_t dspfw_config_show(struct device *dev,
 	struct device_attribute *attr, char *buf, size_t len)
 {
 	struct tasdevice_priv *tas_dev = dev_get_drvdata(dev);
-	struct TFirmware *pFirmware = NULL;
+	struct tasdevice_fw *pFirmware = NULL;
 	int n = 0;
 
 	mutex_lock(&tas_dev->file_lock);

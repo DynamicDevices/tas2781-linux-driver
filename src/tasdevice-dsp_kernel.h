@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -18,10 +18,11 @@
 
 int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 	const struct firmware *pFW, int offset);
-int fw_parse_program_data_kernel(struct TFirmware *pFirmware,
+int fw_parse_program_data_kernel(struct tasdevice_fw *pFirmware,
 	const struct firmware *pFW, int offset);
 int fw_parse_configuration_data_kernel(
-	struct TFirmware *pFirmware, const struct firmware *pFW, int offset);
+	struct tasdevice_fw *pFirmware, const struct firmware *pFW,
+	int offset);
 int tasdevice_load_block_kernel(struct tasdevice_priv *pTAS2781,
 	struct TBlock *pBlock);
 #endif

@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -13,16 +13,20 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/module.h>
-#include <linux/interrupt.h>
-#include <linux/miscdevice.h>
-#include <linux/firmware.h>
-#include <linux/fs.h>
-#include <linux/spi/spi.h>
-#include <linux/i2c.h>
-
 #ifdef CONFIG_COMPAT
 	#include <linux/compat.h>
+#endif
+#include <linux/crc8.h>
+#include <linux/firmware.h>
+#include <linux/fs.h>
+#include <linux/interrupt.h>
+#include <linux/miscdevice.h>
+#include <linux/module.h>
+#include <linux/of_gpio.h>
+#ifdef CONFIG_TASDEV_CODEC_SPI
+	#include <linux/spi/spi.h>
+#else
+	#include <linux/i2c.h>
 #endif
 
 #include "tasdevice.h"
@@ -276,6 +280,59 @@ static long tasdevice_ioctl(struct file *f,
 		break;
 	case TILOAD_IOC_MAGIC_SET_DEFAULT_CALIB_PRI:
 		break;
+	case TILOAD_IOC_MAGIC_POWER_OFF:
+		if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
+				tasdevice_enable_irq(tas_dev, false);
+		tasdevice_select_cfg_blk(tas_dev,
+			tas_dev->mnCurrentConfiguration,
+			TASDEVICE_BIN_BLK_PRE_SHUTDOWN);
+		dev_info(tas_dev->dev,
+			"%s:%u: cmd=TILOAD_IOC_MAGIC_POWER_OFF"
+			"=0x%08x: regscene = %d\n",
+			__func__, __LINE__,
+			TILOAD_IOC_MAGIC_POWER_OFF,
+			tas_dev->mtRegbin.profile_id);
+		break;
+	case TILOAD_IOC_MAGIC_POWERON:
+		{
+			struct smartpa_params param;
+			int is_set_glb_mode = 0;
+
+			ret = copy_from_user(&param, arg,
+				sizeof(struct smartpa_params));
+			if(ret == 0) {
+				dev_info(tas_dev->dev,
+					"%s, TILOAD_IOC_MAGIC_POWERON=0x%08x:"
+					"mProg = %d, config = %d, regscene = "
+					"%d\n", __func__,
+					TILOAD_IOC_MAGIC_POWERON, param.mProg,
+					param.config, param.regscene);
+
+				if(param.mProg == 0) {
+					is_set_glb_mode =
+						tasdevice_select_tuningprm_cfg(
+							tas_dev,
+							param.mProg, param.config,
+							param.regscene);
+					if (is_set_glb_mode && tas_dev->set_global_mode)
+						tas_dev->set_global_mode(tas_dev);
+				}
+				tasdevice_select_cfg_blk(tas_dev,
+					param.regscene,
+					TASDEVICE_BIN_BLK_PRE_POWER_UP);
+				tas_dev->mtRegbin.profile_id = param.regscene;
+
+				if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
+					tasdevice_enable_irq(tas_dev, true);
+			} else {
+				dev_err(tas_dev->dev,
+					"%s:%u: error copy from user cmd="
+					"TILOAD_IOC_MAGIC_POWERON=0x%08x\n",
+					__func__, __LINE__,
+					TILOAD_IOC_MAGIC_POWERON);
+			}
+		}
+		break;
 	default:
 		dev_info(tas_dev->dev, "%s:COMMAND = 0x%08x Not Imple\n",
 			__func__, cmd);
@@ -339,6 +396,12 @@ static long tasdevice_compat_ioctl(struct file *f,
 		break;
 	case TILOAD_COMPAT_IOCTL_SET_CALIBRATION:
 		cmd64 = TILOAD_IOCTL_SET_CALIBRATION;
+		break;
+	case TILOAD_IOC_MAGIC_POWER_OFF_COMPAT:
+		cmd64 = TILOAD_IOC_MAGIC_POWER_OFF;
+		break;
+	case TILOAD_IOC_MAGIC_POWERON_COMPAT:
+		cmd64 = TILOAD_IOC_MAGIC_POWERON;
 		break;
 	default:
 		dev_info(tas_dev->dev, "%s:COMMAND = 0x%08x Not Imple\n",

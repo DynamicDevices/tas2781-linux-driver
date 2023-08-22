@@ -18,20 +18,18 @@
 #include <sound/soc.h>
 
 #include "tasdevice.h"
-#include "tas2781-reg.h"
+#include "tas2563-reg.h"
 #include "tasdevice-rw.h"
 
-void tas2781_irq_work_func(struct tasdevice_priv *tas_dev)
+void tas2563_irq_work_func(struct tasdevice_priv *tas_dev)
 {
 	int rc = 0;
 	unsigned int reg_val = 0, array_size = 0, i = 0, ndev = 0;
 	unsigned int int_reg_array[] = {
-		TAS2781_REG_INT_LTCH0,
-		TAS2781_REG_INT_LTCH1,
-		TAS2781_REG_INT_LTCH1_0,
-		TAS2781_REG_INT_LTCH2,
-		TAS2781_REG_INT_LTCH3,
-		TAS2781_REG_INT_LTCH4};
+		TAS2563_REG_INT_LTCH0,
+		TAS2563_REG_INT_LTCH1,
+		TAS2563_REG_INT_LTCH3,
+		TAS2563_REG_INT_LTCH4};
 
 	tasdevice_enable_irq(tas_dev, false);
 

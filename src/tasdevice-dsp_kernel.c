@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 
+#include <linux/crc8.h>
 #include <linux/firmware.h>
 #include <linux/miscdevice.h>
 #include <linux/slab.h>
@@ -21,36 +22,43 @@
 #include "tasdevice-dsp.h"
 #include "tasdevice.h"
 
-#define TASDEVICE_MAXPROGRAM_NUM_KERNEL			(5)
-#define TASDEVICE_MAXCONFIG_NUM_KERNEL_MULTIPLE_AMPS	(64)
-#define TASDEVICE_MAXCONFIG_NUM_KERNEL			(10)
-#define MAIN_ALL_DEVICES_1X				(0x01)
-#define MAIN_DEVICE_A_1X				(0x02)
-#define MAIN_DEVICE_B_1X				(0x03)
-#define MAIN_DEVICE_C_1X				(0x04)
-#define MAIN_DEVICE_D_1X				(0x05)
-#define COEFF_DEVICE_A_1X				(0x12)
-#define COEFF_DEVICE_B_1X				(0x13)
-#define COEFF_DEVICE_C_1X				(0x14)
-#define COEFF_DEVICE_D_1X				(0x15)
-#define PRE_DEVICE_A_1X					(0x22)
-#define PRE_DEVICE_B_1X					(0x23)
-#define PRE_DEVICE_C_1X					(0x24)
-#define PRE_DEVICE_D_1X					(0x25)
+#define TASDEVICE_MAXPROGRAM_NUM_KERNEL			5
+#define TASDEVICE_MAXCONFIG_NUM_KERNEL_MULTIPLE_AMPS	64
+#define TASDEVICE_MAXCONFIG_NUM_KERNEL			10
+#define MAIN_ALL_DEVICES_1X				0x01
+#define MAIN_DEVICE_A_1X				0x02
+#define MAIN_DEVICE_B_1X				0x03
+#define MAIN_DEVICE_C_1X				0x04
+#define MAIN_DEVICE_D_1X				0x05
+#define COEFF_DEVICE_A_1X				0x12
+#define COEFF_DEVICE_B_1X				0x13
+#define COEFF_DEVICE_C_1X				0x14
+#define COEFF_DEVICE_D_1X				0x15
+#define PRE_DEVICE_A_1X					0x22
+#define PRE_DEVICE_B_1X					0x23
+#define PRE_DEVICE_C_1X					0x24
+#define PRE_DEVICE_D_1X					0x25
+#define PRE_SOFTWARE_RESET_DEVICE_A			0x41
+#define PRE_SOFTWARE_RESET_DEVICE_B			0x42
+#define PRE_SOFTWARE_RESET_DEVICE_C			0x43
+#define PRE_SOFTWARE_RESET_DEVICE_D			0x44
+#define POST_SOFTWARE_RESET_DEVICE_A			0x45
+#define POST_SOFTWARE_RESET_DEVICE_B			0x46
+#define POST_SOFTWARE_RESET_DEVICE_C			0x47
+#define POST_SOFTWARE_RESET_DEVICE_D			0x48
 
-static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
-	struct TBlock *pBlock, const struct firmware *pFW, int offset)
+
+static int fw_parse_block_data_kernel(struct tasdevice_fw *pFirmware,
+	struct TBlock *block, const struct firmware *pFW, int offset)
 {
-	const unsigned char *pData = pFW->data;
+	const unsigned char *data = pFW->data;
 
 	if (offset + 4 > pFW->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	pBlock->mnType = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2],
-			pData[offset + 3]);
+	block->type = be32_to_cpup((__be32 *)&data[offset]);
 	offset  += 4;
 
 	if (offset + 1 > pFW->size) {
@@ -58,7 +66,7 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pBlock->mbPChkSumPresent = pData[offset];
+	block->mbPChkSumPresent = data[offset];
 	offset++;
 
 	if (offset + 1 > pFW->size) {
@@ -66,7 +74,7 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pBlock->mnPChkSum = pData[offset];
+	block->mnPChkSum = data[offset];
 	offset++;
 
 	if (offset + 1 > pFW->size) {
@@ -74,7 +82,7 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pBlock->mbYChkSumPresent = pData[offset];
+	block->mbYChkSumPresent = data[offset];
 	offset++;
 
 	if (offset + 1 > pFW->size) {
@@ -82,7 +90,7 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pBlock->mnYChkSum = pData[offset];
+	block->mnYChkSum = data[offset];
 	offset++;
 
 	if (offset + 4 > pFW->size) {
@@ -90,9 +98,7 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pBlock->blk_size = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2],
-			pData[offset + 3]);
+	block->blk_size = be32_to_cpup((__be32 *)&data[offset]);
 	offset  += 4;
 
 	if (offset + 4 > pFW->size) {
@@ -100,26 +106,25 @@ static int fw_parse_block_data_kernel(struct TFirmware *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pBlock->nSublocks = SMS_HTONL(pData[offset],
-		pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+	block->nSublocks = be32_to_cpup((__be32 *)&data[offset]);
 	offset  += 4;
 
-	pBlock->mpData = kzalloc(pBlock->blk_size, GFP_KERNEL);
-	if (pBlock->mpData == NULL) {
+	block->mpData = kzalloc(block->blk_size, GFP_KERNEL);
+	if (block->mpData == NULL) {
 		pr_err("%s: mpData memory error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	memcpy(pBlock->mpData, &pData[offset], pBlock->blk_size);
-	offset  += pBlock->blk_size;
+	memcpy(block->mpData, &data[offset], block->blk_size);
+	offset  += block->blk_size;
 out:
 	return offset;
 }
 
-static int fw_parse_data_kernel(struct TFirmware *pFirmware,
+static int fw_parse_data_kernel(struct tasdevice_fw *pFirmware,
 	struct TData *pImageData, const struct firmware *pFW, int offset)
 {
-	const unsigned char *pData = pFW->data;
+	const unsigned char *data = pFW->data;
 	unsigned int nBlock;
 
 	if (offset + 4 > pFW->size) {
@@ -127,8 +132,7 @@ static int fw_parse_data_kernel(struct TFirmware *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pImageData->mnBlocks = SMS_HTONL(pData[offset],
-		pData[offset + 1], pData[offset + 2],pData[offset + 3]);
+	pImageData->mnBlocks = be32_to_cpup((__be32 *)&data[offset]);
 	offset  += 4;
 
 	pImageData->mpBlocks =
@@ -151,7 +155,7 @@ out:
 	return offset;
 }
 
-int fw_parse_program_data_kernel(struct TFirmware *pFirmware,
+int fw_parse_program_data_kernel(struct tasdevice_fw *pFirmware,
 	const struct firmware *pFW, int offset)
 {
 	struct TProgram *pProgram;
@@ -217,80 +221,85 @@ out:
 }
 
 int fw_parse_configuration_data_kernel(
-	struct TFirmware *pFirmware, const struct firmware *pFW, int offset)
+	struct tasdevice_fw *pFirmware, const struct firmware *fmw, int offset)
 {
-	const unsigned char *pData = pFW->data;
+	const unsigned char *data = fmw->data;
 
 	unsigned int nConfiguration;
 	struct TConfiguration *pConfiguration;
 
-	for (nConfiguration = 0; nConfiguration < pFirmware->mnConfigurations; nConfiguration++) {
+	for (nConfiguration = 0; nConfiguration < pFirmware->mnConfigurations;
+		nConfiguration++) {
 		pConfiguration = &(pFirmware->mpConfigurations[nConfiguration]);
-		if (offset + 64 > pFW->size) {
+		if (offset + 64 > fmw->size) {
 			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		memcpy(pConfiguration->mpName, &pData[offset], 64);
+		memcpy(pConfiguration->mpName, &data[offset], 64);
 		offset  += 64;
 
-		if (offset + 1 > pFW->size) {
+		if (offset + 1 > fmw->size) {
 			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		pConfiguration->mnDevice_orientation = pData[offset];
+		pConfiguration->mnDevice_orientation = data[offset];
 		offset++;
-		if (offset + 1 > pFW->size) {
+		if (offset + 1 > fmw->size) {
 			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		pConfiguration->mnDevices = pData[offset + 1];
+		pConfiguration->mnDevices = data[offset + 1];
 		offset  += 1;
 
-		if (offset + 2 > pFW->size) {
+		if (offset + 2 > fmw->size) {
 			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		pConfiguration->mProgram = SMS_HTONS(pData[offset], pData[offset + 1]);
+		pConfiguration->mProgram =
+			be16_to_cpup((__be16 *)&data[offset]);
 		offset  += 2;
 
-		if (offset + 4 > pFW->size) {
+		if (offset + 4 > fmw->size) {
 			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		pConfiguration->mnSamplingRate = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+		pConfiguration->mnSamplingRate =
+			be32_to_cpup((__be32 *)&data[offset]);
 		offset  += 4;
 
-		if (offset + 2 > pFW->size) {
+		if (offset + 2 > fmw->size) {
 			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		pConfiguration->mnPLLSrc = SMS_HTONS(pData[offset], pData[offset + 1]);
+		pConfiguration->mnPLLSrc =
+			be16_to_cpup((__be16 *)&data[offset]);
 		offset  += 2;
 
-		if (offset + 2 > pFW->size) {
+		if (offset + 2 > fmw->size) {
 			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		pConfiguration->mnFsRate = SMS_HTONS(pData[offset], pData[offset + 1]);
+		pConfiguration->mnFsRate =
+			be16_to_cpup((__be16 *)&data[offset]);
 		offset  += 2;
 
-		if (offset + 4 > pFW->size) {
+		if (offset + 4 > fmw->size) {
 			pr_err("%s: File Size error\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		pConfiguration->mnPLLSrcRate = SMS_HTONL(pData[offset],
-			pData[offset + 1], pData[offset + 2], pData[offset + 3]);
+		pConfiguration->mnPLLSrcRate =
+			be32_to_cpup((__be32 *)&data[offset]);
 		offset  += 4;
-		offset = fw_parse_data_kernel(pFirmware, &(pConfiguration->mData), pFW, offset);
+		offset = fw_parse_data_kernel(pFirmware,
+			&(pConfiguration->mData), fmw, offset);
 		if (offset < 0)
 			goto out;
 	}
@@ -299,34 +308,34 @@ out:
 }
 
 int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
-	const struct firmware *pFW, int offset)
+	const struct firmware *fmw, int offset)
 {
-	struct TFirmware *pFirmware = tas_dev->mpFirmware;
+	struct tasdevice_fw *pFirmware = tas_dev->mpFirmware;
 	struct tasdevice_dspfw_hdr *pFw_hdr = &(pFirmware->fw_hdr);
-	const unsigned char *buf = pFW->data;
+	const unsigned char *buf = fmw->data;
 	struct TProgram *pProgram;
 	struct TConfiguration *pConfiguration;
 	unsigned int  nProgram = 0, nConfiguration = 0;
 	unsigned short maxConf = TASDEVICE_MAXCONFIG_NUM_KERNEL;
 
-	if (offset + 2 > pFW->size) {
+	if (offset + 2 > fmw->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDeviceFamily = SMS_HTONS(buf[offset], buf[offset + 1]);
+	pFw_hdr->mnDeviceFamily = be16_to_cpup((__be16 *)&buf[offset]);
 	if (pFw_hdr->mnDeviceFamily != 0) {
 		pr_err("ERROR:%s:not TAS device\n", __func__);
 		offset = -1;
 		goto out;
 	}
 	offset  += 2;
-	if (offset + 2 > pFW->size) {
+	if (offset + 2 > fmw->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDevice = SMS_HTONS(buf[offset], buf[offset + 1]);
+	pFw_hdr->mnDevice = be16_to_cpup((__be16 *)&buf[offset]);
 	if (pFw_hdr->mnDevice >= TASDEVICE_DSP_TAS_MAX_DEVICE ||
 		pFw_hdr->mnDevice == 6) {
 		pr_err("ERROR:%s: not support device %d\n", __func__,
@@ -344,13 +353,12 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		goto out;
 	}
 
-	if (offset + 4 > pFW->size) {
+	if (offset + 4 > fmw->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	pFirmware->mnPrograms = SMS_HTONL(buf[offset], buf[offset + 1],
-		buf[offset + 2], buf[offset + 3]);
+	pFirmware->mnPrograms = be32_to_cpup((__be32 *)&buf[offset]);
 	offset  += 4;
 
 	if (pFirmware->mnPrograms == 0 || pFirmware->mnPrograms >
@@ -360,7 +368,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		goto out;
 	}
 
-	if (offset + 4 * TASDEVICE_MAXPROGRAM_NUM_KERNEL > pFW->size) {
+	if (offset + 4 * TASDEVICE_MAXPROGRAM_NUM_KERNEL > fmw->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
@@ -377,20 +385,18 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 
 	for (nProgram = 0; nProgram < pFirmware->mnPrograms; nProgram++) {
 		pProgram = &(pFirmware->mpPrograms[nProgram]);
-		pProgram->prog_size = SMS_HTONL(buf[offset], buf[offset + 1],
-			buf[offset + 2], buf[offset + 3]);
+		pProgram->prog_size = be32_to_cpup((__be32 *)&buf[offset]);
 		pFirmware->cfg_start_offset  += pProgram->prog_size;
 		offset  += 4;
 	}
 	offset  += (4 * (5 - nProgram));
 
-	if (offset + 4 > pFW->size) {
+	if (offset + 4 > fmw->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	pFirmware->mnConfigurations = SMS_HTONL(buf[offset], buf[offset + 1],
-		buf[offset + 2], buf[offset + 3]);
+	pFirmware->mnConfigurations = be32_to_cpup((__be32 *)&buf[offset]);
 	offset  += 4;
 	maxConf = (pFw_hdr->ndev >= 4) ?
 		TASDEVICE_MAXCONFIG_NUM_KERNEL_MULTIPLE_AMPS :
@@ -402,7 +408,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		goto out;
 	}
 
-	if (offset + 4 * maxConf > pFW->size) {
+	if (offset + 4 * maxConf > fmw->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
@@ -420,8 +426,8 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		nConfiguration++) {
 		pConfiguration =
 			&(pFirmware->mpConfigurations[nConfiguration]);
-		pConfiguration->cfg_size = SMS_HTONL(buf[offset],
-			buf[offset + 1], buf[offset + 2], buf[offset + 3]);
+		pConfiguration->cfg_size =
+			be32_to_cpup((__be32 *)&buf[offset]);
 		offset  += 4;
 	}
 
@@ -432,20 +438,68 @@ out:
 	return offset;
 }
 
-int tasdevice_load_block_kernel(struct tasdevice_priv *pTAS2781,
-	struct TBlock *pBlock)
+int tasdevice_load_block_kernel(struct tasdevice_priv *tas_priv,
+	struct TBlock *block)
 {
 	int nResult = 0;
 
-	unsigned char *pData = pBlock->mpData;
+	unsigned char *pData = block->mpData;
 	unsigned int i = 0, length = 0;
-	const unsigned int blk_size = pBlock->blk_size;
+	const unsigned int blk_size = block->blk_size;
 	unsigned char dev_idx = 0;
-	struct tasdevice_dspfw_hdr *pFw_hdr = &(pTAS2781->mpFirmware->fw_hdr);
-	struct tasdevice_fw_fixed_hdr *pFw_fixed_hdr = &(pFw_hdr->mnFixedHdr);
+	struct tasdevice_dspfw_hdr *pFw_hdr = &(tas_priv->mpFirmware->fw_hdr);
+	struct tasdevice_fw_fixed_hdr *fw_fixed_hdr = &(pFw_hdr->mnFixedHdr);
 
-	if (pFw_fixed_hdr->mnPPCVersion >= PPC3_VERSION) {
-		switch (pBlock->mnType) {
+	if (fw_fixed_hdr->ppcver >= PPC3_VERSION_TAS2781) {
+		switch (block->type) {
+		case MAIN_ALL_DEVICES_1X:
+			dev_idx = 0x80;
+			break;
+		case MAIN_DEVICE_A_1X:
+			dev_idx = 0x81;
+			break;
+		case COEFF_DEVICE_A_1X:
+		case PRE_DEVICE_A_1X:
+		case PRE_SOFTWARE_RESET_DEVICE_A:
+		case POST_SOFTWARE_RESET_DEVICE_A:
+			dev_idx = 0xC1;
+			break;
+		case MAIN_DEVICE_B_1X:
+			dev_idx = 0x82;
+			break;
+		case COEFF_DEVICE_B_1X:
+		case PRE_DEVICE_B_1X:
+		case PRE_SOFTWARE_RESET_DEVICE_B:
+		case POST_SOFTWARE_RESET_DEVICE_B:
+			dev_idx = 0xC2;
+			break;
+		case MAIN_DEVICE_C_1X:
+			dev_idx = 0x83;
+			break;
+		case COEFF_DEVICE_C_1X:
+		case PRE_DEVICE_C_1X:
+		case PRE_SOFTWARE_RESET_DEVICE_C:
+		case POST_SOFTWARE_RESET_DEVICE_C:
+			dev_idx = 0xC3;
+			break;
+		case MAIN_DEVICE_D_1X:
+			dev_idx = 0x84;
+			break;
+		case COEFF_DEVICE_D_1X:
+		case PRE_DEVICE_D_1X:
+		case PRE_SOFTWARE_RESET_DEVICE_D:
+		case POST_SOFTWARE_RESET_DEVICE_D:
+			dev_idx = 0xC4;
+			break;
+		default:
+			dev_info(tas_priv->dev,
+				"%s: load block: Other Type = 0x%02x\n",
+				__func__, block->type);
+			break;
+		}
+	} else if (fw_fixed_hdr->ppcver >=
+	PPC3_VERSION) {
+		switch (block->type) {
 		case MAIN_ALL_DEVICES_1X:
 			dev_idx = 0|0x80;
 			break;
@@ -478,13 +532,13 @@ int tasdevice_load_block_kernel(struct tasdevice_priv *pTAS2781,
 			dev_idx = 4|0xC0;
 			break;
 		default:
-			dev_info(pTAS2781->dev, "%s: TAS2781 load block: "
+			dev_info(tas_priv->dev, "%s: TAS2781 load block: "
 				"Other Type = 0x%02x\n", __func__,
-				pBlock->mnType);
+				block->type);
 			break;
 		}
 	} else {
-		switch (pBlock->mnType) {
+		switch (block->type) {
 		case MAIN_ALL_DEVICES:
 			dev_idx = 0|0x80;
 			break;
@@ -517,24 +571,24 @@ int tasdevice_load_block_kernel(struct tasdevice_priv *pTAS2781,
 			dev_idx = 4|0xC0;
 			break;
 		default:
-			dev_info(pTAS2781->dev, "%s: TAS2781 load block: "
+			dev_info(tas_priv->dev, "%s: TAS2781 load block: "
 				"Other Type = 0x%02x\n", __func__,
-				pBlock->mnType);
+				block->type);
 			break;
 		}
 	}
 
-	for (i = 0; i < pBlock->nSublocks; i++) {
-		int rc = tasdevice_process_block(pTAS2781, pData + length,
+	for (i = 0; i < block->nSublocks; i++) {
+		int rc = tasdevice_process_block(tas_priv, pData + length,
 			dev_idx, blk_size - length);
 		if (rc < 0) {
-			dev_err(pTAS2781->dev, "%s: ERROR:%u %u sublock write "
+			dev_err(tas_priv->dev, "%s: ERROR:%u %u sublock write "
 				"error\n", __func__, length, blk_size);
 			break;
 		}
 		length  += (unsigned int)rc;
 		if (blk_size < length) {
-			dev_err(pTAS2781->dev, "%s: ERROR:%u %u out of "
+			dev_err(tas_priv->dev, "%s: ERROR:%u %u out of "
 				"memory\n", __func__, length, blk_size);
 			break;
 		}

@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -13,20 +13,21 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/module.h>
-#include <linux/regmap.h>
+#ifdef CONFIG_TASDEV_CODEC_SPI
+#include <linux/crc8.h>
+#include <linux/firmware.h>
 #include <linux/init.h>
-#include <linux/pm.h>
-#include <linux/spi/spi.h>
+#include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>
+#include <linux/pm.h>
+#include <linux/regmap.h>
 #include <linux/slab.h>
-#include <linux/firmware.h>
+#include <linux/spi/spi.h>
 
 #include "tasdevice.h"
 #include "tasdevice-rw.h"
 #include "tasdevice-node.h"
-#ifdef CONFIG_TASDEV_CODEC_SPI
 
 const struct regmap_config tasdevice_spi_regmap = {
 	.reg_bits = 7,

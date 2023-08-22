@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -13,14 +13,18 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/regmap.h>
-#include <linux/i2c.h>
-#include <linux/spi/spi.h>
-#include <linux/miscdevice.h>
-#include <linux/slab.h>
+#include <linux/crc8.h>
 #include <linux/firmware.h>
-#include <linux/of_gpio.h>
 #include <linux/interrupt.h>
+#include <linux/miscdevice.h>
+#include <linux/of_gpio.h>
+#include <linux/regmap.h>
+#include <linux/slab.h>
+#ifdef CONFIG_TASDEV_CODEC_SPI
+	#include <linux/spi/spi.h>
+#else
+	#include <linux/i2c.h>
+#endif
 
 #include "tasdevice-dsp.h"
 #include "tasdevice-regbin.h"
@@ -71,7 +75,7 @@ int tasdevice_process_block(void *pContext,
 		switch (subblk_typ) {
 		case TASDEVICE_CMD_SING_W: {
 			int i = 0;
-			unsigned short len = SMS_HTONS(data[2], data[3]);
+			unsigned short len = be16_to_cpup((__be16 *)&data[2]);
 
 			subblk_offset  += 2;
 			if (subblk_offset + 4 * len > sublocksize) {
@@ -97,7 +101,7 @@ int tasdevice_process_block(void *pContext,
 		}
 			break;
 		case TASDEVICE_CMD_BURST: {
-			unsigned short len = SMS_HTONS(data[2], data[3]);
+			unsigned short len = be16_to_cpup((__be16 *)&data[2]);
 
 			subblk_offset  += 2;
 			if (subblk_offset + 4 + len > sublocksize) {
@@ -135,7 +139,7 @@ int tasdevice_process_block(void *pContext,
 				bError = true;
 				break;
 			}
-			delay_time = SMS_HTONS(data[2], data[3]);
+			delay_time = be16_to_cpup((__be16 *)&data[2]);
 			usleep_range(delay_time*1000, delay_time*1000);
 			subblk_offset  += 2;
 		}
@@ -198,7 +202,7 @@ int tasdevice_process_block_show(void *pContext,
 		switch (subblk_typ) {
 		case TASDEVICE_CMD_SING_W: {
 			int i = 0;
-			unsigned short len = SMS_HTONS(data[2], data[3]);
+			unsigned short len = be16_to_cpup((__be16 *)&data[2]);
 
 			subblk_offset  += 2;
 			if (*length + 16 < PAGE_SIZE) {
@@ -242,9 +246,9 @@ int tasdevice_process_block_show(void *pContext,
 		}
 			break;
 		case TASDEVICE_CMD_BURST: {
-			int i = 0;
-			unsigned short len = SMS_HTONS(data[2], data[3]);
-			unsigned char reg = 0;
+			unsigned short len = be16_to_cpup((__be16 *)&data[2]);
+			unsigned char reg;
+			int i;
 
 			subblk_offset  += 2;
 			if (*length + 16 < PAGE_SIZE) {
@@ -320,7 +324,7 @@ int tasdevice_process_block_show(void *pContext,
 						16, "\nNo memory!\n");
 				break;
 			}
-			delay_time = SMS_HTONS(data[2], data[3]);
+			delay_time = be16_to_cpup((__be16 *)&data[2]);
 			if (*length + 32 < PAGE_SIZE) {
 				*length  += scnprintf(buf + *length, PAGE_SIZE - *length,
 					"\t\tDELAY = %ums\n", delay_time);
@@ -568,9 +572,7 @@ static struct tasdevice_config_info *tasdevice_add_config(
 		goto out;
 	}
 	cfg_info->nblocks =
-		SMS_HTONL(config_data[config_offset],
-		config_data[config_offset + 1],
-	config_data[config_offset + 2], config_data[config_offset + 3]);
+		be32_to_cpup((__be32 *)&config_data[config_offset]);
 	config_offset  +=  4;
 
 	cfg_info->blk_data = kcalloc(
@@ -613,21 +615,14 @@ static struct tasdevice_config_info *tasdevice_add_config(
 			}
 		}
 		cfg_info->blk_data[i]->yram_checksum =
-			SMS_HTONS(config_data[config_offset],
-			config_data[config_offset + 1]);
+			be16_to_cpup((__be16 *)&config_data[config_offset]);
 		config_offset  += 2;
 		cfg_info->blk_data[i]->block_size =
-			SMS_HTONL(config_data[config_offset],
-			config_data[config_offset + 1],
-			config_data[config_offset + 2],
-		config_data[config_offset + 3]);
+			be32_to_cpup((__be32 *)&config_data[config_offset]);
 		config_offset  += 4;
 
 		cfg_info->blk_data[i]->nSublocks =
-			SMS_HTONL(config_data[config_offset],
-			config_data[config_offset + 1],
-			config_data[config_offset + 2],
-		config_data[config_offset + 3]);
+			be32_to_cpup((__be32 *)&config_data[config_offset]);
 
 		config_offset  += 4;
 		cfg_info->blk_data[i]->regdata = kzalloc(
@@ -686,8 +681,7 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 	buf = (unsigned char *)pFW->data;
 
 	dev_info(tas_dev->dev, "tasdev: regbin_ready start\n");
-	fw_hdr->img_sz = SMS_HTONL(buf[offset], buf[offset + 1],
-		buf[offset + 2], buf[offset + 3]);
+	fw_hdr->img_sz = be32_to_cpup((__be32 *)&buf[offset]);
 	offset  += 4;
 	if (fw_hdr->img_sz != pFW->size) {
 		dev_err(tas_dev->dev,
@@ -697,11 +691,9 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 		goto out;
 	}
 
-	fw_hdr->checksum = SMS_HTONL(buf[offset], buf[offset + 1],
-					buf[offset + 2], buf[offset + 3]);
+	fw_hdr->checksum = be32_to_cpup((__be32 *)&buf[offset]);
 	offset  += 4;
-	fw_hdr->binary_version_num = SMS_HTONL(buf[offset],
-		buf[offset + 1], buf[offset + 2], buf[offset + 3]);
+	fw_hdr->binary_version_num = be32_to_cpup((__be32 *)&buf[offset]);
 	if (fw_hdr->binary_version_num < 0x103) {
 		dev_err(tas_dev->dev,
 			"File version 0x%04x is too low",
@@ -710,11 +702,9 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 		goto out;
 	}
 	offset  += 4;
-	fw_hdr->drv_fw_version = SMS_HTONL(buf[offset], buf[offset + 1],
-					buf[offset + 2], buf[offset + 3]);
+	fw_hdr->drv_fw_version = be32_to_cpup((__be32 *)&buf[offset]);
 	offset  += 4;
-	fw_hdr->timestamp = SMS_HTONL(buf[offset], buf[offset + 1],
-					buf[offset + 2], buf[offset + 3]);
+	fw_hdr->timestamp = be32_to_cpup((__be32 *)&buf[offset]);
 	offset  += 4;
 	fw_hdr->plat_type = buf[offset];
 	offset  += 1;
@@ -741,13 +731,11 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 	for (i = 0; i < TASDEVICE_DEVICE_SUM; i++, offset++) {
 		fw_hdr->devs[i] = buf[offset];
 	}
-	fw_hdr->nconfig = SMS_HTONL(buf[offset], buf[offset + 1],
-				buf[offset + 2], buf[offset + 3]);
+	fw_hdr->nconfig = be32_to_cpup((__be32 *)&buf[offset]);
 	offset  += 4;
 	dev_info(tas_dev->dev, "nconfig = %u\n", fw_hdr->nconfig);
 	for (i = 0; i < TASDEVICE_CONFIG_SUM; i++) {
-		fw_hdr->config_size[i] = SMS_HTONL(buf[offset],
-			buf[offset + 1], buf[offset + 2], buf[offset + 3]);
+		fw_hdr->config_size[i] = be32_to_cpup((__be32 *)&buf[offset]);
 		offset  += 4;
 		total_config_sz  += fw_hdr->config_size[i];
 	}

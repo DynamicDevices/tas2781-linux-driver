@@ -13,12 +13,13 @@
  * GNU General Public License for more details.
  */
 
-#ifndef __TASDEVICE_DSP_GIT_H__
-#define __TASDEVICE_DSP_GIT_H__
-int fw_parse_variable_header_git(struct tasdevice_priv *tas_dev,
-	const struct firmware *pFW, int offset);
-int fw_parse_variable_header_cal(struct tasdevice_fw *pCalFirmware,
-	const struct firmware *pFW, int offset);
-int tasdevice_load_block_git_show(struct tasdevice_priv *pTAS2781,
-	struct TBlock *pBlock, char *buf, ssize_t *length);
+#ifndef __TAS2563_REG_H_
+#define __TAS2563_REG_H_
+
+
+#define TAS2563_REG_INT_LTCH0	TASDEVICE_REG(0X0, 0x0, 0x24)
+#define TAS2563_REG_INT_LTCH1	TASDEVICE_REG(0X0, 0x0, 0x25)
+#define TAS2563_REG_INT_LTCH3	TASDEVICE_REG(0X0, 0x0, 0x26)
+#define TAS2563_REG_INT_LTCH4	TASDEVICE_REG(0X0, 0x0, 0x27)
+
 #endif

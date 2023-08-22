@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -13,42 +13,69 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/module.h>
-#include <linux/regmap.h>
-//#include <linux/moduleparam.h>
-#include <linux/init.h>
-#include <linux/pm.h>
+#include <linux/crc8.h>
+#include <linux/firmware.h>
 #include <linux/i2c.h>
+#include <linux/init.h>
+#include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>
+#include <linux/pm.h>
+#include <linux/regmap.h>
 #include <linux/slab.h>
-#include <linux/firmware.h>
 
 #include "tasdevice.h"
 #include "tasdevice-rw.h"
 #include "tasdevice-node.h"
 #ifndef CONFIG_TASDEV_CODEC_SPI
 
-const struct regmap_config tasdevice_i2c_regmap = {
+static const struct regmap_range_cfg tasdevice_ranges[] = {
+	{
+		.range_min = 0,
+		.range_max = 256 * 128,
+		.selector_reg = TASDEVICE_PAGE_SELECT,
+		.selector_mask = 0xff,
+		.selector_shift = 0,
+		.window_start = 0,
+		.window_len = 128,
+	},
+};
+
+static const struct regmap_config tasdevice_i2c_regmap = {
 	.reg_bits = 8,
 	.val_bits = 8,
-	.cache_type = REGCACHE_FLAT,
-	.max_register = 1 * 128,
+	.cache_type = REGCACHE_RBTREE,
+	.ranges = tasdevice_ranges,
+	.num_ranges = ARRAY_SIZE(tasdevice_ranges),
+	.max_register = 256 * 128,
 };
 
 static void tas2781_set_global_mode(struct tasdevice_priv *tas_dev)
 {
-	int i = 0;
-	int ret = 0;
+	int i = 0, ret = 0;
 
 	for (; i < tas_dev->ndev; i++) {
 		ret = tasdevice_dev_update_bits(tas_dev, i,
-			TAS2871_MISC_CFG2, TAS2871_GLOBAL_ADDR_MASK,
-			TAS2871_GLOBAL_ADDR_ENABLE);
+			TAS2871_MISC_CFG2, TASDEVICE_GLOBAL_ADDR_MASK,
+			TASDEVICE_GLOBAL_ADDR_ENABLE);
 		if (ret < 0) {
-			dev_err(tas_dev->dev, "%s: chn %d set global fail, %d\n",
-				__func__, i, ret);
-			continue;
+			dev_err(tas_dev->dev, "chn %d set global fail, %d\n",
+				i, ret);
+		}
+	}
+}
+
+static void tas2563_set_global_mode(struct tasdevice_priv *tas_dev)
+{
+	int i = 0, ret = 0;
+
+	for (; i < tas_dev->ndev; i++) {
+		ret = tasdevice_dev_update_bits(tas_dev, i,
+			TAS2563_MISC_CFG2, TASDEVICE_GLOBAL_ADDR_MASK,
+			TASDEVICE_GLOBAL_ADDR_ENABLE);
+		if (ret < 0) {
+			dev_err(tas_dev->dev, "chn %d set global fail, %d\n",
+				i, ret);
 		}
 	}
 }
@@ -94,8 +121,12 @@ static int tasdevice_i2c_probe(struct i2c_client *i2c,
 	}
 
 	if (tas_dev->glb_addr.dev_addr != 0
-		&& tas_dev->glb_addr.dev_addr < 0x7F)
-		tas_dev->set_global_mode = tas2781_set_global_mode;
+		&& tas_dev->glb_addr.dev_addr < 0x7F) {
+		if (tas_dev->chip_id == TAS2781)
+			tas_dev->set_global_mode = tas2781_set_global_mode;
+		else
+			tas_dev->set_global_mode = tas2563_set_global_mode;
+	}
 
 	ret = tasdevice_probe_next(tas_dev);
 

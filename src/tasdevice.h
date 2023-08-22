@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -27,7 +27,6 @@
 	#include <linux/compat.h>
 #endif
 
-#define SMARTAMP_MODULE_NAME	("tas2781")
 #define MAX_LENGTH				(128)
 
 #define TASDEVICE_RETRY_COUNT	(3)
@@ -55,19 +54,13 @@
 					(page * 128)) + reg)
 
 	/*Software Reset */
-#define TAS2781_REG_SWRESET		TASDEVICE_REG(0x0, 0X0, 0x02)
-#define TAS2781_REG_SWRESET_RESET	BIT(0)
+#define TASDEVICE_REG_SWRESET		TASDEVICE_REG(0x0, 0X0, 0x02)
+#define TASDEVICE_REG_SWRESET_RESET	BIT(0)
 	/* Enable Global addresses */
+#define TAS2563_MISC_CFG2		TASDEVICE_REG(0x0, 0X0, 0x05)
 #define TAS2871_MISC_CFG2		TASDEVICE_REG(0x0, 0X0, 0x07)
-#define TAS2871_GLOBAL_ADDR_MASK	BIT(1)
-#define TAS2871_GLOBAL_ADDR_ENABLE	BIT(1)
-
-#define SMS_HTONS(a, b)  ((((a)&0x00FF)<<8) | \
-				((b)&0x00FF))
-#define SMS_HTONL(a, b, c, d) ((((a)&0x000000FF)<<24) |\
-					(((b)&0x000000FF)<<16) | \
-					(((c)&0x000000FF)<<8) | \
-					((d)&0x000000FF))
+#define TASDEVICE_GLOBAL_ADDR_MASK	BIT(1)
+#define TASDEVICE_GLOBAL_ADDR_ENABLE	BIT(1)
 
 	/*I2C Checksum */
 #define TASDEVICE_I2CChecksum  TASDEVICE_REG(0x0, 0x0, 0x7E)
@@ -82,6 +75,7 @@
 #define TASDEVICE_CMD_DELAY	(0x3)
 
 enum audio_device {
+	TAS2563,
 	TAS2781,
 };
 
@@ -116,6 +110,10 @@ struct smartpa_gpio_info {
 	void *)
 #define TILOAD_IOC_MAGIC_PA_INFO_GET	_IOR(TILOAD_IOC_MAGIC, 34, \
 	struct smartpa_info)
+#define TILOAD_IOC_MAGIC_POWERON	_IOWR(TILOAD_IOC_MAGIC, 16, \
+	struct smartpa_params)
+#define TILOAD_IOC_MAGIC_POWER_OFF	_IOWR(TILOAD_IOC_MAGIC, 23, \
+	struct smartpa_params)
 
 #ifdef CONFIG_COMPAT
 #define TILOAD_COMPAT_IOMAGICNUM_GET	_IOR(TILOAD_IOC_MAGIC, 1, compat_int_t)
@@ -129,12 +127,11 @@ struct smartpa_gpio_info {
  	_IOWR(TILOAD_IOC_MAGIC, 15, compat_uptr_t)
 #define TILOAD_IOC_COMPAT_MAGIC_PA_INFO_GET	\
 	_IOR(TILOAD_IOC_MAGIC, 34, struct smartpa_info)
+#define TILOAD_IOC_MAGIC_POWERON_COMPAT	_IOWR(TILOAD_IOC_MAGIC, 16, \
+	struct smartpa_params)
+#define TILOAD_IOC_MAGIC_POWER_OFF_COMPAT	_IOWR(TILOAD_IOC_MAGIC, 23, \
+	struct smartpa_params)
 #endif
-
-#define SMS_HTONS(a, b)  ((((a)&0x00FF)<<8) | ((b)&0x00FF))
-#define SMS_HTONL(a, b, c, d) ((((a)&0x000000FF)<<24) | \
-	(((b)&0x000000FF)<<16) | (((c)&0x000000FF)<<8) | \
-	((d)&0x000000FF))
 
 /*typedefs required for the included header files */
 struct BPR {
@@ -154,16 +151,13 @@ struct Ttasdevice {
 	short mnCurrentProgram;
 	short mnCurrentConfiguration;
 	short mnCurrentRegConf;
-	int mnResetGpio;
-	int mn_irq;
 	int PowerStatus;
 	bool bDSPBypass;
-	bool bIrq_enabled;
 	bool bLoading;
 	bool bLoaderr;
 	bool mbCalibrationLoaded;
 	struct Tbookpage mnBkPg;
-	struct TFirmware *mpCalFirmware;
+	struct tasdevice_fw *mpCalFirmware;
 };
 
 struct Trwinfo {
@@ -198,10 +192,10 @@ struct tas_control {
 };
 
 struct tasdevice_irqinfo {
-	int mn_irq_gpio;
-	int mn_irq;
+	int irq_gpio;
+	int irq;
 	struct delayed_work irq_work;
-	bool mb_irq_enable;
+	bool irq_enable;
 };
 
 /*
@@ -225,12 +219,12 @@ struct tasdevice_priv {
 	struct Ttasdevice tasdevice[MaxChn];
 	struct Trwinfo rwinfo;
 	struct Tsyscmd nSysCmd[MaxCmd];
-	struct TFirmware *mpFirmware;
+	struct tasdevice_fw *mpFirmware;
 	struct tasdevice_regbin mtRegbin;
-	struct smartpa_gpio_info mtRstGPIOs;
-	struct tasdevice_irqinfo mIrqInfo;
+	struct tasdevice_irqinfo irq_info;
 	struct tas_control tas_ctrl;
 	struct global_addr glb_addr;
+	struct gpio_desc *reset;
 	int mnCurrentProgram;
 	int mnCurrentConfiguration;
 	unsigned int chip_id;
@@ -247,16 +241,16 @@ struct tasdevice_priv {
 	int (*set_calibration)(void *pTAS2563, enum channel chl,
 		int calibration);
 	void (*set_global_mode)(struct tasdevice_priv *tas_dev);
-	void (*reset)(struct tasdevice_priv *tas_dev);
+	void (*hwreset)(struct tasdevice_priv *tas_dev);
 	int (*fw_parse_variable_header)(struct tasdevice_priv *tas_dev,
 		const struct firmware *pFW, int offset);
-	int (*fw_parse_program_data)(struct TFirmware *pFirmware,
+	int (*fw_parse_program_data)(struct tasdevice_fw *pFirmware,
 		const struct firmware *pFW, int offset);
-	int (*fw_parse_configuration_data)(struct TFirmware *pFirmware,
+	int (*fw_parse_configuration_data)(struct tasdevice_fw *pFirmware,
 		const struct firmware *pFW, int offset);
 	int (*tasdevice_load_block)(struct tasdevice_priv *pTAS2563,
 		struct TBlock *pBlock);
-	int (*fw_parse_calibration_data)(struct TFirmware *pFirmware,
+	int (*fw_parse_calibration_data)(struct tasdevice_fw *pFirmware,
 		const struct firmware *pFW, int offset);
 	void (*irq_work_func)(struct tasdevice_priv *pcm_dev);
 	int fw_state;
@@ -268,6 +262,7 @@ struct tasdevice_priv {
 	unsigned char regbin_binaryname[64];
 	unsigned char dsp_binaryname[64];
 	unsigned char cal_binaryname[MaxChn][64];
+	unsigned char crc8_lkp_tbl[CRC8_TABLE_SIZE];
 	bool mb_runtime_suspend;
 	void *codec;
 	int sysclk;
@@ -295,5 +290,6 @@ void tasdevice_remove(struct tasdevice_priv *tas_dev);
 void tasdevice_enable_irq(
 	struct tasdevice_priv *tas_dev, bool enable);
 void tas2781_irq_work_func(struct tasdevice_priv *tas_dev);
+void tas2563_irq_work_func(struct tasdevice_priv *tas_dev);
 
 #endif /*__PCMDEVICE_H__ */

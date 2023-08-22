@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -13,18 +13,23 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/module.h>
-#include <linux/interrupt.h>
-#include <linux/regmap.h>
-#include <linux/miscdevice.h>
-#include <linux/uaccess.h>
-#include <linux/firmware.h>
-#include <linux/of_gpio.h>
-#include <linux/spi/spi.h>
-#include <linux/i2c.h>
 #ifdef CONFIG_COMPAT
 	#include <linux/compat.h>
 #endif
+#include <linux/crc8.h>
+#include <linux/firmware.h>
+#include <linux/interrupt.h>
+#include <linux/miscdevice.h>
+#include <linux/module.h>
+#include <linux/of_gpio.h>
+#include <linux/of_irq.h>
+#include <linux/regmap.h>
+#ifdef CONFIG_TASDEV_CODEC_SPI
+	#include <linux/spi/spi.h>
+#else
+	#include <linux/i2c.h>
+#endif
+#include <linux/uaccess.h>
 
 #include "tasdevice-regbin.h"
 #include "tasdevice.h"
@@ -34,31 +39,24 @@
 #include "tasdevice-codec.h"
 #include "tasdevice-dsp.h"
 #include "tasdevice-misc.h"
+
 #define TASDEVICE_IRQ_DET_TIMEOUT		(30000)
 #define TASDEVICE_IRQ_DET_CNT_LIMIT	(500)
-
-static const char * dts_tag[] = {
-	"ti,topleft-channel",
-	"ti,topright-channel",
-	"ti,bottomleft-channel",
-	"ti,bottomright-channel",
-	"ti,i2c-spi-gpio"
-};
-
-static const char *dts_xxx_tag = "ti,%s-gpio%d";
-
-static const char *dts_glb_addr_tag = "ti,global-address";
+#define TAS2563_MAX_DEVICE	4
+#define TASDEVICE_GLOBAL_ADDR	0x40
 
 #ifdef CONFIG_TASDEV_CODEC_SPI
 const struct spi_device_id tasdevice_id[] = {
-	{ "tas2781", TAS2781	 },
+	{ "tas2563", TAS2563 },
+	{ "tas2781", TAS2781 },
 	{}
 };
 MODULE_DEVICE_TABLE(spi, tasdevice_id);
 
 #else
 const struct i2c_device_id tasdevice_id[] = {
-	{ "tas2781", TAS2781	 },
+	{ "tas2563", TAS2563 },
+	{ "tas2781", TAS2781 },
 	{}
 };
 
@@ -85,6 +83,7 @@ static ssize_t devinfo_show(struct device *dev,
 }
 
 const struct of_device_id tasdevice_of_match[] = {
+	{ .compatible = "ti,tas2563" },
 	{ .compatible = "ti,tas2781" },
 	{},
 };
@@ -121,27 +120,26 @@ const struct attribute_group tasdevice_attribute_group = {
 };
 
 //IRQ
-void tasdevice_enable_irq(
-	struct tasdevice_priv *tas_dev, bool enable)
+void tasdevice_enable_irq(struct tasdevice_priv *tas_dev, bool enable)
 {
 	struct irq_desc *desc = NULL;
 
 	if (enable) {
-		if (tas_dev->mIrqInfo.mb_irq_enable)
+		if (tas_dev->irq_info.irq_enable)
 			return;
-		if (gpio_is_valid(tas_dev->mIrqInfo.mn_irq_gpio)) {
-			desc = irq_to_desc(tas_dev->mIrqInfo.mn_irq);
+		if (gpio_is_valid(tas_dev->irq_info.irq_gpio)) {
+			desc = irq_to_desc(tas_dev->irq_info.irq);
 			if (desc && desc->depth > 0)
-				enable_irq(tas_dev->mIrqInfo.mn_irq);
+				enable_irq(tas_dev->irq_info.irq);
 			else
 				dev_info(tas_dev->dev,
 					"### irq already enabled\n");
 		}
-		tas_dev->mIrqInfo.mb_irq_enable = true;
+		tas_dev->irq_info.irq_enable = true;
 	} else {
-		if (gpio_is_valid(tas_dev->mIrqInfo.mn_irq_gpio))
-			disable_irq_nosync(tas_dev->mIrqInfo.mn_irq);
-		tas_dev->mIrqInfo.mb_irq_enable = false;
+		if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
+			disable_irq_nosync(tas_dev->irq_info.irq);
+		tas_dev->irq_info.irq_enable = false;
 	}
 }
 
@@ -149,7 +147,7 @@ static void irq_work_routine(struct work_struct *pWork)
 {
 	struct tasdevice_priv *tas_dev =
 		container_of(pWork, struct tasdevice_priv,
-		mIrqInfo.irq_work.work);
+		irq_info.irq_work.work);
 
 	dev_info(tas_dev->dev, "%s enter\n", __func__);
 
@@ -175,143 +173,133 @@ static irqreturn_t tasdevice_irq_handler(int irq,
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *)dev_id;
 ;
 	/* get IRQ status after 100 ms */
-	schedule_delayed_work(&tas_dev->mIrqInfo.irq_work,
+	schedule_delayed_work(&tas_dev->irq_info.irq_work,
 		msecs_to_jiffies(100));
 	return IRQ_HANDLED;
 }
 
-int tasdevice_parse_dt(struct tasdevice_priv *tas_dev)
+int tasdevice_parse_dt(struct tasdevice_priv *tas_priv)
 {
-	struct device_node *np = tas_dev->dev->of_node;
-	int rc = 0, i = 0, ndev = 0;
-	char buf[32];
+	struct i2c_client *client = (struct i2c_client *)tas_priv->client;
+	struct device_node *np = tas_priv->dev->of_node;
+	unsigned int dev_addrs[TASDEVICE_MAX_CHANNELS];
+	int len, sw, aw, rc = 0, i, ndev;
+	const __be32 *reg, *reg_end;
 
+	dev_info(tas_priv->dev, "%s, chip_id:%d\n", __func__,
+		tas_priv->chip_id);
+	strcpy(tas_priv->dev_name, tasdevice_id[tas_priv->chip_id].name);
 
-	for (i = 0, ndev = 0; i < MaxChn; i++) {
-		rc = of_property_read_u32(np, dts_tag[i],
-			&(tas_dev->tasdevice[ndev].mnDevAddr));
-		if (rc) {
-			dev_err(tas_dev->dev,
-				"Looking up %s property in node %s failed "
-				"%d\n", dts_tag[i], np->full_name, rc);
-			continue;
-		} else {
-			dev_dbg(tas_dev->dev, "%s=0x%02x", dts_tag[i],
-				tas_dev->tasdevice[ndev].mnDevAddr);
+	aw = of_n_addr_cells(np);
+	sw = of_n_size_cells(np);
+	if (sw == 0) {
+		reg = (const __be32 *)of_get_property(np,
+			"reg", &len);
+		reg_end = reg + len/sizeof(*reg);
+		ndev = 0;
+		do {
+			dev_addrs[ndev] = of_read_number(reg, aw);
+			reg += aw;
 			ndev++;
-		}
+		} while (reg < reg_end);
+	} else {
+		ndev = 1;
+		dev_addrs[0] = client->addr;
 	}
 
-	rc = of_property_read_u32(np, dts_glb_addr_tag,
-			&(tas_dev->glb_addr.dev_addr));
-	if (rc) {
-		dev_err(tas_dev->dev,
-		"Looking up %s property in node %s failed %d\n",
-		dts_glb_addr_tag, np->full_name, rc);
-		tas_dev->glb_addr.dev_addr = 0;
+	if (ndev > TAS2563_MAX_DEVICE && TAS2563 == tas_priv->chip_id) {
+		dev_info(tas_priv->dev, "Do not support more than 4 TAS2563s "
+			"on the same I2C bus, force the device number from %d "
+			"to %d ", ndev, TAS2563_MAX_DEVICE);
+		ndev = TAS2563_MAX_DEVICE;
 	}
 
-	tas_dev->ndev = (ndev == 0) ? 1 : ndev;
+	tas_priv->ndev = (ndev == 0) ? 1 : ndev;
 
-	for (i = 0, ndev = 0; i < tas_dev->ndev; i++) {
-		scnprintf(buf, sizeof(buf), dts_xxx_tag, "reset", i);
-		tas_dev->tasdevice[ndev].mnResetGpio = of_get_named_gpio(np,
-			buf, 0);
-		if (gpio_is_valid(tas_dev->tasdevice[ndev].mnResetGpio)) {
-			rc = gpio_request(tas_dev->tasdevice[ndev].mnResetGpio,
-				buf);
-			if (!rc) {
-				gpio_direction_output(
-					tas_dev->tasdevice[ndev].mnResetGpio,
-					1);
-				dev_info(tas_dev->dev, "%s = %d", buf,
-					tas_dev->tasdevice[ndev].mnResetGpio);
-				ndev++;
-			} else
-				dev_err(tas_dev->dev,
-					"%s: Failed to request dev[%d] "
-					"gpio %d\n", __func__, ndev,
-					tas_dev->tasdevice[ndev].mnResetGpio);
-		} else
-			dev_err(tas_dev->dev,
-				"Looking up %s property in node %s "
-				"failed %d\n", buf, np->full_name,
-				tas_dev->tasdevice[ndev].mnResetGpio);
-	}
-	dev_info(tas_dev->dev, "%s, chip_id:%d\n", __func__, tas_dev->chip_id);
-	strcpy(tas_dev->dev_name, tasdevice_id[tas_dev->chip_id].name);
+	for (i = 0; i < ndev; i++)
+		tas_priv->tasdevice[i].mnDevAddr = dev_addrs[i];
 
-	tas_dev->mIrqInfo.mn_irq_gpio = of_get_named_gpio(np,
-		"ti,irq-gpio", 0);
-	if (gpio_is_valid(tas_dev->mIrqInfo.mn_irq_gpio)) {
-		dev_dbg(tas_dev->dev, "irq-gpio = %d",
-			tas_dev->mIrqInfo.mn_irq_gpio);
-		INIT_DELAYED_WORK(&tas_dev->mIrqInfo.irq_work,
+	if (of_property_read_bool(np, "ti,global-addr-enable"))
+		/* Enable I2C broadcast */
+		tas_priv->glb_addr.dev_addr = TASDEVICE_GLOBAL_ADDR;
+	else
+		tas_priv->glb_addr.dev_addr = 0;
+
+	tas_priv->reset = devm_gpiod_get_optional(&client->dev,
+			"reset-gpios", GPIOD_OUT_HIGH);
+	if (IS_ERR(tas_priv->reset))
+		dev_err(tas_priv->dev, "%s Can't get reset GPIO\n", __func__);
+
+	tas_priv->irq_info.irq_gpio = of_irq_get(np, 0);
+	if (gpio_is_valid(tas_priv->irq_info.irq_gpio)) {
+		dev_info(tas_priv->dev, "irq-gpio = %d",
+			tas_priv->irq_info.irq_gpio);
+		INIT_DELAYED_WORK(&tas_priv->irq_info.irq_work,
 			irq_work_routine);
 
-		rc = gpio_request(tas_dev->mIrqInfo.mn_irq_gpio,
-					"AUDEV-IRQ");
+		rc = gpio_request(tas_priv->irq_info.irq_gpio, "AUDEV-IRQ");
 		if (!rc) {
-			gpio_direction_input(tas_dev->mIrqInfo.
-				mn_irq_gpio);
+			gpio_direction_input(tas_priv->irq_info.irq_gpio);
 
-			tas_dev->mIrqInfo.mn_irq =
-				gpio_to_irq(tas_dev->mIrqInfo.
-				mn_irq_gpio);
-			dev_info(tas_dev->dev,
-				"irq = %d\n",
-				tas_dev->mIrqInfo.mn_irq);
+			tas_priv->irq_info.irq =
+				gpio_to_irq(tas_priv->irq_info.irq_gpio);
+			dev_info(tas_priv->dev, "irq = %d\n",
+				tas_priv->irq_info.irq);
 
-			rc = request_threaded_irq(
-				tas_dev->mIrqInfo.mn_irq,
-				tasdevice_irq_handler,
-				NULL, IRQF_TRIGGER_FALLING|
-				IRQF_ONESHOT,
-				SMARTAMP_MODULE_NAME, tas_dev);
+			rc = request_threaded_irq(tas_priv->irq_info.irq,
+				tasdevice_irq_handler, NULL,
+				IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+				tas_priv->dev_name, tas_priv);
 			if (!rc)
-				disable_irq_nosync(
-					tas_dev->mIrqInfo.mn_irq);
+				disable_irq_nosync(tas_priv->irq_info.irq);
 			else
-				dev_err(tas_dev->dev,
-					"request_irq failed, %d\n",
-					rc);
+				dev_err(tas_priv->dev,
+					"request_irq failed, %d\n", rc);
 		} else
-			dev_err(tas_dev->dev,
+			dev_err(tas_priv->dev,
 				"%s: GPIO %d request error\n",
 				__func__,
-				tas_dev->mIrqInfo.mn_irq_gpio);
+				tas_priv->irq_info.irq_gpio);
 	} else
-		dev_err(tas_dev->dev, "Looking up irq-gpio property "
+		dev_err(tas_priv->dev, "Looking up irq-gpio property "
 			"in node %s failed %d\n", np->full_name,
-			tas_dev->mIrqInfo.mn_irq_gpio);
+			tas_priv->irq_info.irq_gpio);
 
-	if (gpio_is_valid(tas_dev->mIrqInfo.mn_irq_gpio)) {
-		if (TAS2781 == tas_dev->chip_id)
-			tas_dev->irq_work_func = tas2781_irq_work_func;
-		else
-			dev_info(tas_dev->dev, "%s: No match irq_work_func\n",
+	if (gpio_is_valid(tas_priv->irq_info.irq_gpio)) {
+		switch (tas_priv->chip_id) {
+		case TAS2563:
+			tas_priv->irq_work_func = tas2563_irq_work_func;
+			break;
+		case TAS2781:
+			tas_priv->irq_work_func = tas2781_irq_work_func;
+			break;
+		default:
+			dev_info(tas_priv->dev, "%s: No match irq_work_func\n",
 				__func__);
+		}
 	}
 
 	return 0;
 }
 
-static void tas2781_reset(struct tasdevice_priv *tas_dev)
+static void tasdevice_reset(struct tasdevice_priv *tas_dev)
 {
-	int ret = 0;
-	int i = 0;
+	int ret, i;
 
-	for (; i < tas_dev->ndev; i++) {
-		ret = tasdevice_dev_write(tas_dev, i,
-			TAS2781_REG_SWRESET,
-			TAS2781_REG_SWRESET_RESET);
-		if (ret < 0) {
-			dev_err(tas_dev->dev, "%s: chn %d reset fail, %d\n",
-				__func__, i, ret);
-			continue;
+	if (tas_dev->reset) {
+		gpiod_set_value_cansleep(tas_dev->reset, 0);
+		usleep_range(500, 1000);
+		gpiod_set_value_cansleep(tas_dev->reset, 1);
+	} else {
+		for (i = 0; i < tas_dev->ndev; i++) {
+			ret = tasdevice_dev_write(tas_dev, i,
+				TASDEVICE_REG_SWRESET,
+				TASDEVICE_REG_SWRESET_RESET);
+			if (ret < 0)
+				dev_err(tas_dev->dev, "chn %d rst fail, %d\n",
+					i, ret);
 		}
 	}
-	usleep_range(1000, 1050);
 }
 
 int tasdevice_probe_next(struct tasdevice_priv *tas_dev)
@@ -329,7 +317,7 @@ int tasdevice_probe_next(struct tasdevice_priv *tas_dev)
 	}
 	mutex_init(&tas_dev->dev_lock);
 	mutex_init(&tas_dev->file_lock);
-	tas_dev->reset = tas2781_reset;
+	tas_dev->hwreset = tasdevice_reset;
 	tas_dev->read = tasdevice_dev_read;
 	tas_dev->write = tasdevice_dev_write;
 	tas_dev->bulk_read = tasdevice_dev_bulk_read;
@@ -360,8 +348,8 @@ int tasdevice_probe_next(struct tasdevice_priv *tas_dev)
 		dev_err(tas_dev->dev, "%s: codec register error:0x%08x\n",
 			__func__, nResult);
 
-	INIT_DELAYED_WORK(&tas_dev->mIrqInfo.irq_work, irq_work_routine);
-	tas_dev->mIrqInfo.mb_irq_enable = false;
+	INIT_DELAYED_WORK(&tas_dev->irq_info.irq_work, irq_work_routine);
+	tas_dev->irq_info.irq_enable = false;
 
 	dev_info(tas_dev->dev, "i2c register success\n");
 out:
@@ -370,20 +358,14 @@ out:
 
 void tasdevice_remove(struct tasdevice_priv *tas_dev)
 {
-	int i = 0;
-
-	for (i = 0; i < tas_dev->mtRstGPIOs.ndev; i++) {
-		if (gpio_is_valid(tas_dev->mtRstGPIOs.mnResetGpio[i]))
-			gpio_free(tas_dev->mtRstGPIOs.mnResetGpio[i]);
-	}
 	if (gpio_is_valid(tas_dev->mnI2CSPIGpio))
 		gpio_free(tas_dev->mnI2CSPIGpio);
 
-	if (delayed_work_pending(&tas_dev->mIrqInfo.irq_work)) {
+	if (delayed_work_pending(&tas_dev->irq_info.irq_work)) {
 		dev_info(tas_dev->dev, "cancel IRQ work\n");
-		cancel_delayed_work(&tas_dev->mIrqInfo.irq_work);
+		cancel_delayed_work(&tas_dev->irq_info.irq_work);
 	}
-	cancel_delayed_work_sync(&tas_dev->mIrqInfo.irq_work);
+	cancel_delayed_work_sync(&tas_dev->irq_info.irq_work);
 
 	mutex_destroy(&tas_dev->dev_lock);
 	mutex_destroy(&tas_dev->file_lock);
@@ -406,10 +388,10 @@ static int tasdevice_pm_suspend(struct device *dev)
 
 	tas_dev->mb_runtime_suspend = true;
 
-	if (gpio_is_valid(tas_dev->mIrqInfo.mn_irq_gpio)) {
-		if (delayed_work_pending(&tas_dev->mIrqInfo.irq_work)) {
+	if (gpio_is_valid(tas_dev->irq_info.irq_gpio)) {
+		if (delayed_work_pending(&tas_dev->irq_info.irq_work)) {
 			dev_dbg(tas_dev->dev, "cancel IRQ work\n");
-			cancel_delayed_work_sync(&tas_dev->mIrqInfo.irq_work);
+			cancel_delayed_work_sync(&tas_dev->irq_info.irq_work);
 		}
 	}
 	mutex_unlock(&tas_dev->codec_lock);

@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -13,8 +13,9 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/miscdevice.h>
+#include <linux/crc8.h>
 #include <linux/firmware.h>
+#include <linux/miscdevice.h>
 
 #include "tasdevice-dsp.h"
 #include "tasdevice-regbin.h"
@@ -28,7 +29,7 @@ int fw_parse_variable_header_git(struct tasdevice_priv *tas_dev,
 	const struct firmware *pFW, int offset)
 {
 	const unsigned char *buf = pFW->data;
-	struct TFirmware *pFirmware = tas_dev->mpFirmware;
+	struct tasdevice_fw *pFirmware = tas_dev->mpFirmware;
 	struct tasdevice_dspfw_hdr *pFw_hdr = &(pFirmware->fw_hdr);
 	int i = strlen((char *)&buf[offset]);
 
@@ -52,8 +53,7 @@ int fw_parse_variable_header_git(struct tasdevice_priv *tas_dev,
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDeviceFamily = SMS_HTONL(buf[offset], buf[offset + 1],
-		buf[offset + 2], buf[offset + 3]);
+	pFw_hdr->mnDeviceFamily = be32_to_cpup((__be32 *)&buf[offset]);
 	if (pFw_hdr->mnDeviceFamily != 0) {
 		dev_err(tas_dev->dev, "ERROR:%s: not TAS device\n", __func__);
 		offset = -1;
@@ -65,8 +65,7 @@ int fw_parse_variable_header_git(struct tasdevice_priv *tas_dev,
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDevice = SMS_HTONL(buf[offset], buf[offset + 1],
-		buf[offset + 2], buf[offset + 3]);
+	pFw_hdr->mnDevice = be32_to_cpup((__be32 *)&buf[offset]);
 	if (pFw_hdr->mnDevice >= TASDEVICE_DSP_TAS_MAX_DEVICE ||
 		pFw_hdr->mnDevice == 6) {
 		dev_err(tas_dev->dev, "ERROR:%s: not support device %d\n",
@@ -87,7 +86,7 @@ out:
 	return offset;
 }
 
-int fw_parse_variable_header_cal(struct TFirmware *pCalFirmware,
+int fw_parse_variable_header_cal(struct tasdevice_fw *pCalFirmware,
 	const struct firmware *pFW, int offset)
 {
 	const unsigned char *buf = pFW->data;
@@ -114,8 +113,7 @@ int fw_parse_variable_header_cal(struct TFirmware *pCalFirmware,
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDeviceFamily = SMS_HTONL(buf[offset], buf[offset + 1],
-		buf[offset + 2], buf[offset + 3]);
+	pFw_hdr->mnDeviceFamily = be32_to_cpup((__be32 *)&buf[offset]);
 	if (pFw_hdr->mnDeviceFamily != 0) {
 		pr_err("ERROR:%s: not TAS device\n", __func__);
 		offset = -1;
@@ -127,8 +125,7 @@ int fw_parse_variable_header_cal(struct TFirmware *pCalFirmware,
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDevice = SMS_HTONL(buf[offset], buf[offset + 1],
-		buf[offset + 2], buf[offset + 3]);
+	pFw_hdr->mnDevice = be32_to_cpup((__be32 *)&buf[offset]);
 	if (pFw_hdr->mnDevice >= TASDEVICE_DSP_TAS_MAX_DEVICE ||
 		pFw_hdr->mnDevice == 6) {
 		pr_err("ERROR:%s: not support device %d\n",
@@ -149,41 +146,40 @@ out:
 }
 
 int tasdevice_load_block_git_show(struct tasdevice_priv *pTAS2781,
-	struct TBlock *pBlock, char *buf, int *length)
+	struct TBlock *block, char *buf, int *length)
 {
 	int nResult = 0;
 	unsigned int nCommand = 0;
 	unsigned char nBook;
 	unsigned char nPage;
 	unsigned char nOffset;
-	unsigned char nData;
 	unsigned int nLength;
 	unsigned int nSleep;
-	unsigned char *pData = pBlock->mpData;
+	unsigned char *data;
 	unsigned int i = 0, n = 0, subblk_offset = 0;
 	int chn = 0, chnend = 0;
 
 	*length  += scnprintf(buf + *length, PAGE_SIZE - *length,
-		"\t\t\t\tblock = 0x%08x\n", pBlock->mnType);
+		"\t\t\t\tblock = 0x%08x\n", block->type);
 	*length  += scnprintf(buf + *length, PAGE_SIZE - *length,
 		"\t\t\t\t\tmbPChkSumPresent = 0x%02x\n",
-		pBlock->mbPChkSumPresent);
+		block->mbPChkSumPresent);
 	*length  += scnprintf(buf + *length, PAGE_SIZE - *length,
 		"\t\t\t\t\tmbPChkSumPresent = 0x%02x\n",
-		pBlock->mbPChkSumPresent);
+		block->mbPChkSumPresent);
 	*length  += scnprintf(buf + *length, PAGE_SIZE - *length,
-		"\t\t\t\t\tmnPChkSum = 0x%02x\n", pBlock->mnPChkSum);
+		"\t\t\t\t\tmnPChkSum = 0x%02x\n", block->mnPChkSum);
 	*length  += scnprintf(buf + *length, PAGE_SIZE - *length,
 		"\t\t\t\t\tmbYChkSumPresent = 0x%02x\n",
-		pBlock->mbYChkSumPresent);
+		block->mbYChkSumPresent);
 	*length  += scnprintf(buf + *length, PAGE_SIZE - *length,
 		"\t\t\t\t\tmnYChkSum = 0x%02x\n",
-		pBlock->mnYChkSum);
+		block->mnYChkSum);
 	*length  += scnprintf(buf + *length, PAGE_SIZE - *length,
 		"\t\t\t\t\tmnCommands = 0x%08x\n",
-		pBlock->mnCommands);
+		block->mnCommands);
 
-	switch (pBlock->mnType) {
+	switch (block->type) {
 	case MAIN_ALL_DEVICES:
 		chn = 0;
 		chnend = pTAS2781->mpFirmware->fw_hdr.ndev;
@@ -215,44 +211,40 @@ int tasdevice_load_block_git_show(struct tasdevice_priv *pTAS2781,
 	default:
 		*length  += scnprintf(buf + *length, PAGE_SIZE - *length,
 			"%s: TAS2781 load block: Other Type = 0x%02x\n",
-			__func__, pBlock->mnType);
+			__func__, block->type);
 		break;
 	}
 
 	for (; chn < chnend; chn++) {
 		nCommand = 0;
 
-		while (nCommand < pBlock->mnCommands) {
-			pData = pBlock->mpData + nCommand * 4;
-			if (nCommand + 1 > pBlock->mnCommands) {
+		while (nCommand < block->mnCommands) {
+			data = block->mpData + nCommand * 4;
+			if (nCommand + 1 > block->mnCommands) {
 				*length  += scnprintf(buf + *length,
 					PAGE_SIZE - *length,
 					"%s: Out of memory\n", __func__);
 				nResult = -1;
 				break;
 			}
-			nBook = pData[0];
-			nPage = pData[1];
-			nOffset = pData[2];
-			nData = pData[3];
 
 			nCommand++;
 
-			if (nOffset <= 0x7F) {
+			if (data[2] <= 0x7F) {
 				*length  += scnprintf(buf + *length,
 					PAGE_SIZE - *length,
 					"\t\t\t\t\t\tDEV%d BOOK0x%02x "
 					"PAGE0x%02x REG0x%02x VALUE = "
-					"0x%02x\n", chn, nBook, nPage, nOffset,
-					nData);
-			} else if (nOffset == 0x81) {
-				nSleep = SMS_HTONS(nBook, nPage);
+					"0x%02x\n", chn, data[0], data[1],
+					data[2], data[3]);
+			} else if (data[2] == 0x81) {
+				nSleep = be16_to_cpup((__be16 *)&data[0]);
 				*length  += scnprintf(buf + *length,
 					PAGE_SIZE - *length,
 					"\t\t\t\t\t\tDEV%d DELAY = %ums\n",
 					chn, nSleep);
-			} else if (nOffset == 0x85) {
-				if (nCommand + 1 > pBlock->mnCommands) {
+			} else if (data[2] == 0x85) {
+				if (nCommand + 1 > block->mnCommands) {
 					*length  += scnprintf(buf + *length,
 						PAGE_SIZE - *length,
 						"%s: Out of memory\n",
@@ -260,15 +252,16 @@ int tasdevice_load_block_git_show(struct tasdevice_priv *pTAS2781,
 					nResult = -1;
 					break;
 				}
-				pData  += 4;
-				nLength = SMS_HTONS(nBook, nPage);
-				nBook = pData[0];
-				nPage = pData[1];
-				nOffset = pData[2];
+				data  += 4;
+				nLength =
+					be16_to_cpup((__be16 *)&data[0]);
+				nBook = data[0];
+				nPage = data[1];
+				nOffset = data[2];
 				if (nLength > 1) {
 					n = ((nLength - 2) / 4) + 1;
 					if (nCommand + n >
-						pBlock->mnCommands) {
+						block->mnCommands) {
 						*length  += scnprintf(buf +
 							*length,
 							PAGE_SIZE - *length,
@@ -294,16 +287,16 @@ int tasdevice_load_block_git_show(struct tasdevice_priv *pTAS2781,
 							"0x%02x REG0x%02x = "
 							"0x%02x\n",
 							nOffset + i * 4,
-							pData[subblk_offset
+							data[subblk_offset
 								+ 0],
 							nOffset + i * 4 + 1,
-							pData[subblk_offset
+							data[subblk_offset
 								+ 1],
 							nOffset + i * 4 + 2,
-							pData[subblk_offset
+							data[subblk_offset
 								+ 2],
 							nOffset + i * 4 + 3,
-							pData[subblk_offset
+							data[subblk_offset
 								+ 3]);
 						subblk_offset  += 4;
 					}
@@ -314,7 +307,7 @@ int tasdevice_load_block_git_show(struct tasdevice_priv *pTAS2781,
 						"\t\t\t\t\t\tDEV%d BOOK0x%02x "
 						"PAGE0x%02x REG0x%02x VALUE = "
 						"0x%02x\n", chn, nBook, nPage,
-						nOffset, pData[3]);
+						nOffset, data[3]);
 				}
 				nCommand++;
 			}
@@ -323,7 +316,7 @@ int tasdevice_load_block_git_show(struct tasdevice_priv *pTAS2781,
 	if (nResult < 0) {
 		*length  += scnprintf(buf + *length, PAGE_SIZE - *length,
 			"%s: Block (%d) load error\n",
-			__func__, pBlock->mnType);
+			__func__, block->type);
 	}
 	return nResult;
 }

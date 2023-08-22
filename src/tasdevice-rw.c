@@ -1,5 +1,5 @@
 /*
- * TAS2871 Linux Driver
+ * TAS2563/TAS2871 Linux Driver
  *
  * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
  *
@@ -13,10 +13,14 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/regmap.h>
-#include <linux/i2c.h>
-#include <linux/spi/spi.h>
+#include <linux/crc8.h>
 #include <linux/firmware.h>
+#include <linux/regmap.h>
+#ifdef CONFIG_TASDEV_CODEC_SPI
+	#include <linux/spi/spi.h>
+#else
+	#include <linux/i2c.h>
+#endif
 
 #include "tasdevice.h"
 
