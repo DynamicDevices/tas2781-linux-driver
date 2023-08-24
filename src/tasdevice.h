@@ -35,7 +35,7 @@
 #define TASDEVICE_RATES	(SNDRV_PCM_RATE_44100 |\
 	SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_96000 |\
 	SNDRV_PCM_RATE_88200)
-#define TASDEVICE_MAX_CHANNELS (8)
+#define TASDEVICE_MAX_CHANNELS	8
 
 #define TASDEVICE_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE | \
 	SNDRV_PCM_FMTBIT_S20_3LE | \
@@ -50,6 +50,7 @@
 #define TASDEVICE_BOOK_ID(reg)		(reg / (256 * 128))
 #define TASDEVICE_PAGE_ID(reg)		((reg % (256 * 128)) / 128)
 #define TASDEVICE_PAGE_REG(reg)		((reg % (256 * 128)) % 128)
+#define TASDEVICE_PGRG(reg)		(reg % (256 * 128))
 #define TASDEVICE_REG(book, page, reg)	(((book * 256 * 128) + \
 					(page * 128)) + reg)
 
@@ -66,6 +67,7 @@
 #define TASDEVICE_I2CChecksum  TASDEVICE_REG(0x0, 0x0, 0x7E)
 
 	/* Volume control */
+#define TAS2563_DVC_LVL			TASDEVICE_REG(0x0, 0x2, 0x0C)
 #define TAS2781_DVC_LVL			TASDEVICE_REG(0x0, 0x0, 0x1A)
 #define TAS2781_AMP_LEVEL		TASDEVICE_REG(0x0, 0x0, 0x03)
 #define TAS2781_AMP_LEVEL_MASK		GENMASK(5, 1)
@@ -88,15 +90,9 @@ struct smartpa_params {
 struct smartpa_info {
 	unsigned char spkvendorid;
 	unsigned char ndev;
-	unsigned char i2c_list[MaxChn];
+	unsigned char i2c_list[TASDEVICE_MAX_CHANNELS];
 	unsigned char bSPIEnable;
 };
-
-struct smartpa_gpio_info {
-	unsigned char ndev;
-	int mnResetGpio[MaxChn];
-};
-
 
 #define TILOAD_IOC_MAGIC			(0xE0)
 #define TILOAD_IOMAGICNUM_GET		_IOR(TILOAD_IOC_MAGIC, 1, int)
@@ -140,14 +136,10 @@ struct BPR {
 	unsigned char nRegister;
 };
 
-struct Tbookpage {
-	unsigned char mnBook;
-	unsigned char mnPage;
-};
-
 struct Ttasdevice {
 	unsigned int mnDevAddr;
 	unsigned int mnErrCode;
+	unsigned char cur_book;
 	short mnCurrentProgram;
 	short mnCurrentConfiguration;
 	short mnCurrentRegConf;
@@ -156,14 +148,13 @@ struct Ttasdevice {
 	bool bLoading;
 	bool bLoaderr;
 	bool mbCalibrationLoaded;
-	struct Tbookpage mnBkPg;
 	struct tasdevice_fw *mpCalFirmware;
 };
 
 struct Trwinfo {
 	int mnDBGCmd;
 	int mnCurrentReg;
-	enum channel mnCurrentChannel;
+	unsigned short mnCurrentChannel;
 	char mPage;
 	char mBook;
 };
@@ -175,7 +166,7 @@ struct Tsyscmd {
 	unsigned char mnReg;
 	unsigned char mnValue;
 	unsigned short bufLen;
-	enum channel mnCurrentChannel;
+	unsigned short mnCurrentChannel;
 };
 
 enum syscmds {
@@ -204,7 +195,7 @@ struct tasdevice_irqinfo {
 *  writes, useless in mono case.
 */
 struct global_addr {
-	struct Tbookpage mnBkPg;
+	unsigned char cur_book;
 	unsigned int dev_addr;
 	int ref_cnt;
 };
@@ -216,29 +207,29 @@ struct tasdevice_priv {
 	struct miscdevice misc_dev;
 	struct mutex dev_lock;
 	struct mutex file_lock;
-	struct Ttasdevice tasdevice[MaxChn];
+	struct Ttasdevice tasdevice[TASDEVICE_MAX_CHANNELS];
 	struct Trwinfo rwinfo;
 	struct Tsyscmd nSysCmd[MaxCmd];
-	struct tasdevice_fw *mpFirmware;
+	struct tasdevice_fw *fmw;
 	struct tasdevice_regbin mtRegbin;
 	struct tasdevice_irqinfo irq_info;
 	struct tas_control tas_ctrl;
 	struct global_addr glb_addr;
 	struct gpio_desc *reset;
-	int mnCurrentProgram;
-	int mnCurrentConfiguration;
+	int cur_prog;
+	int cur_conf;
 	unsigned int chip_id;
-	int (*read)(struct tasdevice_priv *tas_dev, enum channel chn,
+	int (*read)(struct tasdevice_priv *tas_dev, unsigned short chn,
 		unsigned int reg, unsigned int *pValue);
-	int (*write)(struct tasdevice_priv *tas_dev, enum channel chn,
+	int (*write)(struct tasdevice_priv *tas_dev, unsigned short chn,
 		unsigned int reg, unsigned int Value);
-	int (*bulk_read)(struct tasdevice_priv *tas_dev, enum channel chn,
+	int (*bulk_read)(struct tasdevice_priv *tas_dev, unsigned short chn,
 		unsigned int reg, unsigned char *pData, unsigned int len);
-	int (*bulk_write)(struct tasdevice_priv *tas_dev, enum channel chn,
+	int (*bulk_write)(struct tasdevice_priv *tas_dev, unsigned short chn,
 		unsigned int reg, unsigned char *pData, unsigned int len);
-	int (*update_bits)(struct tasdevice_priv *tas_dev, enum channel chn,
+	int (*update_bits)(struct tasdevice_priv *tas_dev, unsigned short chn,
 		unsigned int reg, unsigned int mask, unsigned int value);
-	int (*set_calibration)(void *pTAS2563, enum channel chl,
+	int (*set_calibration)(void *pTAS2563, unsigned short chl,
 		int calibration);
 	void (*set_global_mode)(struct tasdevice_priv *tas_dev);
 	void (*hwreset)(struct tasdevice_priv *tas_dev);
@@ -256,12 +247,11 @@ struct tasdevice_priv {
 	int fw_state;
 	unsigned int magic_num;
 	int mnSPIEnable;
-	int mnI2CSPIGpio;
 	unsigned char ndev;
 	unsigned char dev_name[32];
 	unsigned char regbin_binaryname[64];
 	unsigned char dsp_binaryname[64];
-	unsigned char cal_binaryname[MaxChn][64];
+	unsigned char cal_binaryname[TASDEVICE_MAX_CHANNELS][64];
 	unsigned char crc8_lkp_tbl[CRC8_TABLE_SIZE];
 	bool mb_runtime_suspend;
 	void *codec;

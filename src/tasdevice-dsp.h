@@ -33,14 +33,6 @@
 #define PPC3_VERSION				0x4100
 #define PPC3_VERSION_TAS2781			0x14600
 
-enum channel {
-	TopLeftChn = 0x00,
-	TopRightChn = 0x01,
-	BottomLeftChn = 0x02,
-	BottomRightChn = 0x03,
-	MaxChn
-};
-
 enum tasdevice_dsp_dev_idx {
 	TASDEVICE_DSP_TAS_2555 = 0,
 	TASDEVICE_DSP_TAS_2555_STEREO,
@@ -133,10 +125,10 @@ struct TCalibration {
 struct tasdevice_fw {
 	struct tasdevice_dspfw_hdr fw_hdr;
 	unsigned int prog_start_offset;
-	unsigned short mnPrograms;
+	unsigned short nr_programs;
 	struct TProgram *mpPrograms;
 	unsigned int cfg_start_offset;
-	unsigned short mnConfigurations;
+	unsigned short nr_configurations;
 	struct TConfiguration *mpConfigurations;
 	unsigned short mnCalibrations;
 	struct TCalibration *mpCalibrations;
@@ -149,8 +141,8 @@ int tasdevice_dspfw_ready(const void *pVoid, void *pContext);
 void tasdevice_dsp_remove(void *pContext);
 void tasdevice_calbin_remove(void *pContext);
 int tas2781_load_calibration(void *tas_dev, char *pFileName,
-	enum channel i);
-int tas2781_set_calibration(void *pContext, enum channel i,
+	unsigned short i);
+int tas2781_set_calibration(void *pContext, unsigned short i,
 	int nCalibration);
 int tasdevice_select_tuningprm_cfg(void *pContext, int prm,
 	int cfg_no, int regbin_conf_no);

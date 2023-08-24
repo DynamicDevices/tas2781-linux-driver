@@ -304,14 +304,10 @@ static void tasdevice_reset(struct tasdevice_priv *tas_dev)
 
 int tasdevice_probe_next(struct tasdevice_priv *tas_dev)
 {
-	int nResult = 0, i = 0;
-
-	tas_dev->mnCurrentProgram = -1;
-	tas_dev->mnCurrentConfiguration = -1;
+	int nResult, i;
 
 	for (i = 0; i < tas_dev->ndev; i++) {
-		tas_dev->tasdevice[i].mnBkPg.mnBook = -1;
-		tas_dev->tasdevice[i].mnBkPg.mnPage = -1;
+		tas_dev->tasdevice[i].cur_book = -1;
 		tas_dev->tasdevice[i].mnCurrentProgram = -1;
 		tas_dev->tasdevice[i].mnCurrentConfiguration = -1;
 	}
@@ -358,9 +354,6 @@ out:
 
 void tasdevice_remove(struct tasdevice_priv *tas_dev)
 {
-	if (gpio_is_valid(tas_dev->mnI2CSPIGpio))
-		gpio_free(tas_dev->mnI2CSPIGpio);
-
 	if (delayed_work_pending(&tas_dev->irq_info.irq_work)) {
 		dev_info(tas_dev->dev, "cancel IRQ work\n");
 		cancel_delayed_work(&tas_dev->irq_info.irq_work);

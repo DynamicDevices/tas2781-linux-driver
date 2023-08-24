@@ -29,7 +29,7 @@ int fw_parse_variable_header_git(struct tasdevice_priv *tas_dev,
 	const struct firmware *pFW, int offset)
 {
 	const unsigned char *buf = pFW->data;
-	struct tasdevice_fw *pFirmware = tas_dev->mpFirmware;
+	struct tasdevice_fw *pFirmware = tas_dev->fmw;
 	struct tasdevice_dspfw_hdr *pFw_hdr = &(pFirmware->fw_hdr);
 	int i = strlen((char *)&buf[offset]);
 
@@ -182,7 +182,7 @@ int tasdevice_load_block_git_show(struct tasdevice_priv *pTAS2781,
 	switch (block->type) {
 	case MAIN_ALL_DEVICES:
 		chn = 0;
-		chnend = pTAS2781->mpFirmware->fw_hdr.ndev;
+		chnend = pTAS2781->fmw->fw_hdr.ndev;
 		break;
 	case MAIN_DEVICE_A:
 	case COEFF_DEVICE_A:

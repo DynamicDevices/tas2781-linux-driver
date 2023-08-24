@@ -57,7 +57,7 @@ ssize_t dspfwinfo_list_show(struct device *dev,
 		}
 		goto out;
 	}
-	pFirmware = tas_dev->mpFirmware;
+	pFirmware = tas_dev->fmw;
 	if (pFirmware == NULL) {
 		if (n + 42 < size)
 			n  += scnprintf(buf + n, size  - n, "ERROR: No data "
@@ -109,7 +109,7 @@ ssize_t dspfwinfo_list_show(struct device *dev,
 
 	if (n + 16 < size)
 		n  += scnprintf(buf + n, size - n, "mnPrograms: %d\n\r",
-			pFirmware->mnPrograms);
+			pFirmware->nr_programs);
 	else {
 		scnprintf(buf + PAGE_SIZE - 100, 100, "\n[SmartPA]:%s "
 		"Out of memory!\n\r", __func__);
@@ -117,7 +117,7 @@ ssize_t dspfwinfo_list_show(struct device *dev,
 		goto out;
 	}
 
-	for (i = 0; i < pFirmware->mnPrograms; i++) {
+	for (i = 0; i < pFirmware->nr_programs; i++) {
 		pProgram = &(pFirmware->mpPrograms[i]);
 		if (pProgram == NULL) {
 			if (n + 33 < size)
@@ -163,14 +163,14 @@ ssize_t dspfwinfo_list_show(struct device *dev,
 
 	if (n + 22 < size)
 		n  += scnprintf(buf + n, size - n, "mnConfigurations: %d\n\r",
-			pFirmware->mnConfigurations);
+			pFirmware->nr_configurations);
 	else {
 		scnprintf(buf + PAGE_SIZE - 100, 100, "\n[SmartPA]:%s "
 			"Out of memory!\n\r", __func__);
 		n = PAGE_SIZE;
 		goto out;
 	}
-	for (i = 0; i < pFirmware->mnConfigurations; i++) {
+	for (i = 0; i < pFirmware->nr_configurations; i++) {
 		if (n + 16 < size)
 			n  += scnprintf(buf + n, size - n,
 				"\tnConfig:%d\n\r", i);
@@ -775,11 +775,10 @@ ssize_t dspfw_config_show(struct device *dev,
 	int n = 0;
 
 	mutex_lock(&tas_dev->file_lock);
-	pFirmware = tas_dev->mpFirmware;
-	if (!tas_dev->mnCurrentProgram)
+	pFirmware = tas_dev->fmw;
+	if (!tas_dev->cur_prog)
 		n = scnprintf(buf, 64, "%s\n",
-			pFirmware->mpConfigurations
-			[tas_dev->mnCurrentConfiguration].mpName);
+			pFirmware->mpConfigurations[tas_dev->cur_conf].mpName);
 	else
 		n = scnprintf(buf, 64, "Current mode is bypass\n");
 

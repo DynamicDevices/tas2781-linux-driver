@@ -43,7 +43,7 @@ static int tasdevice_program_get(struct snd_kcontrol *pKcontrol,
 	struct tasdevice_priv *pTAS2781 = snd_soc_component_get_drvdata(codec);
 
 	mutex_lock(&pTAS2781->codec_lock);
-	pValue->value.integer.value[0] = pTAS2781->mnCurrentProgram;
+	pValue->value.integer.value[0] = pTAS2781->cur_prog;
 	mutex_unlock(&pTAS2781->codec_lock);
 	return 0;
 }
@@ -53,13 +53,19 @@ static int tasdevice_program_put(struct snd_kcontrol *pKcontrol,
 {
 	struct snd_soc_component *codec
 		= snd_soc_kcontrol_component(pKcontrol);
-	struct tasdevice_priv *pTAS2781 = snd_soc_component_get_drvdata(codec);
-	unsigned int nProgram = pValue->value.integer.value[0];
+	struct tasdevice_priv *tas_priv = snd_soc_component_get_drvdata(codec);
+	struct tasdevice_fw *tas_fw = tas_priv->fmw;
+	int nProgram = pValue->value.integer.value[0];
+	int max_val = tas_fw->nr_programs - 1, ret = 0;
 
-	mutex_lock(&pTAS2781->codec_lock);
-	pTAS2781->mnCurrentProgram = nProgram;
-	mutex_unlock(&pTAS2781->codec_lock);
-	return 0;
+	nProgram = clamp(nProgram, 0, max_val);
+	mutex_lock(&tas_priv->codec_lock);
+	if (tas_priv->cur_prog != nProgram) {
+		tas_priv->cur_prog = nProgram;
+		ret = 1;
+	}
+	mutex_unlock(&tas_priv->codec_lock);
+	return ret;
 }
 
 static int tasdevice_configuration_get(
@@ -69,11 +75,11 @@ static int tasdevice_configuration_get(
 
 	struct snd_soc_component *codec
 		= snd_soc_kcontrol_component(pKcontrol);
-	struct tasdevice_priv *pTAS2781 = snd_soc_component_get_drvdata(codec);
+	struct tasdevice_priv *tas_priv = snd_soc_component_get_drvdata(codec);
 
-	mutex_lock(&pTAS2781->codec_lock);
-	pValue->value.integer.value[0] = pTAS2781->mnCurrentConfiguration;
-	mutex_unlock(&pTAS2781->codec_lock);
+	mutex_lock(&tas_priv->codec_lock);
+	pValue->value.integer.value[0] = tas_priv->cur_conf;
+	mutex_unlock(&tas_priv->codec_lock);
 	return 0;
 }
 
@@ -82,14 +88,20 @@ static int tasdevice_configuration_put(
 	struct snd_ctl_elem_value *pValue)
 {
 	struct snd_soc_component *codec
-					= snd_soc_kcontrol_component(pKcontrol);
-	struct tasdevice_priv *pTAS2781 = snd_soc_component_get_drvdata(codec);
-	unsigned int nConfiguration = pValue->value.integer.value[0];
+		= snd_soc_kcontrol_component(pKcontrol);
+	struct tasdevice_priv *tas_priv = snd_soc_component_get_drvdata(codec);
+	struct tasdevice_fw *tas_fw = tas_priv->fmw;
+	int nConfiguration = pValue->value.integer.value[0];
+	int max_val = tas_fw->nr_configurations - 1, ret = 0;
 
-	mutex_lock(&pTAS2781->codec_lock);
-	pTAS2781->mnCurrentConfiguration = nConfiguration;
-	mutex_unlock(&pTAS2781->codec_lock);
-	return 0;
+	nConfiguration = clamp(nConfiguration, 0, max_val);
+	mutex_lock(&tas_priv->codec_lock);
+	if (tas_priv->cur_conf != nConfiguration) {
+		tas_priv->cur_conf = nConfiguration;
+		ret = 1;
+	}
+	mutex_unlock(&tas_priv->codec_lock);
+	return ret;
 }
 
 static int tasdevice_dac_event(struct snd_soc_dapm_widget *w,
@@ -222,7 +234,7 @@ void powercontrol_routine(struct work_struct *work)
 	struct tasdevice_priv *tas_dev =
 		container_of(work, struct tasdevice_priv,
 		powercontrol_work.work);
-	struct tasdevice_fw *pFw = tas_dev->mpFirmware;
+	struct tasdevice_fw *pFw = tas_dev->fmw;
 	int profile_cfg_id = tas_dev->mtRegbin.profile_cfg_id;
 	int is_set_glb_mode = 0;
 
@@ -230,15 +242,14 @@ void powercontrol_routine(struct work_struct *work)
 
 	mutex_lock(&tas_dev->codec_lock);
 	if (pFw) {
-		if (tas_dev->mnCurrentProgram == 0) {
+		if (tas_dev->cur_prog == 0) {
 			/*dsp mode or tuning mode*/
 			dev_info(tas_dev->dev, "%s: %s\n", __func__,
-				pFw->mpConfigurations[tas_dev->mnCurrentConfiguration]
+				pFw->mpConfigurations[tas_dev->cur_conf]
 				.mpName);
 			is_set_glb_mode =
 				tasdevice_select_tuningprm_cfg(tas_dev,
-					tas_dev->mnCurrentProgram,
-					tas_dev->mnCurrentConfiguration,
+					tas_dev->cur_prog, tas_dev->cur_conf,
 					profile_cfg_id);
 			if (is_set_glb_mode && tas_dev->set_global_mode)
 				tas_dev->set_global_mode(tas_dev);
@@ -405,6 +416,81 @@ static const struct snd_soc_component_driver
 	.endianness		= 1,
 };
 
+static int tas2563_digital_getvol(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *codec
+		= snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_dev =
+		snd_soc_component_get_drvdata(codec);
+	struct soc_mixer_control *mc =
+		(struct soc_mixer_control *)kcontrol->private_value;
+	unsigned short vol, max_vol = mc->max;
+	unsigned char data[4];
+	unsigned int tmp;
+	int ret = 0;
+
+	/* Read the primary device as the whole */
+	ret = tasdevice_dev_bulk_read(tas_dev, 0, mc->reg, data, 4);
+	if (ret) {
+		dev_err(tas_dev->dev,
+		"%s, get digital vol error\n",
+		__func__);
+		goto out;
+	}
+	tmp = be32_to_cpup((__be32 *)data);
+	vol = tmp >> 16;
+	vol = mc->invert ? max_vol - vol : vol;
+	ucontrol->value.integer.value[0] = vol;
+
+out:
+	return ret;
+}
+
+static int tas2563_digital_putvol(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct soc_mixer_control *mc =
+		(struct soc_mixer_control *)kcontrol->private_value;
+	struct snd_soc_component *codec =
+		snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_dev =
+		snd_soc_component_get_drvdata(codec);
+	unsigned short val;
+	unsigned int vol;
+	unsigned char *p;
+	int i, ret = 0;
+	__be32 mackey;
+
+	val = ucontrol->value.integer.value[0];
+	vol = (val << 16) | 0xFFFF;
+	mackey = cpu_to_be32p((const unsigned int *) &vol);
+	p = (unsigned char *)mackey;
+
+	if (tas_dev->set_global_mode != NULL) {
+		ret = tasdevice_dev_bulk_write(tas_dev, tas_dev->ndev,
+			mc->reg, p, 4);
+		if (ret)
+			dev_err(tas_dev->dev,
+				"%s, set digital vol error in global mode\n",
+				__func__);
+		goto out;
+	}
+
+	for (i = 0; i < tas_dev->ndev; i++) {
+		ret = tasdevice_dev_bulk_write(tas_dev, i,
+			mc->reg, p, 4);
+		if (ret)
+			dev_err(tas_dev->dev,
+				"%s, set digital vol error in device %d\n",
+				__func__, i);
+	}
+
+out:
+	return ret;
+}
+
+
 static int tasdevice_digital_getvol(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
@@ -536,12 +622,23 @@ static int tasdevice_amp_putvol(struct snd_kcontrol *kcontrol,
 	return ret;
 }
 
-static const DECLARE_TLV_DB_SCALE(tas2781_dvc_tlv, -10000, 100, 0);
+static const DECLARE_TLV_DB_SCALE(tas2563_amp_vol_tlv, 800, 50, 0);
+static const DECLARE_TLV_DB_SCALE(tas2563_dvc_tlv, -9633, 1, 1);
+static const DECLARE_TLV_DB_SCALE(tas2781_dvc_tlv, -10000, 100, 1);
 static const DECLARE_TLV_DB_SCALE(tas2781_amp_vol_tlv, 1100, 50, 0);
+
+static const struct snd_kcontrol_new tas2563_snd_controls[] = {
+	SOC_SINGLE_RANGE_EXT_TLV("Amp Gain Volume", TAS2781_AMP_LEVEL,
+		1, 0, 0x1C, 0, tasdevice_amp_getvol,
+		tasdevice_amp_putvol, tas2563_amp_vol_tlv),
+	SOC_SINGLE_RANGE_EXT_TLV("Digital Volume Control", TAS2563_DVC_LVL,
+		0, 0, 0xFFFF, 0, tas2563_digital_getvol,
+		tas2563_digital_putvol, tas2781_dvc_tlv),
+};
 
 static const struct snd_kcontrol_new tas2781_snd_controls[] = {
 	SOC_SINGLE_RANGE_EXT_TLV("Amp Gain Volume", TAS2781_AMP_LEVEL,
-		1, 0, 20, 0, tasdevice_amp_getvol,
+		1, 0, 0x14, 0, tasdevice_amp_getvol,
 		tasdevice_amp_putvol, tas2781_amp_vol_tlv),
 	SOC_SINGLE_RANGE_EXT_TLV("Digital Volume Control", TAS2781_DVC_LVL,
 		0, 0, 200, 1, tasdevice_digital_getvol,
@@ -553,18 +650,18 @@ static int tasdevice_info_profile(struct snd_kcontrol *kcontrol,
 {
 	struct snd_soc_component *codec
 		= snd_soc_kcontrol_component(kcontrol);
-	struct tasdevice_priv *p_tasdevice =
+	struct tasdevice_priv *tas_priv =
 		snd_soc_component_get_drvdata(codec);
 
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	/* Codec Lock Hold*/
-	mutex_lock(&p_tasdevice->codec_lock);
+	mutex_lock(&tas_priv->codec_lock);
 	uinfo->count = 1;
 	/* Codec Lock Release*/
-	mutex_unlock(&p_tasdevice->codec_lock);
+	mutex_unlock(&tas_priv->codec_lock);
 
 	uinfo->value.integer.min = 0;
-	uinfo->value.integer.max = max(0, p_tasdevice->mtRegbin.ncfgs);
+	uinfo->value.integer.max = (int)tas_priv->mtRegbin.ncfgs - 1;
 
 	return 0;
 }
@@ -574,17 +671,23 @@ static int tasdevice_get_profile_id(struct snd_kcontrol *kcontrol,
 {
 	struct snd_soc_component *codec
 		= snd_soc_kcontrol_component(kcontrol);
-	struct tasdevice_priv *p_tasdevice
+	struct tasdevice_priv *tas_priv
 		= snd_soc_component_get_drvdata(codec);
+	int val = ucontrol->value.integer.value[0];
+	int max_val = (int)tas_priv->mtRegbin.ncfgs - 1;
+	int ret = 0;
 
+	val = clamp(val, 0, max_val);
 	/* Codec Lock Hold*/
-	mutex_lock(&p_tasdevice->codec_lock);
-	ucontrol->value.integer.value[0] =
-		p_tasdevice->mtRegbin.profile_cfg_id;
+	mutex_lock(&tas_priv->codec_lock);
+	if (tas_priv->mtRegbin.profile_cfg_id != val) {
+		tas_priv->mtRegbin.profile_cfg_id = val;
+		ret = 1;
+	}
 	/* Codec Lock Release*/
-	mutex_unlock(&p_tasdevice->codec_lock);
+	mutex_unlock(&tas_priv->codec_lock);
 
-	return 0;
+	return ret;
 }
 
 static int tasdevice_set_profile_id(struct snd_kcontrol *kcontrol,
@@ -592,15 +695,15 @@ static int tasdevice_set_profile_id(struct snd_kcontrol *kcontrol,
 {
 	struct snd_soc_component *codec
 		= snd_soc_kcontrol_component(kcontrol);
-	struct tasdevice_priv *p_tasdevice =
+	struct tasdevice_priv *tas_priv =
 		snd_soc_component_get_drvdata(codec);
 
 	/* Codec Lock Hold*/
-	mutex_lock(&p_tasdevice->codec_lock);
-	p_tasdevice->mtRegbin.profile_cfg_id =
+	mutex_lock(&tas_priv->codec_lock);
+	tas_priv->mtRegbin.profile_cfg_id =
 		ucontrol->value.integer.value[0];
 	/* Codec Lock Release*/
-	mutex_unlock(&p_tasdevice->codec_lock);
+	mutex_unlock(&tas_priv->codec_lock);
 
 	return 0;
 }
@@ -671,7 +774,7 @@ static int tasdevice_info_programs(struct snd_kcontrol *kcontrol,
 		= snd_soc_kcontrol_component(kcontrol);
 	struct tasdevice_priv *p_tasdevice =
 		snd_soc_component_get_drvdata(codec);
-	struct tasdevice_fw *Tfw = p_tasdevice->mpFirmware;
+	struct tasdevice_fw *Tfw = p_tasdevice->fmw;
 
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	/* Codec Lock Hold*/
@@ -681,7 +784,7 @@ static int tasdevice_info_programs(struct snd_kcontrol *kcontrol,
 	mutex_unlock(&p_tasdevice->codec_lock);
 
 	uinfo->value.integer.min = 0;
-	uinfo->value.integer.max = (int)Tfw->mnPrograms;
+	uinfo->value.integer.max = (int)Tfw->nr_programs;
 
 	return 0;
 }
@@ -693,7 +796,7 @@ static int tasdevice_info_configurations(struct snd_kcontrol *kcontrol,
 		= snd_soc_kcontrol_component(kcontrol);
 	struct tasdevice_priv *p_tasdevice =
 		snd_soc_component_get_drvdata(codec);
-	struct tasdevice_fw *Tfw = p_tasdevice->mpFirmware;
+	struct tasdevice_fw *Tfw = p_tasdevice->fmw;
 
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	/* Codec Lock Hold*/
@@ -701,7 +804,7 @@ static int tasdevice_info_configurations(struct snd_kcontrol *kcontrol,
 	uinfo->count = 1;
 
 	uinfo->value.integer.min = 0;
-	uinfo->value.integer.max = (int)Tfw->mnConfigurations - 1;
+	uinfo->value.integer.max = (int)Tfw->nr_configurations - 1;
 
 	/* Codec Lock Release*/
 	mutex_unlock(&p_tasdevice->codec_lock);

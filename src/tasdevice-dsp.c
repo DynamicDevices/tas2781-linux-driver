@@ -368,24 +368,24 @@ static int fw_parse_program_data(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pFirmware->mnPrograms = be16_to_cpup((__be16 *)&buf[offset]);
+	pFirmware->nr_programs = be16_to_cpup((__be16 *)&buf[offset]);
 	offset  += 2;
 
-	if (pFirmware->mnPrograms == 0) {
+	if (pFirmware->nr_programs == 0) {
 		pr_info("%s: mnPrograms is null, maybe calbin\n", __func__);
 		//Do not "offset = -1;", because of calbin
 		goto out;
 	}
 
 	pFirmware->mpPrograms =
-		kcalloc(pFirmware->mnPrograms, sizeof(struct TProgram),
+		kcalloc(pFirmware->nr_programs, sizeof(struct TProgram),
 			GFP_KERNEL);
 	if (pFirmware->mpPrograms == NULL) {
 		pr_err("%s: mpPrograms memory failed!\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	for (nProgram = 0; nProgram < pFirmware->mnPrograms; nProgram++) {
+	for (nProgram = 0; nProgram < pFirmware->nr_programs; nProgram++) {
 		int n = 0;
 
 		pProgram = &(pFirmware->mpPrograms[nProgram]);
@@ -471,19 +471,19 @@ static int fw_parse_configuration_data(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pFirmware->mnConfigurations = be16_to_cpup((__be16 *)&data[offset]);
+	pFirmware->nr_configurations = be16_to_cpup((__be16 *)&data[offset]);
 	offset  += 2;
 
-	if (pFirmware->mnConfigurations == 0) {
+	if (pFirmware->nr_configurations == 0) {
 		pr_err("%s: mnConfigurations is zero\n", __func__);
 		//Do not "offset = -1;", because of calbin
 		goto out;
 	}
 	pFirmware->mpConfigurations =
-		kcalloc(pFirmware->mnConfigurations,
+		kcalloc(pFirmware->nr_configurations,
 				sizeof(struct TConfiguration), GFP_KERNEL);
 
-	for (nConfiguration = 0; nConfiguration < pFirmware->mnConfigurations;
+	for (nConfiguration = 0; nConfiguration < pFirmware->nr_configurations;
 		nConfiguration++) {
 		int n;
 
@@ -828,9 +828,8 @@ static int isYRAM(struct tasdevice_priv *pTAS2781, struct TYCRC *pCRCData,
 }
 
 static int doSingleRegCheckSum(struct tasdevice_priv *tas_priv,
-	enum channel chl,
-		unsigned char nBook, unsigned char nPage,
-		unsigned char nReg, unsigned char nValue)
+	unsigned short chl, unsigned char nBook, unsigned char nPage,
+	unsigned char nReg, unsigned char nValue)
 {
 	int nResult = 0;
 	struct TYCRC sCRCData;
@@ -879,7 +878,7 @@ end:
 }
 
 static int doMultiRegCheckSum(struct tasdevice_priv *tas_priv,
-	enum channel chn, unsigned char nBook, unsigned char nPage,
+	unsigned short chn, unsigned char nBook, unsigned char nPage,
 	unsigned char nReg, unsigned int len)
 {
 	int nResult = 0, i = 0;
@@ -1207,8 +1206,8 @@ static int tasdevice_load_calibrated_data(
 	return nResult;
 }
 
-int tas2781_load_calibration(void *pContext,
-			char *pFileName, enum channel i)
+int tas2781_load_calibration(void *pContext, char *pFileName,
+	unsigned short i)
 {
 	int ret = 0, offset = 0;
 	struct firmware FW;
@@ -1229,8 +1228,7 @@ int tas2781_load_calibration(void *pContext,
 		}
 		FW.size = fw_entry->size;
 		FW.data = fw_entry->data;
-		dev_info(tas_dev->dev,
-			"%s: file = %s, file size %zd\n",
+		dev_info(tas_dev->dev, "%s: file = %s, file size %zd\n",
 			__func__, pFileName, fw_entry->size);
 	} else {
 		dev_info(tas_dev->dev,
@@ -1341,14 +1339,13 @@ int tasdevice_dspfw_ready(const void *pVoid, void *pContext)
 		goto out;
 	}
 
-	tas_dev->mpFirmware = kcalloc(1,
-		sizeof(struct tasdevice_fw), GFP_KERNEL);
-	if (tas_dev->mpFirmware == NULL) {
+	tas_dev->fmw = kzalloc(sizeof(struct tasdevice_fw), GFP_KERNEL);
+	if (tas_dev->fmw == NULL) {
 		dev_err(tas_dev->dev, "%s: FW memory failed!\n", __func__);
 		ret = -1;
 		goto out;
 	}
-	pFirmware = tas_dev->mpFirmware;
+	pFirmware = tas_dev->fmw;
 
 	offset = fw_parse_header(pFirmware, pFW, offset);
 
@@ -1430,13 +1427,13 @@ void tasdevice_dsp_remove(void *pContext)
 	int i = 0;
 
 	if (tas_dev) {
-		if (tas_dev->mpFirmware) {
-			struct tasdevice_fw *pFirmware = tas_dev->mpFirmware;
+		if (tas_dev->fmw) {
+			struct tasdevice_fw *pFirmware = tas_dev->fmw;
 
 			if (pFirmware->mpPrograms) {
 				struct TProgram *pProgram;
 
-				for (i = 0; i < pFirmware->mnPrograms; i++) {
+				for (i = 0; i < pFirmware->nr_programs; i++) {
 					pProgram = &(pFirmware->mpPrograms[i]);
 					if (pProgram) {
 						struct TData *pImageData =
@@ -1470,7 +1467,7 @@ void tasdevice_dsp_remove(void *pContext)
 			if (pFirmware->mpConfigurations) {
 				struct TConfiguration *pConfig;
 
-				for (i = 0; i < pFirmware->mnConfigurations;
+				for (i = 0; i < pFirmware->nr_configurations;
 					i++) {
 					pConfig = &(pFirmware->
 						mpConfigurations[i]);
@@ -1503,7 +1500,7 @@ void tasdevice_dsp_remove(void *pContext)
 			}
 			kfree(pFirmware->fw_hdr.mpDescription);
 			kfree(pFirmware);
-			tas_dev->mpFirmware = NULL;
+			tas_dev->fmw = NULL;
 		}
 	}
 }
@@ -1514,7 +1511,7 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
 	struct tasdevice_regbin *regbin = &(tas_dev->mtRegbin);
 	struct tasdevice_config_info **cfg_info = regbin->cfg_info;
-	struct tasdevice_fw *pFirmware = tas_dev->mpFirmware;
+	struct tasdevice_fw *pFirmware = tas_dev->fmw;
 	struct TConfiguration *pConfigurations = NULL;
 	struct TProgram *pProgram = NULL;
 	int i = 0;
@@ -1526,17 +1523,17 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 		goto out;
 	}
 
-	if (cfg_no >= pFirmware->mnConfigurations) {
+	if (cfg_no >= pFirmware->nr_configurations) {
 		dev_err(tas_dev->dev,
 			"%s: cfg(%d) is not in range of conf %u\n",
-			__func__, cfg_no, pFirmware->mnConfigurations);
+			__func__, cfg_no, pFirmware->nr_configurations);
 		goto out;
 	}
 
-	if (prm_no >= pFirmware->mnPrograms) {
+	if (prm_no >= pFirmware->nr_programs) {
 		dev_err(tas_dev->dev,
 			"%s: prm(%d) is not in range of Programs %u\n",
-			__func__,  prm_no, pFirmware->mnPrograms);
+			__func__,  prm_no, pFirmware->nr_programs);
 		goto out;
 	}
 
@@ -1642,7 +1639,7 @@ out:
 	return prog_status;
 }
 
-int tas2781_set_calibration(void *pContext, enum channel i,
+int tas2781_set_calibration(void *pContext, unsigned short i,
 	int nCalibration)
 {
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
@@ -1651,8 +1648,8 @@ int tas2781_set_calibration(void *pContext, enum channel i,
 	struct tasdevice_fw *pCalFirmware = pTasdev->mpCalFirmware;
 
 	dev_info(tas_dev->dev, "%s start\n", __func__);
-	if ((!tas_dev->mpFirmware->mpPrograms)
-		|| (!tas_dev->mpFirmware->mpConfigurations)) {
+	if ((!tas_dev->fmw->mpPrograms)
+		|| (!tas_dev->fmw->mpConfigurations)) {
 		dev_err(tas_dev->dev, "%s, Firmware not loaded\n\r", __func__);
 		nResult = 0;
 		goto out;

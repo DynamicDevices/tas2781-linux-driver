@@ -269,7 +269,7 @@ static long tasdevice_ioctl(struct file *f,
 		{
 			struct smartpa_info a;
 
-			a.ndev = (tas_dev->ndev < MaxChn)?tas_dev->ndev:MaxChn;
+			a.ndev = tas_dev->ndev;
 			for (i = 0; i < a.ndev; i++)
 				a.i2c_list[i] =
 					tas_dev->tasdevice[i].mnDevAddr;
@@ -283,8 +283,7 @@ static long tasdevice_ioctl(struct file *f,
 	case TILOAD_IOC_MAGIC_POWER_OFF:
 		if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
 				tasdevice_enable_irq(tas_dev, false);
-		tasdevice_select_cfg_blk(tas_dev,
-			tas_dev->mnCurrentConfiguration,
+		tasdevice_select_cfg_blk(tas_dev, tas_dev->cur_conf,
 			TASDEVICE_BIN_BLK_PRE_SHUTDOWN);
 		dev_info(tas_dev->dev,
 			"%s:%u: cmd=TILOAD_IOC_MAGIC_POWER_OFF"
@@ -296,7 +295,6 @@ static long tasdevice_ioctl(struct file *f,
 	case TILOAD_IOC_MAGIC_POWERON:
 		{
 			struct smartpa_params param;
-			int is_set_glb_mode = 0;
 
 			ret = copy_from_user(&param, arg,
 				sizeof(struct smartpa_params));
@@ -307,23 +305,13 @@ static long tasdevice_ioctl(struct file *f,
 					"%d\n", __func__,
 					TILOAD_IOC_MAGIC_POWERON, param.mProg,
 					param.config, param.regscene);
-
-				if(param.mProg == 0) {
-					is_set_glb_mode =
-						tasdevice_select_tuningprm_cfg(
-							tas_dev,
-							param.mProg, param.config,
-							param.regscene);
-					if (is_set_glb_mode && tas_dev->set_global_mode)
-						tas_dev->set_global_mode(tas_dev);
-				}
-				tasdevice_select_cfg_blk(tas_dev,
-					param.regscene,
-					TASDEVICE_BIN_BLK_PRE_POWER_UP);
-				tas_dev->mtRegbin.profile_id = param.regscene;
-
-				if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
-					tasdevice_enable_irq(tas_dev, true);
+				tas_dev->cur_prog = param.mProg;
+				tas_dev->cur_conf = param.config;
+				tas_dev->mtRegbin.profile_cfg_id =
+					param.regscene;
+				schedule_delayed_work(
+					&tas_dev->powercontrol_work,
+					msecs_to_jiffies(20));
 			} else {
 				dev_err(tas_dev->dev,
 					"%s:%u: error copy from user cmd="

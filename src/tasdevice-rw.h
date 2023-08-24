@@ -16,20 +16,20 @@
 #ifndef __TASDEVICE_RW_H__
 #define __TASDEVICE_RW_H__
 int tasdevice_dev_read(struct tasdevice_priv *pPcmdev,
-	enum channel chn, unsigned int reg, unsigned int *pValue);
+	unsigned short chn, unsigned int reg, unsigned int *pValue);
 
 int tasdevice_dev_write(struct tasdevice_priv *pPcmdev,
-	enum channel chn, unsigned int reg, unsigned int value);
+	unsigned short chn, unsigned int reg, unsigned int value);
 
 int tasdevice_dev_bulk_write(
-	struct tasdevice_priv *pPcmdev, enum channel chn,
+	struct tasdevice_priv *pPcmdev, unsigned short chn,
 	unsigned int reg, unsigned char *p_data, unsigned int n_length);
 
 int tasdevice_dev_bulk_read(struct tasdevice_priv *pPcmdev,
-	enum channel chn, unsigned int reg, unsigned char *p_data,
+	unsigned short chn, unsigned int reg, unsigned char *p_data,
 	unsigned int n_length);
 
 int tasdevice_dev_update_bits(
-	struct tasdevice_priv *pPcmdev, enum channel chn,
+	struct tasdevice_priv *pPcmdev, unsigned short chn,
 	unsigned int reg, unsigned int mask, unsigned int value);
 #endif

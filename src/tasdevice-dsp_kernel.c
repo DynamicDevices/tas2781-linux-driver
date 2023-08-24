@@ -162,7 +162,7 @@ int fw_parse_program_data_kernel(struct tasdevice_fw *pFirmware,
 	const unsigned char *buf = pFW->data;
 	unsigned int  nProgram = 0;
 
-	for (nProgram = 0; nProgram < pFirmware->mnPrograms; nProgram++) {
+	for (nProgram = 0; nProgram < pFirmware->nr_programs; nProgram++) {
 		pProgram = &(pFirmware->mpPrograms[nProgram]);
 		if (offset + 64 > pFW->size) {
 			pr_err("%s: File Size error\n", __func__);
@@ -228,7 +228,7 @@ int fw_parse_configuration_data_kernel(
 	unsigned int nConfiguration;
 	struct TConfiguration *pConfiguration;
 
-	for (nConfiguration = 0; nConfiguration < pFirmware->mnConfigurations;
+	for (nConfiguration = 0; nConfiguration < pFirmware->nr_configurations;
 		nConfiguration++) {
 		pConfiguration = &(pFirmware->mpConfigurations[nConfiguration]);
 		if (offset + 64 > fmw->size) {
@@ -310,7 +310,7 @@ out:
 int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 	const struct firmware *fmw, int offset)
 {
-	struct tasdevice_fw *pFirmware = tas_dev->mpFirmware;
+	struct tasdevice_fw *pFirmware = tas_dev->fmw;
 	struct tasdevice_dspfw_hdr *pFw_hdr = &(pFirmware->fw_hdr);
 	const unsigned char *buf = fmw->data;
 	struct TProgram *pProgram;
@@ -358,10 +358,10 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		offset = -1;
 		goto out;
 	}
-	pFirmware->mnPrograms = be32_to_cpup((__be32 *)&buf[offset]);
+	pFirmware->nr_programs = be32_to_cpup((__be32 *)&buf[offset]);
 	offset  += 4;
 
-	if (pFirmware->mnPrograms == 0 || pFirmware->mnPrograms >
+	if (pFirmware->nr_programs == 0 || pFirmware->nr_programs >
 		TASDEVICE_MAXPROGRAM_NUM_KERNEL) {
 		pr_err("%s: mnPrograms is invalid\n", __func__);
 		offset = -1;
@@ -374,8 +374,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		goto out;
 	}
 
-	pFirmware->mpPrograms =
-		kcalloc(pFirmware->mnPrograms,
+	pFirmware->mpPrograms = kcalloc(pFirmware->nr_programs,
 		sizeof(struct TProgram), GFP_KERNEL);
 	if (pFirmware->mpPrograms == NULL) {
 		pr_err("%s: mpPrograms memory failed!\n", __func__);
@@ -383,7 +382,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		goto out;
 	}
 
-	for (nProgram = 0; nProgram < pFirmware->mnPrograms; nProgram++) {
+	for (nProgram = 0; nProgram < pFirmware->nr_programs; nProgram++) {
 		pProgram = &(pFirmware->mpPrograms[nProgram]);
 		pProgram->prog_size = be32_to_cpup((__be32 *)&buf[offset]);
 		pFirmware->cfg_start_offset  += pProgram->prog_size;
@@ -396,13 +395,13 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		offset = -1;
 		goto out;
 	}
-	pFirmware->mnConfigurations = be32_to_cpup((__be32 *)&buf[offset]);
+	pFirmware->nr_configurations = be32_to_cpup((__be32 *)&buf[offset]);
 	offset  += 4;
 	maxConf = (pFw_hdr->ndev >= 4) ?
 		TASDEVICE_MAXCONFIG_NUM_KERNEL_MULTIPLE_AMPS :
 		TASDEVICE_MAXCONFIG_NUM_KERNEL;
-	if (pFirmware->mnConfigurations == 0 ||
-		pFirmware->mnConfigurations > maxConf) {
+	if (pFirmware->nr_configurations == 0 ||
+		pFirmware->nr_configurations > maxConf) {
 		pr_err("%s: mnConfigurations is invalid\n", __func__);
 		offset = -1;
 		goto out;
@@ -414,7 +413,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		goto out;
 	}
 
-	pFirmware->mpConfigurations = kcalloc(pFirmware->mnConfigurations,
+	pFirmware->mpConfigurations = kcalloc(pFirmware->nr_configurations,
 		sizeof(struct TConfiguration), GFP_KERNEL);
 	if (pFirmware->mpConfigurations == NULL) {
 		pr_err("%s: mpPrograms memory failed!\n", __func__);
@@ -422,7 +421,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		goto out;
 	}
 
-	for (nConfiguration = 0; nConfiguration < pFirmware->mnPrograms;
+	for (nConfiguration = 0; nConfiguration < pFirmware->nr_programs;
 		nConfiguration++) {
 		pConfiguration =
 			&(pFirmware->mpConfigurations[nConfiguration]);
@@ -447,7 +446,7 @@ int tasdevice_load_block_kernel(struct tasdevice_priv *tas_priv,
 	unsigned int i = 0, length = 0;
 	const unsigned int blk_size = block->blk_size;
 	unsigned char dev_idx = 0;
-	struct tasdevice_dspfw_hdr *pFw_hdr = &(tas_priv->mpFirmware->fw_hdr);
+	struct tasdevice_dspfw_hdr *pFw_hdr = &(tas_priv->fmw->fw_hdr);
 	struct tasdevice_fw_fixed_hdr *fw_fixed_hdr = &(pFw_hdr->mnFixedHdr);
 
 	if (fw_fixed_hdr->ppcver >= PPC3_VERSION_TAS2781) {
