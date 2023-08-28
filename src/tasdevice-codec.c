@@ -22,16 +22,15 @@
 #include <sound/soc.h>
 #include <sound/tlv.h>
 
-#include "tasdevice-dsp.h"
-#include "tasdevice-ctl.h"
-#include "tasdevice-dsp.h"
-#include "tasdevice-regbin.h"
 #include "tasdevice.h"
+#include "tasdevice-dsp.h"
+#include "tasdevice-codec.h"
+#include "tasdevice-ctl.h"
+#include "tasdevice-regbin.h"
 #include "tasdevice-rw.h"
 
 #define TASDEVICE_CRC8_POLYNOMIAL	0x4d
 /* max. length of a alsa mixer control name */
-#define MAX_CONTROL_NAME		(48)
 #define TASDEVICE_CLK_DIR_IN		(0)
 #define TASDEVICE_CLK_DIR_OUT		(1)
 
@@ -55,13 +54,16 @@ static int tasdevice_program_put(struct snd_kcontrol *pKcontrol,
 		= snd_soc_kcontrol_component(pKcontrol);
 	struct tasdevice_priv *tas_priv = snd_soc_component_get_drvdata(codec);
 	struct tasdevice_fw *tas_fw = tas_priv->fmw;
-	int nProgram = pValue->value.integer.value[0];
-	int max_val = tas_fw->nr_programs - 1, ret = 0;
+	int nr_program = pValue->value.integer.value[0];
+	int max_val = tas_fw->nr_programs, ret = 0;
 
-	nProgram = clamp(nProgram, 0, max_val);
+	/* 0:		 dsp mode
+	 * non-zero:	bypass mode
+	 */
+	nr_program = (nr_program) ? max_val : 0;
 	mutex_lock(&tas_priv->codec_lock);
-	if (tas_priv->cur_prog != nProgram) {
-		tas_priv->cur_prog = nProgram;
+	if (tas_priv->cur_prog != nr_program) {
+		tas_priv->cur_prog = nr_program;
 		ret = 1;
 	}
 	mutex_unlock(&tas_priv->codec_lock);
@@ -104,7 +106,7 @@ static int tasdevice_configuration_put(
 	return ret;
 }
 
-static int tasdevice_dac_event(struct snd_soc_dapm_widget *w,
+static int tasdevice_dapm_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_component *codec = snd_soc_dapm_to_component(w->dapm);
@@ -124,19 +126,17 @@ static int tasdevice_dac_event(struct snd_soc_dapm_widget *w,
 
 static const struct snd_soc_dapm_widget tasdevice_dapm_widgets[] = {
 	SND_SOC_DAPM_AIF_IN("ASI", "ASI Playback", 0, SND_SOC_NOPM, 0, 0),
-	SND_SOC_DAPM_AIF_OUT("ASI OUT", "ASI Capture", 0, SND_SOC_NOPM, 0, 0),
-	SND_SOC_DAPM_DAC_E("DAC", NULL, SND_SOC_NOPM, 0, 0,
-		tasdevice_dac_event,
+	SND_SOC_DAPM_AIF_OUT_E("ASI OUT", "ASI Capture", 0, SND_SOC_NOPM,
+		0, 0, tasdevice_dapm_event,
 		SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
+	SND_SOC_DAPM_SPK("SPK", tasdevice_dapm_event),
 	SND_SOC_DAPM_OUTPUT("OUT"),
-	SND_SOC_DAPM_INPUT("DMIC"),
-	SND_SOC_DAPM_SIGGEN("VMON"),
-	SND_SOC_DAPM_SIGGEN("IMON")
+	SND_SOC_DAPM_INPUT("DMIC")
 };
 
 static const struct snd_soc_dapm_route tasdevice_audio_map[] = {
 	{"DAC", NULL, "ASI"},
-	{"OUT", NULL, "DAC"},
+	{"OUT", NULL, "SPK"},
 	{"ASI OUT", NULL, "DMIC"}
 };
 
@@ -366,8 +366,8 @@ static int tasdevice_codec_probe(
 	mutex_lock(&tas_priv->codec_lock);
 	tas_priv->codec = codec;
 
-	scnprintf(tas_priv->regbin_binaryname, 64, "%s_regbin.bin",
-		tas_priv->dev_name);
+	scnprintf(tas_priv->regbin_binaryname, 64, "%s-%uamp-reg.bin",
+		tas_priv->dev_name, tas_priv->ndev);
 	ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
 		tas_priv->regbin_binaryname, tas_priv->dev, GFP_KERNEL,
 		tas_priv, tasdevice_regbin_ready);
@@ -466,6 +466,8 @@ static int tas2563_digital_putvol(struct snd_kcontrol *kcontrol,
 	vol = (val << 16) | 0xFFFF;
 	mackey = cpu_to_be32p((const unsigned int *) &vol);
 	p = (unsigned char *)mackey;
+	p[2] = 0xFF;
+	p[3] = 0xff;
 
 	if (tas_dev->set_global_mode != NULL) {
 		ret = tasdevice_dev_bulk_write(tas_dev, tas_dev->ndev,
@@ -633,7 +635,7 @@ static const struct snd_kcontrol_new tas2563_snd_controls[] = {
 		tasdevice_amp_putvol, tas2563_amp_vol_tlv),
 	SOC_SINGLE_RANGE_EXT_TLV("Digital Volume Control", TAS2563_DVC_LVL,
 		0, 0, 0xFFFF, 0, tas2563_digital_getvol,
-		tas2563_digital_putvol, tas2781_dvc_tlv),
+		tas2563_digital_putvol, tas2563_dvc_tlv),
 };
 
 static const struct snd_kcontrol_new tas2781_snd_controls[] = {
@@ -708,13 +710,13 @@ static int tasdevice_set_profile_id(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-int tasdevice_create_controls(struct tasdevice_priv *p_tasdevice)
+int tasdevice_create_controls(struct tasdevice_priv *tas_priv)
 {
+	struct snd_kcontrol_new *tasdevice_profile_controls = NULL;
 	int  nr_controls = 1, ret = 0, mix_index = 0;
 	char *name = NULL;
-	struct snd_kcontrol_new *tasdevice_profile_controls = NULL;
 
-	tasdevice_profile_controls = devm_kzalloc(p_tasdevice->dev,
+	tasdevice_profile_controls = devm_kzalloc(tas_priv->dev,
 			nr_controls * sizeof(tasdevice_profile_controls[0]),
 			GFP_KERNEL);
 	if (tasdevice_profile_controls == NULL) {
@@ -723,13 +725,13 @@ int tasdevice_create_controls(struct tasdevice_priv *p_tasdevice)
 	}
 
 	/* Create a mixer item for selecting the active profile */
-	name = devm_kzalloc(p_tasdevice->dev,
-		MAX_CONTROL_NAME, GFP_KERNEL);
+	name = devm_kzalloc(tas_priv->dev,
+		SNDRV_CTL_ELEM_ID_NAME_MAXLEN, GFP_KERNEL);
 	if (!name) {
 		ret = -ENOMEM;
 		goto out;
 	}
-	scnprintf(name, MAX_CONTROL_NAME, "TASDEVICE Profile id");
+	scnprintf(name, SNDRV_CTL_ELEM_ID_NAME_MAXLEN, "TASDEVICE Profile id");
 	tasdevice_profile_controls[mix_index].name = name;
 	tasdevice_profile_controls[mix_index].iface =
 		SNDRV_CTL_ELEM_IFACE_MIXER;
@@ -741,28 +743,39 @@ int tasdevice_create_controls(struct tasdevice_priv *p_tasdevice)
 		tasdevice_set_profile_id;
 	mix_index++;
 
-	ret = snd_soc_add_component_controls(p_tasdevice->codec,
+	ret = snd_soc_add_component_controls(tas_priv->codec,
 		tasdevice_profile_controls,
 		nr_controls < mix_index ? nr_controls : mix_index);
 	if (ret < 0) {
-		dev_err(p_tasdevice->dev, "%s, add regbin ctrl failed\n",
+		dev_err(tas_priv->dev, "%s, add regbin ctrl failed\n",
 			__func__);
 		goto out;
 	}
-	p_tasdevice->tas_ctrl.nr_controls =
+	tas_priv->tas_ctrl.nr_controls =
 		nr_controls < mix_index ? nr_controls : mix_index;
 
-	if (p_tasdevice->chip_id == TAS2781) {
+	switch (tas_priv->chip_id) {
+	case TAS2563:
+		mix_index = ARRAY_SIZE(tas2563_snd_controls);
+		tasdevice_profile_controls =
+			(struct snd_kcontrol_new *)tas2563_snd_controls;
+		break;
+	case TAS2781:
 		mix_index = ARRAY_SIZE(tas2781_snd_controls);
-		ret = snd_soc_add_component_controls(p_tasdevice->codec,
-			tas2781_snd_controls, mix_index);
-		if(ret < 0) {
-			dev_err(p_tasdevice->dev, "%s, add vol ctrl failed\n",
-				__func__);
-			goto out;
-		}
-	 	p_tasdevice->tas_ctrl.nr_controls += mix_index;
+		tasdevice_profile_controls =
+			(struct snd_kcontrol_new *)tas2781_snd_controls;
+		break;
 	}
+
+	ret = snd_soc_add_component_controls(tas_priv->codec,
+		tasdevice_profile_controls, mix_index);
+	if(ret < 0) {
+		dev_err(tas_priv->dev, "%s, add vol ctrl failed\n",
+			__func__);
+		goto out;
+	}
+ 	tas_priv->tas_ctrl.nr_controls += mix_index;
+
 out:
 	return ret;
 }
@@ -772,17 +785,20 @@ static int tasdevice_info_programs(struct snd_kcontrol *kcontrol,
 {
 	struct snd_soc_component *codec
 		= snd_soc_kcontrol_component(kcontrol);
-	struct tasdevice_priv *p_tasdevice =
+	struct tasdevice_priv *tas_priv =
 		snd_soc_component_get_drvdata(codec);
-	struct tasdevice_fw *Tfw = p_tasdevice->fmw;
+	struct tasdevice_fw *Tfw = tas_priv->fmw;
 
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	/* Codec Lock Hold*/
-	mutex_lock(&p_tasdevice->codec_lock);
+	mutex_lock(&tas_priv->codec_lock);
 	uinfo->count = 1;
 	/* Codec Lock Release*/
-	mutex_unlock(&p_tasdevice->codec_lock);
+	mutex_unlock(&tas_priv->codec_lock);
 
+	/* 0:		 dsp mode
+	 * non-zero:	bypass mode
+	 */
 	uinfo->value.integer.min = 0;
 	uinfo->value.integer.max = (int)Tfw->nr_programs;
 
@@ -794,54 +810,54 @@ static int tasdevice_info_configurations(struct snd_kcontrol *kcontrol,
 {
 	struct snd_soc_component *codec
 		= snd_soc_kcontrol_component(kcontrol);
-	struct tasdevice_priv *p_tasdevice =
+	struct tasdevice_priv *tas_priv =
 		snd_soc_component_get_drvdata(codec);
-	struct tasdevice_fw *Tfw = p_tasdevice->fmw;
+	struct tasdevice_fw *Tfw = tas_priv->fmw;
 
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	/* Codec Lock Hold*/
-	mutex_lock(&p_tasdevice->codec_lock);
+	mutex_lock(&tas_priv->codec_lock);
 	uinfo->count = 1;
 
 	uinfo->value.integer.min = 0;
 	uinfo->value.integer.max = (int)Tfw->nr_configurations - 1;
 
 	/* Codec Lock Release*/
-	mutex_unlock(&p_tasdevice->codec_lock);
+	mutex_unlock(&tas_priv->codec_lock);
 
 	return 0;
 }
 
-int tasdevice_dsp_create_control(struct tasdevice_priv *p_tasdevice)
+int tasdevice_dsp_create_control(struct tasdevice_priv *tas_priv)
 {
 	int  nr_controls = 2, ret = 0, mix_index = 0;
 	char *program_name = NULL;
 	char *configuraton_name = NULL;
 	struct snd_kcontrol_new *tasdevice_dsp_controls = NULL;
 
-	tasdevice_dsp_controls = devm_kzalloc(p_tasdevice->dev,
+	tasdevice_dsp_controls = devm_kzalloc(tas_priv->dev,
 			nr_controls * sizeof(tasdevice_dsp_controls[0]),
 			GFP_KERNEL);
 	if (tasdevice_dsp_controls == NULL) {
-		dev_err(p_tasdevice->dev, "%s, allocate mem failed\n",
+		dev_err(tas_priv->dev, "%s, allocate mem failed\n",
 			__func__);
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	/* Create a mixer item for selecting the active profile */
-	program_name = devm_kzalloc(p_tasdevice->dev,
-		MAX_CONTROL_NAME, GFP_KERNEL);
-	configuraton_name = devm_kzalloc(p_tasdevice->dev,
-		MAX_CONTROL_NAME, GFP_KERNEL);
+	program_name = devm_kzalloc(tas_priv->dev,
+		SNDRV_CTL_ELEM_ID_NAME_MAXLEN, GFP_KERNEL);
+	configuraton_name = devm_kzalloc(tas_priv->dev,
+		SNDRV_CTL_ELEM_ID_NAME_MAXLEN, GFP_KERNEL);
 	if (!program_name || !configuraton_name) {
-		dev_err(p_tasdevice->dev, "%s, allocate pro or conf failed\n",
+		dev_err(tas_priv->dev, "%s, allocate pro or conf failed\n",
 			__func__);
 		ret = -ENOMEM;
 		goto out;
 	}
 
-	scnprintf(program_name, MAX_CONTROL_NAME, "Program");
+	scnprintf(program_name, SNDRV_CTL_ELEM_ID_NAME_MAXLEN, "Program");
 	tasdevice_dsp_controls[mix_index].name = program_name;
 	tasdevice_dsp_controls[mix_index].iface =
 		SNDRV_CTL_ELEM_IFACE_MIXER;
@@ -853,7 +869,8 @@ int tasdevice_dsp_create_control(struct tasdevice_priv *p_tasdevice)
 		tasdevice_program_put;
 	mix_index++;
 
-	scnprintf(configuraton_name, MAX_CONTROL_NAME, "Configuration");
+	scnprintf(configuraton_name, SNDRV_CTL_ELEM_ID_NAME_MAXLEN,
+		"Configuration");
 	tasdevice_dsp_controls[mix_index].name = configuraton_name;
 	tasdevice_dsp_controls[mix_index].iface =
 		SNDRV_CTL_ELEM_IFACE_MIXER;
@@ -865,32 +882,32 @@ int tasdevice_dsp_create_control(struct tasdevice_priv *p_tasdevice)
 		tasdevice_configuration_put;
 	mix_index++;
 
-	ret = snd_soc_add_component_controls(p_tasdevice->codec,
+	ret = snd_soc_add_component_controls(tas_priv->codec,
 		tasdevice_dsp_controls,
 		nr_controls < mix_index ? nr_controls : mix_index);
 	if(ret < 0) {
-		dev_err(p_tasdevice->dev, "%s, add dsp ctrl failed\n",
+		dev_err(tas_priv->dev, "%s, add dsp ctrl failed\n",
 			__func__);
 		goto out;
 	}
-	p_tasdevice->tas_ctrl.nr_controls += nr_controls;
+	tas_priv->tas_ctrl.nr_controls += nr_controls;
 out:
 	return ret;
 }
 
-int tasdevice_register_codec(struct tasdevice_priv *pTAS2781)
+int tasdevice_register_codec(struct tasdevice_priv *tas_priv)
 {
 	int nResult = 0;
 
-	dev_err(pTAS2781->dev, "%s, enter\n", __func__);
-	nResult = devm_snd_soc_register_component(pTAS2781->dev,
+	dev_err(tas_priv->dev, "%s, enter\n", __func__);
+	nResult = devm_snd_soc_register_component(tas_priv->dev,
 		&soc_codec_driver_tasdevice,
 		tasdevice_dai_driver, ARRAY_SIZE(tasdevice_dai_driver));
 
 	return nResult;
 }
 
-void tasdevice_deregister_codec(struct tasdevice_priv *pTAS2781)
+void tasdevice_deregister_codec(struct tasdevice_priv *tas_priv)
 {
-	snd_soc_unregister_component(pTAS2781->dev);
+	snd_soc_unregister_component(tas_priv->dev);
 }

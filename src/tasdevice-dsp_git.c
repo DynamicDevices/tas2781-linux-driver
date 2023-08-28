@@ -20,6 +20,7 @@
 #include "tasdevice-dsp.h"
 #include "tasdevice-regbin.h"
 #include "tasdevice.h"
+#include "tasdevice-dsp_git.h"
 
 const char deviceNumber[TASDEVICE_DSP_TAS_MAX_DEVICE] = {
 	1, 2, 1, 2, 1, 1, 0, 2, 4, 3, 1, 2, 3, 4

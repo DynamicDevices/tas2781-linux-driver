@@ -21,6 +21,7 @@
 #include "tasdevice-regbin.h"
 #include "tasdevice-dsp.h"
 #include "tasdevice.h"
+#include "tasdevice-dsp_kernel.h"
 
 #define TASDEVICE_MAXPROGRAM_NUM_KERNEL			5
 #define TASDEVICE_MAXCONFIG_NUM_KERNEL_MULTIPLE_AMPS	64

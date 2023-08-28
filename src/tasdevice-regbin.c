@@ -655,14 +655,14 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 {
 	struct tasdevice_priv *tas_dev =
 		(struct tasdevice_priv *) pContext;
-	struct tasdevice_regbin *regbin = NULL;
-	struct tasdevice_regbin_hdr *fw_hdr = NULL;
-	struct tasdevice_config_info **cfg_info = NULL;
-	const struct firmware *fw_entry = NULL;
+	int offset = 0, i, ret = 0, is_set_glb_mode;
+	struct tasdevice_config_info **cfg_info;
+	struct tasdevice_regbin_hdr *fw_hdr;
+	struct tasdevice_regbin *regbin;
+	const struct firmware *fw_entry;
 	unsigned char *buf = NULL;
-	int offset = 0, i = 0;
+
 	unsigned int total_config_sz = 0;
-	int ret = 0;
 
 	if (tas_dev == NULL) {
 		dev_err(tas_dev->dev,
@@ -775,8 +775,8 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 	tasdevice_dsp_remove(tas_dev);
 	tasdevice_calbin_remove(tas_dev);
 	tas_dev->fw_state = TASDEVICE_DSP_FW_PENDING;
-	scnprintf(tas_dev->dsp_binaryname, 64, "%s_dsp.bin",
-		tas_dev->dev_name);
+	scnprintf(tas_dev->dsp_binaryname, 64, "%s-%uamp-dsp.bin",
+		tas_dev->dev_name, tas_dev->ndev);
 	ret = request_firmware(&fw_entry, tas_dev->dsp_binaryname,
 		tas_dev->dev);
 	if (!ret) {
@@ -794,7 +794,7 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 	tas_dev->fw_state = TASDEVICE_DSP_FW_ALL_OK;
 	tas_dev->mbCalibrationLoaded = true;
 	for (i = 0; i < tas_dev->ndev; i++) {
-		scnprintf(tas_dev->cal_binaryname[i], 64, "%s_cal_0x%02x.bin",
+		scnprintf(tas_dev->cal_binaryname[i], 64, "%s-0x%02x-cal.bin",
 			tas_dev->dev_name, tas_dev->tasdevice[i].mnDevAddr);
 		ret = tas2781_load_calibration(tas_dev,
 			tas_dev->cal_binaryname[i], i);
@@ -807,6 +807,12 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 		}
 	}
 
+	is_set_glb_mode =
+		tasdevice_select_tuningprm_cfg(tas_dev,
+			tas_dev->cur_prog, tas_dev->cur_conf,
+			0);
+	if (is_set_glb_mode && tas_dev->set_global_mode)
+		tas_dev->set_global_mode(tas_dev);
 out:
 	mutex_unlock(&tas_dev->codec_lock);
 	if (pFW)

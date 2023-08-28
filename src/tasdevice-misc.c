@@ -30,6 +30,7 @@
 #endif
 
 #include "tasdevice.h"
+#include "tasdevice-misc.h"
 
 static ssize_t tasdevice_read(struct file *file, char *buf,
 			size_t count, loff_t *ppos)
@@ -285,10 +286,8 @@ static long tasdevice_ioctl(struct file *f,
 				tasdevice_enable_irq(tas_dev, false);
 		tasdevice_select_cfg_blk(tas_dev, tas_dev->cur_conf,
 			TASDEVICE_BIN_BLK_PRE_SHUTDOWN);
-		dev_info(tas_dev->dev,
-			"%s:%u: cmd=TILOAD_IOC_MAGIC_POWER_OFF"
-			"=0x%08x: regscene = %d\n",
-			__func__, __LINE__,
+		dev_info(tas_dev->dev, "%s:%u: cmd=TILOAD_IOC_MAGIC_POWER_OFF"
+			"=0x%08x: regscene = %d\n", __func__, __LINE__,
 			TILOAD_IOC_MAGIC_POWER_OFF,
 			tas_dev->mtRegbin.profile_id);
 		break;

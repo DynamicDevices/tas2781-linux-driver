@@ -26,6 +26,7 @@
 
 #include "tasdevice.h"
 #include "tasdevice-rw.h"
+#include "tasdevice-node.h"
 
 static char gSysCmdLog[MaxCmd][256];
 
@@ -768,7 +769,7 @@ out:
 }
 
 ssize_t dspfw_config_show(struct device *dev,
-	struct device_attribute *attr, char *buf, size_t len)
+	struct device_attribute *attr, char *buf)
 {
 	struct tasdevice_priv *tas_dev = dev_get_drvdata(dev);
 	struct tasdevice_fw *pFirmware = NULL;

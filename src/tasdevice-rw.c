@@ -23,6 +23,7 @@
 #endif
 
 #include "tasdevice.h"
+#include "tasdevice-rw.h"
 
 static int tasdevice_regmap_write(
 	struct tasdevice_priv *tas_priv,

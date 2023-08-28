@@ -20,6 +20,7 @@
 #include "tasdevice-dsp.h"
 #include "tasdevice-regbin.h"
 #include "tasdevice.h"
+#include "tasdevice-ctl.h"
 
 void tasdevice_deinit(void *pContext)
 {
