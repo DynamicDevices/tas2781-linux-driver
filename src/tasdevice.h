@@ -88,6 +88,7 @@ struct smartpa_params {
 };
 
 struct smartpa_info {
+	unsigned char dev_name[32];
 	unsigned char spkvendorid;
 	unsigned char ndev;
 	unsigned char i2c_list[TASDEVICE_MAX_CHANNELS];

@@ -30,10 +30,6 @@
 
 static char gSysCmdLog[MaxCmd][256];
 
-int tasdevice_load_block_git_show(struct tasdevice_priv *pTAS2563,
-		struct TBlock *pBlock,
-	char *buf, int *length);
-
 ssize_t dspfwinfo_list_show(struct device *dev,
 				  struct device_attribute *attr, char *buf)
 {

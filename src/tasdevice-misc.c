@@ -270,6 +270,7 @@ static long tasdevice_ioctl(struct file *f,
 		{
 			struct smartpa_info a;
 
+			strcpy(a.dev_name, tas_dev->dev_name);
 			a.ndev = tas_dev->ndev;
 			for (i = 0; i < a.ndev; i++)
 				a.i2c_list[i] =
