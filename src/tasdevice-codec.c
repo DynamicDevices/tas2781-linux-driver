@@ -30,7 +30,6 @@
 #include "tasdevice-rw.h"
 
 #define TASDEVICE_CRC8_POLYNOMIAL	0x4d
-/* max. length of a alsa mixer control name */
 #define TASDEVICE_CLK_DIR_IN		(0)
 #define TASDEVICE_CLK_DIR_OUT		(1)
 
