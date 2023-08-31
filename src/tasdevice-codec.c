@@ -464,7 +464,7 @@ static int tas2563_digital_putvol(struct snd_kcontrol *kcontrol,
 	val = ucontrol->value.integer.value[0];
 	vol = (val << 16) | 0xFFFF;
 	mackey = cpu_to_be32p((const unsigned int *) &vol);
-	p = (unsigned char *)mackey;
+	p = (unsigned char *)&mackey;
 	p[2] = 0xFF;
 	p[3] = 0xff;
 
