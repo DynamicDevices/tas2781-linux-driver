@@ -14,12 +14,12 @@
                                 "mask": "ff",
                                 "data": "e",
                                 "delay": "",
-                                "$$hashKey": "02B"
+                                "$$hashKey": "042"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
                         "deviceName": "Common",
-                        "deviceValue": 0,
+                        "deviceValue": null,
                         "deviceShortName": ""
                     },
                     {
@@ -31,8 +31,7 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0XW"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -40,8 +39,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "5e",
-                                "delay": "",
-                                "$$hashKey": "02N"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -49,8 +47,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "44",
-                                "delay": "",
-                                "$$hashKey": "02Q"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -58,8 +55,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "46",
-                                "delay": "",
-                                "$$hashKey": "02T"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -67,8 +63,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "02W"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -76,8 +71,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "02Z"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -85,8 +79,7 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": "",
-                                "$$hashKey": "032"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -94,8 +87,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "035"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -103,8 +95,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "038"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -121,8 +112,7 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0YF"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -130,8 +120,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "6e",
-                                "delay": "",
-                                "$$hashKey": "03J"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -139,8 +128,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "44",
-                                "delay": "",
-                                "$$hashKey": "03K"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -148,8 +136,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "46",
-                                "delay": "",
-                                "$$hashKey": "03L"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -157,8 +144,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "03M"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -166,8 +152,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "03N"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -175,8 +160,7 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": "",
-                                "$$hashKey": "03O"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -184,8 +168,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "03P"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -193,8 +176,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "03Q"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -211,8 +193,7 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0YY"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -220,8 +201,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "5e",
-                                "delay": "",
-                                "$$hashKey": "04V"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -229,8 +209,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "44",
-                                "delay": "",
-                                "$$hashKey": "04W"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -238,8 +217,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "46",
-                                "delay": "",
-                                "$$hashKey": "04X"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -247,8 +225,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "04Y"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -256,8 +233,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "04Z"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -265,8 +241,7 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": "",
-                                "$$hashKey": "050"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -274,8 +249,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "051"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -283,8 +257,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "052"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -301,8 +274,7 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0ZH"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -310,8 +282,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "6e",
-                                "delay": "",
-                                "$$hashKey": "067"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -319,8 +290,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "44",
-                                "delay": "",
-                                "$$hashKey": "068"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -328,8 +298,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "46",
-                                "delay": "",
-                                "$$hashKey": "069"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -337,8 +306,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "06A"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -346,8 +314,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "06B"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -355,8 +322,7 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": "",
-                                "$$hashKey": "06C"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -364,8 +330,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "06D"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -373,8 +338,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "06E"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -397,7 +361,7 @@
                     "DELAY": "0x03",
                     "FIELD_WRITES": "0x04"
                 },
-                "$$hashKey": "01K"
+                "$$hashKey": "01E"
             },
             {
                 "blocksList": [
@@ -410,13 +374,12 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": "",
-                                "$$hashKey": "0EG"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
                         "deviceName": "Common",
-                        "deviceValue": 0,
+                        "deviceValue": null,
                         "deviceShortName": ""
                     },
                     {
@@ -428,8 +391,7 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "10E"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -437,8 +399,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "5e",
-                                "delay": "",
-                                "$$hashKey": "0RO"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -446,8 +407,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "44",
-                                "delay": "",
-                                "$$hashKey": "0RP"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -455,8 +415,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "46",
-                                "delay": "",
-                                "$$hashKey": "0RQ"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -464,8 +423,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "0RR"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -473,8 +431,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "0RS"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -482,8 +439,7 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": "",
-                                "$$hashKey": "0RT"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -491,8 +447,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0RU"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -500,8 +455,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0RV"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -518,8 +472,7 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "10X"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -527,8 +480,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "6e",
-                                "delay": "",
-                                "$$hashKey": "0SC"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -536,8 +488,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "44",
-                                "delay": "",
-                                "$$hashKey": "0SD"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -545,8 +496,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "46",
-                                "delay": "",
-                                "$$hashKey": "0SE"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -554,8 +504,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "0SF"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -563,8 +512,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "0SG"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -572,8 +520,7 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": "",
-                                "$$hashKey": "0SH"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -581,8 +528,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0SI"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -590,8 +536,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0SJ"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -608,8 +553,7 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "11G"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -617,8 +561,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "5e",
-                                "delay": "",
-                                "$$hashKey": "0T0"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -626,8 +569,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "44",
-                                "delay": "",
-                                "$$hashKey": "0T1"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -635,8 +577,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "46",
-                                "delay": "",
-                                "$$hashKey": "0T2"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -644,8 +585,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "0T3"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -653,8 +593,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "0T4"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -662,8 +601,7 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": "",
-                                "$$hashKey": "0T5"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -671,8 +609,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0T6"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -680,8 +617,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0T7"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -698,8 +634,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "11Z"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -707,8 +642,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "6e",
-                                "delay": "",
-                                "$$hashKey": "0TO"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -716,8 +650,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "44",
-                                "delay": "",
-                                "$$hashKey": "0TP"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -725,8 +658,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "46",
-                                "delay": "",
-                                "$$hashKey": "0TQ"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -734,8 +666,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "0TR"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -743,8 +674,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "0TS"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -752,8 +682,7 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": "",
-                                "$$hashKey": "0TT"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -761,8 +690,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0TU"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -770,8 +698,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0TV"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -794,7 +721,7 @@
                     "DELAY": "0x03",
                     "FIELD_WRITES": "0x04"
                 },
-                "$$hashKey": "0DU"
+                "$$hashKey": "01F"
             },
             {
                 "blocksList": [
@@ -807,13 +734,1093 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": "",
-                                "$$hashKey": "0FX"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
                         "deviceName": "Common",
-                        "deviceValue": 0,
+                        "deviceValue": null,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 1",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "1e",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "5e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 1 - TAS2562",
+                        "deviceValue": 1,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 2",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "1e",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "6e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 2 - TAS2562",
+                        "deviceValue": 2,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 3",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "1e",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "5e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 3 - TAS2562",
+                        "deviceValue": 3,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 4",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "6e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 4 - TAS2562",
+                        "deviceValue": 4,
+                        "deviceShortName": ""
+                    }
+                ],
+                "configName": "voice call",
+                "blockTypeValues": {
+                    "COEFF": "0x01",
+                    "POST_POWER_UP": "0x02",
+                    "PRE_SHUTDOWN": "0x03",
+                    "PRE_POWER_UP": "0x04",
+                    "POST_SHUTDOWN": "0x05"
+                },
+                "subBlockTypeValues": {
+                    "SINGLE_BYTE_WRITES": "0x01",
+                    "BURST_WRITES": "0x02",
+                    "DELAY": "0x03",
+                    "FIELD_WRITES": "0x04"
+                },
+                "$$hashKey": "01G"
+            },
+            {
+                "blocksList": [
+                    {
+                        "blockName": "PRE_SHUTDOWN - Common",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "e",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_SHUTDOWN",
+                        "deviceName": "Common",
+                        "deviceValue": null,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 1",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "1e",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "5e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 1 - TAS2562",
+                        "deviceValue": 1,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 2",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "1e",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "6e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 2 - TAS2562",
+                        "deviceValue": 2,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 3",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "1e",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "5e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 3 - TAS2562",
+                        "deviceValue": 3,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 4",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "6e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 4 - TAS2562",
+                        "deviceValue": 4,
+                        "deviceShortName": ""
+                    }
+                ],
+                "configName": "ringtone",
+                "blockTypeValues": {
+                    "COEFF": "0x01",
+                    "POST_POWER_UP": "0x02",
+                    "PRE_SHUTDOWN": "0x03",
+                    "PRE_POWER_UP": "0x04",
+                    "POST_SHUTDOWN": "0x05"
+                },
+                "subBlockTypeValues": {
+                    "SINGLE_BYTE_WRITES": "0x01",
+                    "BURST_WRITES": "0x02",
+                    "DELAY": "0x03",
+                    "FIELD_WRITES": "0x04"
+                },
+                "$$hashKey": "01H"
+            },
+            {
+                "blocksList": [
+                    {
+                        "blockName": "PRE_SHUTDOWN - Common",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "e",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_SHUTDOWN",
+                        "deviceName": "Common",
+                        "deviceValue": null,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 1",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "1e",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "5e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 1 - TAS2562",
+                        "deviceValue": 1,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 2",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "1e",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "6e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 2 - TAS2562",
+                        "deviceValue": 2,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 3",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "1e",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "5e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 3 - TAS2562",
+                        "deviceValue": 3,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 4",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "6e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "44",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "46",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "41",
+                                "mask": "ff",
+                                "data": "41",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 4 - TAS2562",
+                        "deviceValue": 4,
+                        "deviceShortName": ""
+                    }
+                ],
+                "configName": "attach",
+                "blockTypeValues": {
+                    "COEFF": "0x01",
+                    "POST_POWER_UP": "0x02",
+                    "PRE_SHUTDOWN": "0x03",
+                    "PRE_POWER_UP": "0x04",
+                    "POST_SHUTDOWN": "0x05"
+                },
+                "subBlockTypeValues": {
+                    "SINGLE_BYTE_WRITES": "0x01",
+                    "BURST_WRITES": "0x02",
+                    "DELAY": "0x03",
+                    "FIELD_WRITES": "0x04"
+                },
+                "$$hashKey": "01I"
+            },
+            {
+                "blocksList": [
+                    {
+                        "blockName": "PRE_SHUTDOWN - Dev 1",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "e",
+                                "delay": "",
+                                "$$hashKey": "04B"
+                            }
+                        ],
+                        "blockType": "PRE_SHUTDOWN",
+                        "deviceName": "Dev 1 - TAS2562",
+                        "deviceValue": 1,
                         "deviceShortName": ""
                     },
                     {
@@ -825,17 +1832,15 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "12U"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
                                 "page": "0",
                                 "register": "08",
                                 "mask": "ff",
-                                "data": "5e",
-                                "delay": "",
-                                "$$hashKey": "0GS"
+                                "data": "7e",
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -843,8 +1848,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0GT"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -852,8 +1856,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0GU"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -861,8 +1864,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "0GV"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -870,8 +1872,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "0GW"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -879,8 +1880,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0GY"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -888,8 +1888,446 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 1 - TAS2562",
+                        "deviceValue": 1,
+                        "deviceShortName": ""
+                    }
+                ],
+                "configName": "spk1 bypass",
+                "blockTypeValues": {
+                    "COEFF": "0x01",
+                    "POST_POWER_UP": "0x02",
+                    "PRE_SHUTDOWN": "0x03",
+                    "PRE_POWER_UP": "0x04",
+                    "POST_SHUTDOWN": "0x05"
+                },
+                "subBlockTypeValues": {
+                    "SINGLE_BYTE_WRITES": "0x01",
+                    "BURST_WRITES": "0x02",
+                    "DELAY": "0x03",
+                    "FIELD_WRITES": "0x04"
+                },
+                "$$hashKey": "01J"
+            },
+            {
+                "blocksList": [
+                    {
+                        "blockName": "PRE_SHUTDOWN - Dev 2",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "e",
                                 "delay": "",
-                                "$$hashKey": "0GZ"
+                                "$$hashKey": "04P"
+                            }
+                        ],
+                        "blockType": "PRE_SHUTDOWN",
+                        "deviceName": "Dev 2 - TAS2562",
+                        "deviceValue": 2,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 2",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "7e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 2 - TAS2562",
+                        "deviceValue": 2,
+                        "deviceShortName": ""
+                    }
+                ],
+                "configName": "spk2 bypass",
+                "blockTypeValues": {
+                    "COEFF": "0x01",
+                    "POST_POWER_UP": "0x02",
+                    "PRE_SHUTDOWN": "0x03",
+                    "PRE_POWER_UP": "0x04",
+                    "POST_SHUTDOWN": "0x05"
+                },
+                "subBlockTypeValues": {
+                    "SINGLE_BYTE_WRITES": "0x01",
+                    "BURST_WRITES": "0x02",
+                    "DELAY": "0x03",
+                    "FIELD_WRITES": "0x04"
+                },
+                "$$hashKey": "01K"
+            },
+            {
+                "blocksList": [
+                    {
+                        "blockName": "PRE_SHUTDOWN - Dev 3",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "e",
+                                "delay": "",
+                                "$$hashKey": "053"
+                            }
+                        ],
+                        "blockType": "PRE_SHUTDOWN",
+                        "deviceName": "Dev 3 - TAS2562",
+                        "deviceValue": 3,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 3",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "7e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 3 - TAS2562",
+                        "deviceValue": 3,
+                        "deviceShortName": ""
+                    }
+                ],
+                "configName": "spk3 bypass",
+                "blockTypeValues": {
+                    "COEFF": "0x01",
+                    "POST_POWER_UP": "0x02",
+                    "PRE_SHUTDOWN": "0x03",
+                    "PRE_POWER_UP": "0x04",
+                    "POST_SHUTDOWN": "0x05"
+                },
+                "subBlockTypeValues": {
+                    "SINGLE_BYTE_WRITES": "0x01",
+                    "BURST_WRITES": "0x02",
+                    "DELAY": "0x03",
+                    "FIELD_WRITES": "0x04"
+                },
+                "$$hashKey": "01L"
+            },
+            {
+                "blocksList": [
+                    {
+                        "blockName": "PRE_SHUTDOWN - Dev 4",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "e",
+                                "delay": "",
+                                "$$hashKey": "05H"
+                            }
+                        ],
+                        "blockType": "PRE_SHUTDOWN",
+                        "deviceName": "Dev 4 - TAS2562",
+                        "deviceValue": 4,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 4",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "7e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 4 - TAS2562",
+                        "deviceValue": 4,
+                        "deviceShortName": ""
+                    }
+                ],
+                "configName": "spk4 bypass",
+                "blockTypeValues": {
+                    "COEFF": "0x01",
+                    "POST_POWER_UP": "0x02",
+                    "PRE_SHUTDOWN": "0x03",
+                    "PRE_POWER_UP": "0x04",
+                    "POST_SHUTDOWN": "0x05"
+                },
+                "subBlockTypeValues": {
+                    "SINGLE_BYTE_WRITES": "0x01",
+                    "BURST_WRITES": "0x02",
+                    "DELAY": "0x03",
+                    "FIELD_WRITES": "0x04"
+                },
+                "$$hashKey": "01M"
+            },
+            {
+                "blocksList": [
+                    {
+                        "blockName": "PRE_SHUTDOWN - Common",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "e",
+                                "delay": ""
+                            }
+                        ],
+                        "blockType": "PRE_SHUTDOWN",
+                        "deviceName": "Common",
+                        "deviceValue": null,
+                        "deviceShortName": ""
+                    },
+                    {
+                        "blockName": "PRE_POWER_UP - Dev 1",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "01",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "5e",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0c",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0b",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "30",
+                                "mask": "ff",
+                                "data": "99",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "0a",
+                                "mask": "ff",
+                                "data": "f1",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "07",
+                                "mask": "ff",
+                                "data": "2",
+                                "delay": ""
+                            },
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "02",
+                                "mask": "ff",
+                                "data": "0",
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -906,8 +2344,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "13B"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -915,8 +2352,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "6e",
-                                "delay": "",
-                                "$$hashKey": "0HG"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -924,8 +2360,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0HH"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -933,8 +2368,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0HI"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -942,8 +2376,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "0HJ"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -951,8 +2384,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "0HK"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -960,8 +2392,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0HM"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -969,8 +2400,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0HN"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -987,8 +2417,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "13S"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -996,8 +2425,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "5e",
-                                "delay": "",
-                                "$$hashKey": "0I4"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1005,8 +2433,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0I5"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1014,8 +2441,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0I6"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1023,8 +2449,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "0I7"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1032,8 +2457,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "0I8"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1041,8 +2465,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0IA"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1050,8 +2473,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0IB"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -1068,8 +2490,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "149"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1077,8 +2498,7 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "6e",
-                                "delay": "",
-                                "$$hashKey": "0IS"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1086,8 +2506,7 @@
                                 "register": "0c",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0IT"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1095,8 +2514,7 @@
                                 "register": "0b",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0IU"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1104,8 +2522,7 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": "",
-                                "$$hashKey": "0IV"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1113,8 +2530,7 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": "",
-                                "$$hashKey": "0IW"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1122,8 +2538,7 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "2",
-                                "delay": "",
-                                "$$hashKey": "0IY"
+                                "delay": ""
                             },
                             {
                                 "book": "0",
@@ -1131,8 +2546,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": "",
-                                "$$hashKey": "0IZ"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -1155,7 +2569,7 @@
                     "DELAY": "0x03",
                     "FIELD_WRITES": "0x04"
                 },
-                "$$hashKey": "0FB"
+                "$$hashKey": "01N"
             }
         ],
         "binConfig": {
