@@ -10,5 +10,12 @@ function clear_stdin()
 
     stty "$old_tty_settings"
 )
+if [ ! -d $OUTPUT_DIR1/$OUTPUT_DIR2 ];then
+    mkdir -p $OUTPUT_DIR1/$OUTPUT_DIR2
+	if [ ! -d $OUTPUT_DIR1/$OUTPUT_DIR2 ];then
+		echo "$OUTPUT_DIR1/$OUTPUT_DIR2" not exist!
+		return
+	fi
+fi
 make W=1 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KCONFIG_CONFIG=config_dir/.hybrid-config O=$OUTPUT_DIR1/$OUTPUT_DIR2 CONFIG_SND_SOC_INTEGRATED_TASDEVICE=m modules -j $(expr $(nproc) - 1) 2>&1 | tee $OUTPUT_DIR1/$OUTPUT_DIR2/compile-tasdevice.log
 clear_stdin
