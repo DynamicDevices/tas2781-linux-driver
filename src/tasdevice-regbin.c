@@ -771,10 +771,10 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 		regbin->ncfgs  += 1;
 	}
 	tasdevice_create_controls(tas_dev);
-
+	tas_dev->fw_state = TASDEVICE_DSP_FW_ALL_OK;
 	tasdevice_dsp_remove(tas_dev);
 	tasdevice_calbin_remove(tas_dev);
-	tas_dev->fw_state = TASDEVICE_DSP_FW_PENDING;
+
 	scnprintf(tas_dev->dsp_binaryname, 64, "%s-%uamp-dsp.bin",
 		tas_dev->dev_name, tas_dev->ndev);
 	ret = request_firmware(&fw_entry, tas_dev->dsp_binaryname,
@@ -784,14 +784,12 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 		release_firmware(fw_entry);
 		fw_entry = NULL;
 	} else {
-		tas_dev->fw_state = TASDEVICE_DSP_FW_FAIL;
 		dev_err(tas_dev->dev, "%s: load %s error\n", __func__,
 			tas_dev->dsp_binaryname);
 		goto out;
 	}
 	tasdevice_dsp_create_control(tas_dev);
 
-	tas_dev->fw_state = TASDEVICE_DSP_FW_ALL_OK;
 	tas_dev->mbCalibrationLoaded = true;
 	for (i = 0; i < tas_dev->ndev; i++) {
 		scnprintf(tas_dev->cal_binaryname[i], 64, "%s-0x%02x-cal.bin",
