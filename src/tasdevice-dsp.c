@@ -1231,9 +1231,8 @@ int tas2781_load_calibration(void *pContext, char *pFileName,
 		dev_info(tas_dev->dev, "%s: file = %s, file size %zd\n",
 			__func__, pFileName, fw_entry->size);
 	} else {
-		dev_info(tas_dev->dev,
-			"%s: Request firmware failed, try flip_open()\n",
-			__func__);
+		dev_info(tas_dev->dev, "%s: Request firmware failed\n", __func__);
+		goto out;
 	}
 
 	mpCalFirmware = pTasdev->mpCalFirmware = kzalloc(
