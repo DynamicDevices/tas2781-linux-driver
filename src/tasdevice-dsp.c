@@ -1662,7 +1662,7 @@ int tas2781_set_calibration(void *pContext, unsigned short i,
 			pCalFirmware = NULL;
 		}
 
-		scnprintf(tas_dev->cal_binaryname[i], 64, "%s_cal_0x%02x.bin",
+		scnprintf(tas_dev->cal_binaryname[i], 64, "%s-0x%02x-cal.bin",
 			tas_dev->dev_name, tas_dev->tasdevice[i].mnDevAddr);
 		nResult = tas2781_load_calibration(tas_dev,
 			tas_dev->cal_binaryname[i], i);
