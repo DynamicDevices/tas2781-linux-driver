@@ -134,7 +134,7 @@ static const struct snd_soc_dapm_widget tasdevice_dapm_widgets[] = {
 };
 
 static const struct snd_soc_dapm_route tasdevice_audio_map[] = {
-	{"DAC", NULL, "ASI"},
+	{"SPK", NULL, "ASI"},
 	{"OUT", NULL, "SPK"},
 	{"ASI OUT", NULL, "DMIC"}
 };
