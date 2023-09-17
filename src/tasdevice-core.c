@@ -120,27 +120,19 @@ const struct attribute_group tasdevice_attribute_group = {
 };
 
 //IRQ
-void tasdevice_enable_irq(struct tasdevice_priv *tas_dev, bool enable)
+void tasdevice_enable_irq(struct tasdevice_priv *tas_dev,
+	bool enable)
 {
-	struct irq_desc *desc = NULL;
+	if (enable != tas_dev->irq_info.irq_enable &&
+		!gpio_is_valid(tas_dev->irq_info.irq_gpio))
+		return;
 
-	if (enable) {
-		if (tas_dev->irq_info.irq_enable)
-			return;
-		if (gpio_is_valid(tas_dev->irq_info.irq_gpio)) {
-			desc = irq_to_desc(tas_dev->irq_info.irq);
-			if (desc && desc->depth > 0)
-				enable_irq(tas_dev->irq_info.irq);
-			else
-				dev_info(tas_dev->dev,
-					"### irq already enabled\n");
-		}
-		tas_dev->irq_info.irq_enable = true;
-	} else {
-		if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
-			disable_irq_nosync(tas_dev->irq_info.irq);
-		tas_dev->irq_info.irq_enable = false;
-	}
+	if (enable)
+		enable_irq(tas_dev->irq_info.irq);
+	else
+		disable_irq_nosync(tas_dev->irq_info.irq);
+
+	tas_dev->irq_info.irq_enable = enable;
 }
 
 static void irq_work_routine(struct work_struct *pWork)
