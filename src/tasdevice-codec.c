@@ -785,8 +785,8 @@ static int tasdevice_info_programs(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static int tasdevice_info_configurations(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_info *uinfo)
+static int tasdevice_info_configurations(
+	struct snd_kcontrol *kcontrol, struct snd_ctl_elem_info *uinfo)
 {
 	struct snd_soc_component *codec
 		= snd_soc_kcontrol_component(kcontrol);
