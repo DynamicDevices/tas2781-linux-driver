@@ -72,12 +72,14 @@ static ssize_t devinfo_show(struct device *dev,
 	if (tas_dev != NULL) {
 		n  += scnprintf(buf + n, 32, "No.\tDevTyp\tAddr\n");
 		for (i = 0; i < tas_dev->ndev; i++) {
-			n  += scnprintf(buf + n, 16, "%d\t", i);
-			n  += scnprintf(buf + n, 32, "%s\t",
+			n += scnprintf(buf + n, 16, "%d\t", i);
+			n += scnprintf(buf + n, 32, "%s\t",
 				tasdevice_id[tas_dev->chip_id].name);
+			n += scnprintf(buf + n, 16, "0x%02x\n",
+				tas_dev->tasdevice[i].mnDevAddr);
 		}
 	} else
-		n  += scnprintf(buf + n, 16, "Invalid data\n");
+		n += scnprintf(buf + n, 16, "Invalid data\n");
 
 	return n;
 }
