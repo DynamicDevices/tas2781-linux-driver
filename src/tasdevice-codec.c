@@ -491,14 +491,11 @@ out:
 	return ret;
 }
 
-
 static int tasdevice_digital_getvol(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_component *codec
-		= snd_soc_kcontrol_component(kcontrol);
-	struct tasdevice_priv *tas_dev =
-		snd_soc_component_get_drvdata(codec);
+	struct snd_soc_component *codec = snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_dev = snd_soc_component_get_drvdata(codec);
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
 	unsigned int val;
@@ -507,9 +504,7 @@ static int tasdevice_digital_getvol(struct snd_kcontrol *kcontrol,
 	/* Read the primary device as the whole */
 	ret = tasdevice_dev_read(tas_dev, 0, mc->reg, &val);
 	if (ret) {
-		dev_err(tas_dev->dev,
-		"%s, get digital vol error\n",
-		__func__);
+		dev_err(tas_dev->dev, "%s, get digital vol error\n", __func__);
 		goto out;
 	}
 	val = (val > mc->max) ? mc->max : val;
@@ -523,10 +518,8 @@ out:
 static int tasdevice_digital_putvol(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_component *codec
-		= snd_soc_kcontrol_component(kcontrol);
-	struct tasdevice_priv *tas_dev =
-		snd_soc_component_get_drvdata(codec);
+	struct snd_soc_component *codec = snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_dev = snd_soc_component_get_drvdata(codec);
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
 	unsigned int val;
@@ -537,20 +530,16 @@ static int tasdevice_digital_putvol(struct snd_kcontrol *kcontrol,
 	val = mc->invert ? mc->max - val : val;
 	val = (val < 0) ? 0 : val;
 	if (tas_dev->set_global_mode != NULL) {
-		ret = tasdevice_dev_write(tas_dev, tas_dev->ndev,
-			mc->reg, val);
+		ret = tasdevice_dev_write(tas_dev, tas_dev->ndev, mc->reg, val);
 		if (ret)
-			dev_err(tas_dev->dev,
-			"%s, set digital vol error in global mode\n",
-			__func__);
+			dev_err(tas_dev->dev, "%s, set digital vol error in global mode\n",
+				__func__);
 	} else {
 		for (i = 0; i < tas_dev->ndev; i++) {
-			ret = tasdevice_dev_write(tas_dev, i,
-				mc->reg, val);
+			ret = tasdevice_dev_write(tas_dev, i, mc->reg, val);
 			if (ret)
 				dev_err(tas_dev->dev,
-				"%s, set digital vol error in device %d\n",
-				__func__, i);
+					"%s, set digital vol error in device %d\n", __func__, i);
 		}
 	}
 
@@ -560,22 +549,18 @@ static int tasdevice_digital_putvol(struct snd_kcontrol *kcontrol,
 static int tasdevice_amp_getvol(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_component *codec
-		= snd_soc_kcontrol_component(kcontrol);
-	struct tasdevice_priv *tas_dev =
-		snd_soc_component_get_drvdata(codec);
+	struct snd_soc_component *codec = snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_dev = snd_soc_component_get_drvdata(codec);
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
-	unsigned int val;
 	unsigned char mask = 0;
+	unsigned int val;
 	int ret = 0;
 
 	/* Read the primary device */
 	ret = tasdevice_dev_read(tas_dev, 0, mc->reg, &val);
 	if (ret) {
-		dev_err(tas_dev->dev,
-		"%s, get AMP vol error\n",
-		__func__);
+		dev_err(tas_dev->dev, "%s, get AMP vol error\n", __func__);
 		goto out;
 	}
 
@@ -593,15 +578,13 @@ out:
 static int tasdevice_amp_putvol(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-	struct snd_soc_component *codec
-		= snd_soc_kcontrol_component(kcontrol);
-	struct tasdevice_priv *tas_dev =
-		snd_soc_component_get_drvdata(codec);
+	struct snd_soc_component *codec = snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_dev = snd_soc_component_get_drvdata(codec);
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
+	unsigned char mask = 0;
 	unsigned int val;
 	int i, ret = 0;
-	unsigned char mask = 0;
 
 	mask = (1 << fls(mc->max)) - 1;
 	mask <<= mc->shift;
@@ -609,15 +592,13 @@ static int tasdevice_amp_putvol(struct snd_kcontrol *kcontrol,
 	val = (val > mc->max) ? mc->max : val;
 	val = mc->invert ? mc->max - val : val;
 	val = (val < 0) ? 0 : val;
+
 	for (i = 0; i < tas_dev->ndev; i++) {
-		ret = tasdevice_dev_update_bits(tas_dev, i,
-			mc->reg,
-			mask,
+		ret = tasdevice_dev_update_bits(tas_dev, i, mc->reg, mask,
 			val << mc->shift);
 		if (ret)
-			dev_err(tas_dev->dev,
-			"%s, set AMP vol error in device %d\n",
-			__func__, i);
+			dev_err(tas_dev->dev, "%s, set AMP vol error in device %d\n",
+				__func__, i);
 	}
 
 	return ret;
@@ -629,21 +610,21 @@ static const DECLARE_TLV_DB_SCALE(tas2781_dvc_tlv, -10000, 100, 1);
 static const DECLARE_TLV_DB_SCALE(tas2781_amp_vol_tlv, 1100, 50, 0);
 
 static const struct snd_kcontrol_new tas2563_snd_controls[] = {
-	SOC_SINGLE_RANGE_EXT_TLV("Amp Gain Volume", TAS2781_AMP_LEVEL,
-		1, 0, 0x1C, 0, tasdevice_amp_getvol,
-		tasdevice_amp_putvol, tas2563_amp_vol_tlv),
-	SOC_SINGLE_RANGE_EXT_TLV("Digital Volume Control", TAS2563_DVC_LVL,
-		0, 0, 0xFFFF, 0, tas2563_digital_getvol,
-		tas2563_digital_putvol, tas2563_dvc_tlv),
+	SOC_SINGLE_RANGE_EXT_TLV("tas2563-amp-gain-volume", TAS2781_AMP_LEVEL,
+		1, 0, 0x1C, 0, tasdevice_amp_getvol, tasdevice_amp_putvol,
+		tas2563_amp_vol_tlv),
+	SOC_SINGLE_RANGE_EXT_TLV("tas2563-digital-volume", TAS2563_DVC_LVL,
+		0, 0, 0xFFFF, 0, tas2563_digital_getvol, tas2563_digital_putvol,
+		tas2563_dvc_tlv),
 };
 
 static const struct snd_kcontrol_new tas2781_snd_controls[] = {
-	SOC_SINGLE_RANGE_EXT_TLV("Amp Gain Volume", TAS2781_AMP_LEVEL,
-		1, 0, 0x14, 0, tasdevice_amp_getvol,
-		tasdevice_amp_putvol, tas2781_amp_vol_tlv),
-	SOC_SINGLE_RANGE_EXT_TLV("Digital Volume Control", TAS2781_DVC_LVL,
-		0, 0, 200, 1, tasdevice_digital_getvol,
-		tasdevice_digital_putvol, tas2781_dvc_tlv),
+	SOC_SINGLE_RANGE_EXT_TLV("tas2781-amp-gain-volume", TAS2781_AMP_LEVEL,
+		1, 0, 0x14, 0, tasdevice_amp_getvol, tasdevice_amp_putvol,
+		tas2781_amp_vol_tlv),
+	SOC_SINGLE_RANGE_EXT_TLV("tas2781-digital-volume", TAS2781_DVC_LVL,
+		0, 0, 200, 1, tasdevice_digital_getvol, tasdevice_digital_putvol,
+		tas2781_dvc_tlv),
 };
 
 static int tasdevice_info_profile(struct snd_kcontrol *kcontrol,
