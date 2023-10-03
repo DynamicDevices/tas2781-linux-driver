@@ -79,6 +79,7 @@ struct TBlock {
 	unsigned int mnCommands;
 	unsigned int blk_size;
 	unsigned int nSublocks;
+	unsigned char dev_idx;
 	unsigned char *mpData;
 };
 
