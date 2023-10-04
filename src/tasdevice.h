@@ -60,6 +60,8 @@
 	/* Enable Global addresses */
 #define TAS2563_MISC_CFG2		TASDEVICE_REG(0x0, 0X0, 0x05)
 #define TAS2871_MISC_CFG2		TASDEVICE_REG(0x0, 0X0, 0x07)
+#define TAS2563_MAX_DEVICE	4
+#define TASDEVICE_GLOBAL_ADDR	0x40
 #define TASDEVICE_GLOBAL_ADDR_MASK	BIT(1)
 #define TASDEVICE_GLOBAL_ADDR_ENABLE	BIT(1)
 
@@ -273,10 +275,11 @@ extern const struct i2c_device_id tasdevice_id[];
 extern const struct dev_pm_ops tasdevice_pm_ops;
 extern const struct of_device_id tasdevice_of_match[];
 
-int tasdevice_create_controls(
-	struct tasdevice_priv *tas_dev);
+int tasdevice_create_controls(struct tasdevice_priv *tas_dev);
 int tasdevice_parse_dt(struct tasdevice_priv *tas_dev);
 int tasdevice_probe_next(struct tasdevice_priv *tas_dev);
+void tasdevice_parse_dt_reset_irq_pin(
+	struct tasdevice_priv *tas_priv, struct device_node *np);
 void tasdevice_remove(struct tasdevice_priv *tas_dev);
 void tasdevice_enable_irq(
 	struct tasdevice_priv *tas_dev, bool enable);

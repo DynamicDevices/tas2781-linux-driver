@@ -80,6 +80,58 @@ static void tas2563_set_global_mode(struct tasdevice_priv *tas_dev)
 	}
 }
 
+static int tasdevice_i2c_parse_dt(struct tasdevice_priv *tas_priv)
+{
+	struct i2c_client *client = (struct i2c_client *)tas_priv->client;
+	struct device_node *np = tas_priv->dev->of_node;
+	unsigned int dev_addrs[TASDEVICE_MAX_CHANNELS];
+	int len, sw, aw, i, ndev;
+	const __be32 *reg, *reg_end;
+
+	dev_info(tas_priv->dev, "%s, chip_id:%d\n", __func__,
+		tas_priv->chip_id);
+	strcpy(tas_priv->dev_name, tasdevice_id[tas_priv->chip_id].name);
+
+	aw = of_n_addr_cells(np);
+	sw = of_n_size_cells(np);
+	if (sw == 0) {
+		reg = (const __be32 *)of_get_property(np,
+			"reg", &len);
+		reg_end = reg + len/sizeof(*reg);
+		ndev = 0;
+		do {
+			dev_addrs[ndev] = of_read_number(reg, aw);
+			reg += aw;
+			ndev++;
+		} while (reg < reg_end);
+	} else {
+		ndev = 1;
+		dev_addrs[0] = client->addr;
+	}
+
+	if (ndev > TAS2563_MAX_DEVICE && TAS2563 == tas_priv->chip_id) {
+		dev_info(tas_priv->dev, "Do not support more than 4 TAS2563s "
+			"on the same I2C bus, force the device number from %d "
+			"to %d ", ndev, TAS2563_MAX_DEVICE);
+		ndev = TAS2563_MAX_DEVICE;
+	}
+
+	tas_priv->ndev = (ndev == 0) ? 1 : ndev;
+
+	for (i = 0; i < ndev; i++)
+		tas_priv->tasdevice[i].mnDevAddr = dev_addrs[i];
+
+	if (of_property_read_bool(np, "ti,global-addr-enable"))
+		/* Enable I2C broadcast */
+		tas_priv->glb_addr.dev_addr = TASDEVICE_GLOBAL_ADDR;
+	else
+		tas_priv->glb_addr.dev_addr = 0;
+
+	tasdevice_parse_dt_reset_irq_pin(tas_priv, np);
+
+	return 0;
+}
+
 static int tasdevice_i2c_probe(struct i2c_client *i2c,
 	const struct i2c_device_id *id)
 {
@@ -105,7 +157,7 @@ static int tasdevice_i2c_probe(struct i2c_client *i2c,
 	tas_dev->chip_id = id->driver_data;
 
 	if (i2c->dev.of_node)
-		ret = tasdevice_parse_dt(tas_dev);
+		ret = tasdevice_i2c_parse_dt(tas_dev);
 	else {
 		dev_err(tas_dev->dev, "No DTS info\n");
 		goto out;

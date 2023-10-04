@@ -42,8 +42,6 @@
 
 #define TASDEVICE_IRQ_DET_TIMEOUT		(30000)
 #define TASDEVICE_IRQ_DET_CNT_LIMIT	(500)
-#define TAS2563_MAX_DEVICE	4
-#define TASDEVICE_GLOBAL_ADDR	0x40
 
 #ifdef CONFIG_TASDEV_CODEC_SPI
 const struct spi_device_id tasdevice_id[] = {
@@ -172,54 +170,12 @@ static irqreturn_t tasdevice_irq_handler(int irq,
 	return IRQ_HANDLED;
 }
 
-int tasdevice_parse_dt(struct tasdevice_priv *tas_priv)
+void tasdevice_parse_dt_reset_irq_pin(
+	struct tasdevice_priv *tas_priv, struct device_node *np)
 {
-	struct i2c_client *client = (struct i2c_client *)tas_priv->client;
-	struct device_node *np = tas_priv->dev->of_node;
-	unsigned int dev_addrs[TASDEVICE_MAX_CHANNELS];
-	int len, sw, aw, rc = 0, i, ndev;
-	const __be32 *reg, *reg_end;
+	int rc = 0;
 
-	dev_info(tas_priv->dev, "%s, chip_id:%d\n", __func__,
-		tas_priv->chip_id);
-	strcpy(tas_priv->dev_name, tasdevice_id[tas_priv->chip_id].name);
-
-	aw = of_n_addr_cells(np);
-	sw = of_n_size_cells(np);
-	if (sw == 0) {
-		reg = (const __be32 *)of_get_property(np,
-			"reg", &len);
-		reg_end = reg + len/sizeof(*reg);
-		ndev = 0;
-		do {
-			dev_addrs[ndev] = of_read_number(reg, aw);
-			reg += aw;
-			ndev++;
-		} while (reg < reg_end);
-	} else {
-		ndev = 1;
-		dev_addrs[0] = client->addr;
-	}
-
-	if (ndev > TAS2563_MAX_DEVICE && TAS2563 == tas_priv->chip_id) {
-		dev_info(tas_priv->dev, "Do not support more than 4 TAS2563s "
-			"on the same I2C bus, force the device number from %d "
-			"to %d ", ndev, TAS2563_MAX_DEVICE);
-		ndev = TAS2563_MAX_DEVICE;
-	}
-
-	tas_priv->ndev = (ndev == 0) ? 1 : ndev;
-
-	for (i = 0; i < ndev; i++)
-		tas_priv->tasdevice[i].mnDevAddr = dev_addrs[i];
-
-	if (of_property_read_bool(np, "ti,global-addr-enable"))
-		/* Enable I2C broadcast */
-		tas_priv->glb_addr.dev_addr = TASDEVICE_GLOBAL_ADDR;
-	else
-		tas_priv->glb_addr.dev_addr = 0;
-
-	tas_priv->reset = devm_gpiod_get_optional(&client->dev,
+	tas_priv->reset = devm_gpiod_get_optional(tas_priv->dev,
 			"reset-gpios", GPIOD_OUT_HIGH);
 	if (IS_ERR(tas_priv->reset))
 		dev_err(tas_priv->dev, "%s Can't get reset GPIO\n", __func__);
@@ -230,6 +186,7 @@ int tasdevice_parse_dt(struct tasdevice_priv *tas_priv)
 			tas_priv->irq_info.irq_gpio);
 		INIT_DELAYED_WORK(&tas_priv->irq_info.irq_work,
 			irq_work_routine);
+		tas_priv->irq_info.irq_enable = false;
 
 		rc = gpio_request(tas_priv->irq_info.irq_gpio, "AUDEV-IRQ");
 		if (!rc) {
@@ -255,9 +212,9 @@ int tasdevice_parse_dt(struct tasdevice_priv *tas_priv)
 				__func__,
 				tas_priv->irq_info.irq_gpio);
 	} else
-		dev_err(tas_priv->dev, "Looking up irq-gpio property "
-			"in node %s failed %d\n", np->full_name,
-			tas_priv->irq_info.irq_gpio);
+		dev_err(tas_priv->dev, "Looking up irq gpio property "
+			"in node %s failed %d, no side effect on driver running\n",
+			np->full_name, tas_priv->irq_info.irq_gpio);
 
 	if (gpio_is_valid(tas_priv->irq_info.irq_gpio)) {
 		switch (tas_priv->chip_id) {
@@ -272,8 +229,6 @@ int tasdevice_parse_dt(struct tasdevice_priv *tas_priv)
 				__func__);
 		}
 	}
-
-	return 0;
 }
 
 static void tasdevice_reset(struct tasdevice_priv *tas_dev)
@@ -337,9 +292,6 @@ int tasdevice_probe_next(struct tasdevice_priv *tas_dev)
 	if (nResult)
 		dev_err(tas_dev->dev, "%s: codec register error:0x%08x\n",
 			__func__, nResult);
-
-	INIT_DELAYED_WORK(&tas_dev->irq_info.irq_work, irq_work_routine);
-	tas_dev->irq_info.irq_enable = false;
 
 	dev_info(tas_dev->dev, "i2c register success\n");
 out:
