@@ -277,7 +277,7 @@ static void tasdevice_set_power_state(
 			if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
 				tasdevice_enable_irq(tas_dev, false);
 			tasdevice_select_cfg_blk(tas_dev,
-				tas_dev->mtRegbin.profile_id,
+				tas_dev->mtRegbin.profile_cfg_id,
 				TASDEVICE_BIN_BLK_PRE_SHUTDOWN);
 		}
 		break;
@@ -304,13 +304,12 @@ static int tasdevice_mute(struct snd_soc_dai *dai, int mute, int stream)
 			tas_dev->cstream = 0;
 		if (tas_dev->pstream != 0 || tas_dev->cstream != 0)
 			goto out;
-	} else {
+	} else
 		if (stream == SNDRV_PCM_STREAM_PLAYBACK)
 			tas_dev->pstream = 1;
 		else
 			tas_dev->cstream = 1;
 
-	}
 	tasdevice_set_power_state(tas_dev, mute);
 out:
 	/* Misc driver file lock release */
@@ -626,6 +625,50 @@ static const struct snd_kcontrol_new tas2781_snd_controls[] = {
 		tas2781_dvc_tlv),
 };
 
+static int tasdevice_info_rotation(struct snd_kcontrol *kcontrol,
+			struct snd_ctl_elem_info *uinfo)
+{
+	struct snd_soc_component *codec
+		= snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_priv =
+		snd_soc_component_get_drvdata(codec);
+
+	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+	/* Codec Lock Hold*/
+	mutex_lock(&tas_priv->codec_lock);
+	uinfo->count = 1;
+	/* Codec Lock Release*/
+	mutex_unlock(&tas_priv->codec_lock);
+
+	uinfo->value.integer.min = tas_priv->mtRegbin.direct_rotation_cfg_id;
+	uinfo->value.integer.max = tas_priv->mtRegbin.direct_rotation_cfg_id
+		+ tas_priv->mtRegbin.direct_rotation_cfg_total - 1;
+
+	return 0;
+}
+
+static int tasdevice_set_rotation_id(struct snd_kcontrol *kcontrol,
+		struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *codec
+		= snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_priv =
+		snd_soc_component_get_drvdata(codec);
+	int max_val = tas_priv->mtRegbin.direct_rotation_cfg_id
+		+ tas_priv->mtRegbin.direct_rotation_cfg_total - 1;
+	int min_val = tas_priv->mtRegbin.direct_rotation_cfg_id;
+	int val = ucontrol->value.integer.value[0];
+
+	val = clamp(val, min_val, max_val);
+	/* Codec Lock Hold*/
+	mutex_lock(&tas_priv->codec_lock);
+	tasdevice_select_cfg_blk(tas_priv, val, TASDEVICE_BIN_BLK_PRE_POWER_UP);
+	/* Codec Lock Release*/
+	mutex_unlock(&tas_priv->codec_lock);
+
+	return 1;
+}
+
 static int tasdevice_info_profile(struct snd_kcontrol *kcontrol,
 			struct snd_ctl_elem_info *uinfo)
 {
@@ -642,7 +685,7 @@ static int tasdevice_info_profile(struct snd_kcontrol *kcontrol,
 	mutex_unlock(&tas_priv->codec_lock);
 
 	uinfo->value.integer.min = 0;
-	uinfo->value.integer.max = (int)tas_priv->mtRegbin.ncfgs - 1;
+	uinfo->value.integer.max = tas_priv->mtRegbin.ncfgs - 1;
 
 	return 0;
 }
@@ -655,7 +698,7 @@ static int tasdevice_get_profile_id(struct snd_kcontrol *kcontrol,
 	struct tasdevice_priv *tas_priv
 		= snd_soc_component_get_drvdata(codec);
 	int val = tas_priv->mtRegbin.profile_cfg_id;
-	int max_val = (int)tas_priv->mtRegbin.ncfgs - 1;
+	int max_val = tas_priv->mtRegbin.ncfgs - 1;
 	int ret = 0;
 
 	val = clamp(val, 0, max_val);
@@ -678,7 +721,7 @@ static int tasdevice_set_profile_id(struct snd_kcontrol *kcontrol,
 		= snd_soc_kcontrol_component(kcontrol);
 	struct tasdevice_priv *tas_priv =
 		snd_soc_component_get_drvdata(codec);
-	int max_val = (int)tas_priv->mtRegbin.ncfgs - 1;
+	int max_val = tas_priv->mtRegbin.ncfgs - 1;
 	int val = ucontrol->value.integer.value[0];
 	int ret = 0;
 
@@ -698,12 +741,11 @@ static int tasdevice_set_profile_id(struct snd_kcontrol *kcontrol,
 int tasdevice_create_controls(struct tasdevice_priv *tas_priv)
 {
 	struct snd_kcontrol_new *tasdevice_profile_controls = NULL;
-	int  nr_controls = 1, ret = 0, mix_index = 0;
-	char *name = NULL;
+	int  ret = 0, mix_index = 0;
+	char *name;
 
 	tasdevice_profile_controls = devm_kzalloc(tas_priv->dev,
-			nr_controls * sizeof(tasdevice_profile_controls[0]),
-			GFP_KERNEL);
+		sizeof(tasdevice_profile_controls[0]), GFP_KERNEL);
 	if (tasdevice_profile_controls == NULL) {
 		ret = -ENOMEM;
 		goto out;
@@ -717,27 +759,21 @@ int tasdevice_create_controls(struct tasdevice_priv *tas_priv)
 		goto out;
 	}
 	scnprintf(name, SNDRV_CTL_ELEM_ID_NAME_MAXLEN, "TASDEVICE Profile id");
-	tasdevice_profile_controls[mix_index].name = name;
-	tasdevice_profile_controls[mix_index].iface =
-		SNDRV_CTL_ELEM_IFACE_MIXER;
-	tasdevice_profile_controls[mix_index].info =
-		tasdevice_info_profile;
-	tasdevice_profile_controls[mix_index].get =
-		tasdevice_get_profile_id;
-	tasdevice_profile_controls[mix_index].put =
-		tasdevice_set_profile_id;
-	mix_index++;
+	tasdevice_profile_controls[0].name = name;
+	tasdevice_profile_controls[0].iface = SNDRV_CTL_ELEM_IFACE_MIXER;
+	tasdevice_profile_controls[0].info = tasdevice_info_profile;
+	tasdevice_profile_controls[0].get = tasdevice_get_profile_id;
+	tasdevice_profile_controls[0].put = tasdevice_set_profile_id;
 
 	ret = snd_soc_add_component_controls(tas_priv->codec,
-		tasdevice_profile_controls,
-		nr_controls < mix_index ? nr_controls : mix_index);
+ 		tasdevice_profile_controls, 1);
 	if (ret < 0) {
 		dev_err(tas_priv->dev, "%s, add regbin ctrl failed\n",
 			__func__);
+		ret = -ENXIO;
 		goto out;
 	}
-	tas_priv->tas_ctrl.nr_controls =
-		nr_controls < mix_index ? nr_controls : mix_index;
+	tas_priv->tas_ctrl.nr_controls++;
 
 	switch (tas_priv->chip_id) {
 	case TAS2563:
@@ -752,6 +788,11 @@ int tasdevice_create_controls(struct tasdevice_priv *tas_priv)
 		break;
 	}
 
+	if (!mix_index) {
+		dev_err(tas_priv->dev, "%s, chip invalid\n",
+			__func__);
+		goto out;
+	}
 	ret = snd_soc_add_component_controls(tas_priv->codec,
 		tasdevice_profile_controls, mix_index);
 	if(ret < 0) {
@@ -761,6 +802,37 @@ int tasdevice_create_controls(struct tasdevice_priv *tas_priv)
 	}
  	tas_priv->tas_ctrl.nr_controls += mix_index;
 
+	if (!tas_priv->mtRegbin.direct_rotation_cfg_total)
+		goto out;
+	tasdevice_profile_controls = devm_kzalloc(tas_priv->dev,
+		sizeof(tasdevice_profile_controls[0]), GFP_KERNEL);
+	if (tasdevice_profile_controls == NULL) {
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	/* Create a mixer item for selecting the active profile */
+	name = devm_kzalloc(tas_priv->dev,
+		SNDRV_CTL_ELEM_ID_NAME_MAXLEN, GFP_KERNEL);
+	if (!name) {
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	scnprintf(name, SNDRV_CTL_ELEM_ID_NAME_MAXLEN, "TASDEVICE Rotation id");
+	tasdevice_profile_controls[0].name = name;
+	tasdevice_profile_controls[0].iface = SNDRV_CTL_ELEM_IFACE_MIXER;
+	tasdevice_profile_controls[0].info = tasdevice_info_rotation;
+	tasdevice_profile_controls[0].put = tasdevice_set_rotation_id;
+
+	ret = snd_soc_add_component_controls(tas_priv->codec,
+ 		tasdevice_profile_controls, 1);
+	if (ret < 0) {
+		dev_err(tas_priv->dev, "%s, add regbin ctrl failed\n",
+			__func__);
+		goto out;
+	}
+	tas_priv->tas_ctrl.nr_controls++;
 out:
 	return ret;
 }

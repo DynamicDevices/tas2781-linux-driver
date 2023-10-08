@@ -73,10 +73,11 @@ struct tasdevice_config_info {
 
 struct tasdevice_regbin {
 	struct tasdevice_regbin_hdr fw_hdr;
-	int ncfgs;
 	struct tasdevice_config_info **cfg_info;
 	int profile_cfg_id;
-	int profile_id;
+	int direct_rotation_cfg_id;
+	int direct_rotation_cfg_total;
+	int ncfgs;
 };
 
 void tasdevice_regbin_ready(const struct firmware *pFW,

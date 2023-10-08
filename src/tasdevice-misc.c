@@ -290,7 +290,7 @@ static long tasdevice_ioctl(struct file *f,
 		dev_info(tas_dev->dev, "%s:%u: cmd=TILOAD_IOC_MAGIC_POWER_OFF"
 			"=0x%08x: regscene = %d\n", __func__, __LINE__,
 			TILOAD_IOC_MAGIC_POWER_OFF,
-			tas_dev->mtRegbin.profile_id);
+			tas_dev->mtRegbin.profile_cfg_id);
 		break;
 	case TILOAD_IOC_MAGIC_POWERON:
 		{

@@ -655,14 +655,13 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 {
 	struct tasdevice_priv *tas_dev =
 		(struct tasdevice_priv *) pContext;
-	int offset = 0, i, ret = 0, is_set_glb_mode;
+	int offset = 0, i, j, ret = 0, is_set_glb_mode;
 	struct tasdevice_config_info **cfg_info;
 	struct tasdevice_regbin_hdr *fw_hdr;
 	struct tasdevice_regbin *regbin;
 	const struct firmware *fw_entry;
-	unsigned char *buf = NULL;
-
 	unsigned int total_config_sz = 0;
+	unsigned char *buf = NULL;
 
 	if (tas_dev == NULL) {
 		dev_err(tas_dev->dev,
@@ -770,6 +769,18 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 		offset  += (int)fw_hdr->config_size[i];
 		regbin->ncfgs  += 1;
 	}
+
+	if (tas_dev->ndev > 1) {
+		for (i = 0, j = 0; i < regbin->ncfgs; i++) {
+			if (strstr(cfg_info[i]->mpName, "Direct rotation")) {
+				if ( !j )
+					regbin->direct_rotation_cfg_id = i;
+				j++;
+			}
+		}
+		regbin->direct_rotation_cfg_total = j;
+	}
+
 	tasdevice_create_controls(tas_dev);
 	tas_dev->fw_state = TASDEVICE_DSP_FW_ALL_OK;
 	tasdevice_dsp_remove(tas_dev);
