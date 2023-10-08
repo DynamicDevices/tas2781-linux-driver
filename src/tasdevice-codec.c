@@ -655,15 +655,15 @@ static int tasdevice_get_profile_id(struct snd_kcontrol *kcontrol,
 		= snd_soc_kcontrol_component(kcontrol);
 	struct tasdevice_priv *tas_priv
 		= snd_soc_component_get_drvdata(codec);
-	int val = ucontrol->value.integer.value[0];
+	int val = tas_priv->mtRegbin.profile_cfg_id;
 	int max_val = (int)tas_priv->mtRegbin.ncfgs - 1;
 	int ret = 0;
 
 	val = clamp(val, 0, max_val);
 	/* Codec Lock Hold*/
 	mutex_lock(&tas_priv->codec_lock);
-	if (tas_priv->mtRegbin.profile_cfg_id != val) {
-		tas_priv->mtRegbin.profile_cfg_id = val;
+	if (ucontrol->value.integer.value[0] != val) {
+		ucontrol->value.integer.value[0] = val;
 		ret = 1;
 	}
 	/* Codec Lock Release*/
@@ -679,15 +679,21 @@ static int tasdevice_set_profile_id(struct snd_kcontrol *kcontrol,
 		= snd_soc_kcontrol_component(kcontrol);
 	struct tasdevice_priv *tas_priv =
 		snd_soc_component_get_drvdata(codec);
+	int max_val = (int)tas_priv->mtRegbin.ncfgs - 1;
+	int val = ucontrol->value.integer.value[0];
+	int ret = 0;
 
+	val = clamp(val, 0, max_val);
 	/* Codec Lock Hold*/
 	mutex_lock(&tas_priv->codec_lock);
-	tas_priv->mtRegbin.profile_cfg_id =
-		ucontrol->value.integer.value[0];
+	if (tas_priv->mtRegbin.profile_cfg_id != val) {
+		tas_priv->mtRegbin.profile_cfg_id = val;
+		ret = 1;
+	}
 	/* Codec Lock Release*/
 	mutex_unlock(&tas_priv->codec_lock);
 
-	return 0;
+	return ret;
 }
 
 int tasdevice_create_controls(struct tasdevice_priv *tas_priv)
