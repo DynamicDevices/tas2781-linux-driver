@@ -257,7 +257,6 @@ void powercontrol_routine(struct work_struct *work)
 
 	tasdevice_select_cfg_blk(tas_dev, profile_cfg_id,
 		TASDEVICE_BIN_BLK_PRE_POWER_UP);
-	tas_dev->mtRegbin.profile_id = profile_cfg_id;
 
 	if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
 		tasdevice_enable_irq(tas_dev, true);
