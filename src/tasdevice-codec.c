@@ -659,7 +659,7 @@ static int tasdevice_set_rotation_id(struct snd_kcontrol *kcontrol,
 	int min_val = tas_priv->mtRegbin.direct_rotation_cfg_id;
 	int val = ucontrol->value.integer.value[0];
 
-	val = clamp(val, min_val, max_val);
+	tas_priv->mtRegbin.rotation_id = clamp(val, min_val, max_val);
 	/* Codec Lock Hold*/
 	mutex_lock(&tas_priv->codec_lock);
 	tasdevice_select_cfg_blk(tas_priv, val, TASDEVICE_BIN_BLK_PRE_POWER_UP);
@@ -667,6 +667,25 @@ static int tasdevice_set_rotation_id(struct snd_kcontrol *kcontrol,
 	mutex_unlock(&tas_priv->codec_lock);
 
 	return 1;
+}
+
+static int tasdevice_get_rotation_id(struct snd_kcontrol *kcontrol,
+			  struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *codec
+		= snd_soc_kcontrol_component(kcontrol);
+	struct tasdevice_priv *tas_priv
+		= snd_soc_component_get_drvdata(codec);
+
+	/* Codec Lock Hold*/
+	mutex_lock(&tas_priv->codec_lock);
+
+	ucontrol->value.integer.value[0] = tas_priv->mtRegbin.rotation_id;
+
+	/* Codec Lock Release*/
+	mutex_unlock(&tas_priv->codec_lock);
+
+	return 0;
 }
 
 static int tasdevice_info_profile(struct snd_kcontrol *kcontrol,
@@ -824,6 +843,7 @@ int tasdevice_create_controls(struct tasdevice_priv *tas_priv)
 	tasdevice_profile_controls[0].iface = SNDRV_CTL_ELEM_IFACE_MIXER;
 	tasdevice_profile_controls[0].info = tasdevice_info_rotation;
 	tasdevice_profile_controls[0].put = tasdevice_set_rotation_id;
+	tasdevice_profile_controls[0].get = tasdevice_get_rotation_id;
 
 	ret = snd_soc_add_component_controls(tas_priv->codec,
  		tasdevice_profile_controls, 1);

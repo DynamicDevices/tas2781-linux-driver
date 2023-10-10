@@ -75,6 +75,7 @@ struct tasdevice_regbin {
 	struct tasdevice_regbin_hdr fw_hdr;
 	struct tasdevice_config_info **cfg_info;
 	int profile_cfg_id;
+	int rotation_id;
 	int direct_rotation_cfg_id;
 	int direct_rotation_cfg_total;
 	int ncfgs;
