@@ -815,13 +815,13 @@ ssize_t force_fw_load_chip_show(struct device *dev,
 	int n = 0, i = 0;
 
 	if (tas_dev != NULL) {
-		n  += scnprintf(buf + n, 32, "No.\tPrg No\tTimes\n");
+		n  += scnprintf(buf + n, 32, "Dev\tPrg No\tTimes\n");
 		for (i = 0; i < tas_dev->ndev; i++) {
 			tasdevice = &(tas_dev->tasdevice[i]);
 			n += scnprintf(buf + n, 16, "%d\t", i);
 			n += scnprintf(buf + n, 32, "%d\t",
 				tasdevice->mnCurrentProgram);
-			n += scnprintf(buf + n, 16, "0x%02x\n",
+			n += scnprintf(buf + n, 16, "%d\n",
 				tasdevice->prg_download_cnt);
 		}
 	} else
