@@ -782,3 +782,50 @@ ssize_t dspfw_config_show(struct device *dev,
 	mutex_unlock(&tas_dev->file_lock);
 	return n;
 }
+
+ssize_t force_fw_load_chip_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct tasdevice_priv *tas_dev = dev_get_drvdata(dev);
+	struct Ttasdevice *tasdevice;
+	int i = 0;
+
+	mutex_unlock(&tas_dev->codec_lock);
+
+	if (tas_dev == NULL)
+		goto out;
+
+	for (i = 0; i < tas_dev->ndev; i++) {
+		tasdevice = &(tas_dev->tasdevice[i]);
+		tasdevice->prg_download_cnt = 0;
+		tasdevice->mnCurrentProgram = -1;
+	}
+
+out:
+	mutex_unlock(&tas_dev->codec_lock);
+
+	return count;
+}
+
+ssize_t force_fw_load_chip_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct tasdevice_priv *tas_dev = dev_get_drvdata(dev);
+	struct Ttasdevice *tasdevice;
+	int n = 0, i = 0;
+
+	if (tas_dev != NULL) {
+		n  += scnprintf(buf + n, 32, "No.\tPrg No\tTimes\n");
+		for (i = 0; i < tas_dev->ndev; i++) {
+			tasdevice = &(tas_dev->tasdevice[i]);
+			n += scnprintf(buf + n, 16, "%d\t", i);
+			n += scnprintf(buf + n, 32, "%d\t",
+				tasdevice->mnCurrentProgram);
+			n += scnprintf(buf + n, 16, "0x%02x\n",
+				tasdevice->prg_download_cnt);
+		}
+	} else
+		n += scnprintf(buf + n, 16, "Invalid data\n");
+
+	return n;
+}

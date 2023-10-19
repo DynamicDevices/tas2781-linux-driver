@@ -168,6 +168,7 @@ int tasdevice_process_block(void *pContext,
 			break;
 		};
 		if (bError == true && blktyp != 0) {
+			tas_dev->tasdevice[chn].bLoaderr = true;
 			if (blktyp == 0x80) {
 				tas_dev->tasdevice[chn].mnCurrentProgram = -1;
 				tas_dev->tasdevice[chn].mnCurrentConfiguration = -1;
@@ -384,12 +385,6 @@ void tasdevice_powerup_regcfg_dev(void *pContext, unsigned char dev)
 
 	if (dev >= tas_dev->ndev) {
 		dev_err(tas_dev->dev, "%s: dev:%d\n", __func__, dev);
-		goto out;
-	}
-
-	if (0 == tas_dev->tasdevice[dev].PowerStatus) {
-		dev_info(tas_dev->dev, "%s: dev %d is power off\n",
-			__func__, dev);
 		goto out;
 	}
 
@@ -801,7 +796,6 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 	}
 	tasdevice_dsp_create_control(tas_dev);
 
-	tas_dev->mbCalibrationLoaded = true;
 	for (i = 0; i < tas_dev->ndev; i++) {
 		scnprintf(tas_dev->cal_binaryname[i], 64, "%s-0x%02x-cal.bin",
 			tas_dev->dev_name, tas_dev->tasdevice[i].mnDevAddr);
@@ -812,7 +806,6 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 				"effect for playback\n", __func__,
 				tas_dev->cal_binaryname[i]);
 			ret = 0;
-			tas_dev->mbCalibrationLoaded = false;
 		}
 	}
 

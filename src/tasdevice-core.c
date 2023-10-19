@@ -101,6 +101,8 @@ static DEVICE_ATTR(regcfg_list, 0664, regcfg_list_show,
 	regcfg_list_store);
 static DEVICE_ATTR(devinfo, 0664, devinfo_show, NULL);
 static DEVICE_ATTR(dspfw_config, 0664, dspfw_config_show, NULL);
+static DEVICE_ATTR(force_fw_load_chip, 0664, force_fw_load_chip_show,
+	force_fw_load_chip_store);
 
 static struct attribute *sysfs_attrs[] = {
 	&dev_attr_reg.attr,
@@ -111,6 +113,7 @@ static struct attribute *sysfs_attrs[] = {
 	&dev_attr_regcfg_list.attr,
 	&dev_attr_devinfo.attr,
 	&dev_attr_dspfw_config.attr,
+	&dev_attr_force_fw_load_chip.attr,
 	NULL
 };
 //nodes are in /sys/devices/platform/XXXXXXXX.i2cX/i2c-X/

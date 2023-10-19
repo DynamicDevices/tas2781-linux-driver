@@ -31,6 +31,7 @@
 
 #define TASDEVICE_RETRY_COUNT	(3)
 #define TASDEVICE_ERROR_FAILED	(-2)
+#define TASDEVICE_MAX_DOWNLOAD_CNT	3
 
 #define TASDEVICE_RATES	(SNDRV_PCM_RATE_44100 |\
 	SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_96000 |\
@@ -103,6 +104,7 @@ struct smartpa_info {
 #define TILOAD_BPR_READ			_IOR(TILOAD_IOC_MAGIC, 3, struct BPR)
 #define TILOAD_BPR_WRITE		_IOW(TILOAD_IOC_MAGIC, 4, struct BPR)
 #define TILOAD_IOCTL_SET_CHL		_IOW(TILOAD_IOC_MAGIC, 5, int)
+#define TILOAD_IOCTL_SET_CONFIG		_IOW(TILOAD_IOC_MAGIC, 6, int)
 #define TILOAD_IOCTL_SET_CALIBRATION	_IOW(TILOAD_IOC_MAGIC, 7, int)
 
 #define TILOAD_IOC_MAGIC_SET_DEFAULT_CALIB_PRI	_IOWR(TILOAD_IOC_MAGIC, 15, \
@@ -146,11 +148,9 @@ struct Ttasdevice {
 	short mnCurrentProgram;
 	short mnCurrentConfiguration;
 	short mnCurrentRegConf;
-	int PowerStatus;
-	bool bDSPBypass;
+	int prg_download_cnt;
 	bool bLoading;
 	bool bLoaderr;
-	bool mbCalibrationLoaded;
 	struct tasdevice_fw *mpCalFirmware;
 };
 
@@ -263,7 +263,6 @@ struct tasdevice_priv {
 	int cstream;
 	struct mutex codec_lock;
 	struct delayed_work powercontrol_work;
-	bool mbCalibrationLoaded;
 };
 
 extern const char *blocktype[5];

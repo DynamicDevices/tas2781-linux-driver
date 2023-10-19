@@ -233,26 +233,22 @@ void powercontrol_routine(struct work_struct *work)
 	struct tasdevice_priv *tas_dev =
 		container_of(work, struct tasdevice_priv,
 		powercontrol_work.work);
-	struct tasdevice_fw *pFw = tas_dev->fmw;
+	struct tasdevice_fw *fw = tas_dev->fmw;
 	int profile_cfg_id = tas_dev->mtRegbin.profile_cfg_id;
-	int is_set_glb_mode = 0;
+	int is_set_glb_mode;
 
 	dev_info(tas_dev->dev, "%s: enter\n", __func__);
 
 	mutex_lock(&tas_dev->codec_lock);
-	if (pFw) {
-		if (tas_dev->cur_prog == 0) {
-			/*dsp mode or tuning mode*/
-			dev_info(tas_dev->dev, "%s: %s\n", __func__,
-				pFw->mpConfigurations[tas_dev->cur_conf]
-				.mpName);
-			is_set_glb_mode =
-				tasdevice_select_tuningprm_cfg(tas_dev,
-					tas_dev->cur_prog, tas_dev->cur_conf,
-					profile_cfg_id);
-			if (is_set_glb_mode && tas_dev->set_global_mode)
-				tas_dev->set_global_mode(tas_dev);
-		}
+
+	if (fw && tas_dev->cur_prog == 0) {
+		/*dsp mode or tuning mode*/
+		dev_info(tas_dev->dev, "%s: %s\n", __func__,
+			fw->mpConfigurations[tas_dev->cur_conf].mpName);
+		is_set_glb_mode = tasdevice_select_tuningprm_cfg(tas_dev,
+			tas_dev->cur_prog, tas_dev->cur_conf, profile_cfg_id);
+		if (is_set_glb_mode && tas_dev->set_global_mode)
+			tas_dev->set_global_mode(tas_dev);
 	}
 
 	tasdevice_select_cfg_blk(tas_dev, profile_cfg_id,

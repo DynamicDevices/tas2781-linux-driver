@@ -312,13 +312,32 @@ static long tasdevice_ioctl(struct file *f,
 				schedule_delayed_work(
 					&tas_dev->powercontrol_work,
 					msecs_to_jiffies(20));
-			} else {
+			} else
 				dev_err(tas_dev->dev,
 					"%s:%u: error copy from user cmd="
 					"TILOAD_IOC_MAGIC_POWERON=0x%08x\n",
 					__func__, __LINE__,
 					TILOAD_IOC_MAGIC_POWERON);
-			}
+		}
+		break;
+	case TILOAD_IOCTL_SET_CONFIG:
+		{
+			int config;
+
+			ret = copy_from_user(&config, arg, sizeof(config));
+			if(ret == 0) {
+				tas_dev->cur_conf = config;
+				tas_dev->mtRegbin.profile_cfg_id =
+					config;
+				schedule_delayed_work(
+					&tas_dev->powercontrol_work,
+					msecs_to_jiffies(20));
+			} else
+				dev_err(tas_dev->dev,
+					"%s:%u: error copy from user cmd="
+					"TILOAD_IOCTL_SET_CONFIG=0x%08x\n",
+					__func__, __LINE__,
+					TILOAD_IOCTL_SET_CONFIG);
 		}
 		break;
 	default:

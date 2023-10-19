@@ -1192,7 +1192,7 @@ static int tasdevice_load_calibrated_data(
 	unsigned int nBlock = 0;
 	struct TBlock *block = NULL;
 
-	dev_info(tas_dev->dev, "%s: TAS2781 load data: %s, Blocks = %d\n",
+	dev_info(tas_dev->dev, "%s: TASDEVICE load data: %s, Blocks = %d\n",
 		__func__,
 		pData->mpName, pData->mnBlocks);
 
@@ -1267,7 +1267,7 @@ int tas2781_load_calibration(void *pContext, char *pFileName,
 		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
 		goto out;
 	}
-	pTasdev->mbCalibrationLoaded = true;
+
 out:
 	if (fw_entry) {
 		release_firmware(fw_entry);
@@ -1355,6 +1355,7 @@ int tasdevice_dspfw_ready(const void *pVoid, void *pContext)
 	case 0x301:
 	case 0x302:
 	case 0x502:
+	case 0x503:
 		tas_dev->fw_parse_variable_header =
 			fw_parse_variable_header_kernel;
 		tas_dev->fw_parse_program_data =
@@ -1513,9 +1514,7 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 	struct tasdevice_fw *pFirmware = tas_dev->fmw;
 	struct TConfiguration *pConfigurations = NULL;
 	struct TProgram *pProgram = NULL;
-	int i = 0;
-	int status = 0;
-	int prog_status = 0;
+	int i = 0, status = 0, prog_status = 0;
 
 	if (pFirmware == NULL) {
 		dev_err(tas_dev->dev, "%s: Firmware is NULL\n", __func__);
@@ -1550,11 +1549,18 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 	pConfigurations = &(pFirmware->mpConfigurations[cfg_no]);
 	for (i = 0; i < tas_dev->ndev; i++) {
 		if (cfg_info[regbin_conf_no]->active_dev & (1 << i)) {
-			if (tas_dev->tasdevice[i].mnCurrentProgram != prm_no) {
+			if (tas_dev->tasdevice[i].prg_download_cnt <
+				TASDEVICE_MAX_DOWNLOAD_CNT &&
+				tas_dev->tasdevice[i].mnCurrentProgram != prm_no) {
+				/* After download fw, dsp config must be redownload */
 				tas_dev->tasdevice[i].mnCurrentConfiguration
 					= -1;
 				tas_dev->tasdevice[i].bLoading = true;
 				prog_status++;
+
+				dev_dbg(tas_dev->dev, "%s: dev-%d cnt = %d\n",
+							__func__, i,
+							tas_dev->tasdevice[i].prg_download_cnt);
 			}
 		} else
 			tas_dev->tasdevice[i].bLoading = false;
@@ -1565,9 +1571,11 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 		pProgram = &(pFirmware->mpPrograms[prm_no]);
 		tasdevice_load_data(tas_dev, &(pProgram->mData));
 		for (i = 0; i < tas_dev->ndev; i++) {
-			if (tas_dev->tasdevice[i].bLoaderr == true)
+			if (tas_dev->tasdevice[i].bLoaderr == true) {
+				tas_dev->tasdevice[i].mnCurrentProgram = -1;
+				tas_dev->tasdevice[i].prg_download_cnt++;
 				continue;
-			else if (tas_dev->tasdevice[i].bLoaderr == false
+			} else if (tas_dev->tasdevice[i].bLoaderr == false
 				&& tas_dev->tasdevice[i].bLoading == true) {
 				struct tasdevice_fw *pCalFirmware =
 					tas_dev->tasdevice[i].mpCalFirmware;
@@ -1588,18 +1596,9 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 		}
 	}
 
-	if(tas_dev->mbCalibrationLoaded == false) {
-		for (i = 0; i < tas_dev->ndev; i++)
-			tas_dev->set_calibration(tas_dev, i, 0x100);
-		tas_dev->mbCalibrationLoaded = true;
-		/* We don't want to reload calibrationdata everytime,
-		this part will work once detected
-		tas_dev->mbCalibrationLoaded == false at first time */
-	}
-
 	for (i = 0; i < tas_dev->ndev; i++) {
-		dev_info(tas_dev->dev, "%s,fun %d,%d,%d\n", __func__,
-			tas_dev->tasdevice[i].mnCurrentConfiguration,
+		dev_dbg(tas_dev->dev, "%s,dsp-conf:%d, active-dev:%d, loaderr:%d\n",
+			__func__, tas_dev->tasdevice[i].mnCurrentConfiguration,
 			cfg_info[regbin_conf_no]->active_dev,
 			tas_dev->tasdevice[i].bLoaderr);
 		if (tas_dev->tasdevice[i].mnCurrentConfiguration != cfg_no
@@ -1615,15 +1614,13 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 		status = 0;
 		tasdevice_load_data(tas_dev, &(pConfigurations->mData));
 		for (i = 0; i < tas_dev->ndev; i++) {
-			if (tas_dev->tasdevice[i].bLoaderr == true) {
+			if (tas_dev->tasdevice[i].mnCurrentProgram == -1) {
 				status |= 1 << (i + 4);
 				continue;
 			} else if (tas_dev->tasdevice[i].bLoaderr == false
-				&& tas_dev->tasdevice[i].bLoading == true) {
+				&& tas_dev->tasdevice[i].bLoading == true)
 				tas_dev->tasdevice[i].mnCurrentConfiguration
 					= cfg_no;
-				tas_dev->tasdevice[i].bDSPBypass = false;
-			}
 		}
 	} else {
 		dev_err(tas_dev->dev,
@@ -1643,21 +1640,23 @@ int tas2781_set_calibration(void *pContext, unsigned short i,
 {
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
 	int nResult = 0;
-	struct Ttasdevice *pTasdev = &(tas_dev->tasdevice[i]);
-	struct tasdevice_fw *pCalFirmware = pTasdev->mpCalFirmware;
+	struct Ttasdevice *tasdevice = &(tas_dev->tasdevice[i]);
+	struct tasdevice_fw *pCalFirmware = tasdevice->mpCalFirmware;
 
 	dev_info(tas_dev->dev, "%s start\n", __func__);
 	if ((!tas_dev->fmw->mpPrograms)
 		|| (!tas_dev->fmw->mpConfigurations)) {
-		dev_err(tas_dev->dev, "%s, Firmware not loaded\n\r", __func__);
-		nResult = 0;
+		dev_err(tas_dev->dev, "%s, Firmware not found\n\r", __func__);
 		goto out;
 	}
 
-	if (nCalibration == 0xFF || (nCalibration == 0x100
-		&& pTasdev->mbCalibrationLoaded == false)) {
+	if (tasdevice->mnCurrentProgram == -1) {
+		dev_dbg(tas_dev->dev, "%s, Firmware prg not loaded\n\r", __func__);
+		goto out;
+	}
+
+	if (nCalibration == 0xFF || nCalibration == 0x100) {
 		if (pCalFirmware) {
-			pTasdev->mbCalibrationLoaded = false;
 			tas2781_clear_Calfirmware(pCalFirmware);
 			pCalFirmware = NULL;
 		}
@@ -1673,8 +1672,6 @@ int tas2781_set_calibration(void *pContext, unsigned short i,
 			nResult = 0;
 		}
 	}
-	pTasdev->bLoading = true;
-	pTasdev->bLoaderr = false;
 
 	if (pCalFirmware) {
 		struct TCalibration *pCalibration =

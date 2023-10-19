@@ -29,7 +29,7 @@ ssize_t regdump_show(struct device *dev,
 ssize_t regdump_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count);
 ssize_t regbininfo_list_show(struct device *dev,
-				struct device_attribute *attr, char *buf);
+	struct device_attribute *attr, char *buf);
 ssize_t regcfg_list_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count);
 ssize_t regcfg_list_show(struct device *dev,
@@ -38,5 +38,8 @@ ssize_t dspfw_config_show(struct device *dev,
 	struct device_attribute *attr, char *buf);
 ssize_t dev_addr_show(struct device *dev,
 	struct device_attribute *attr, char *buf);
-
+ssize_t force_fw_load_chip_show(struct device *dev,
+				struct device_attribute *attr, char *buf);
+ssize_t force_fw_load_chip_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count);
 #endif
