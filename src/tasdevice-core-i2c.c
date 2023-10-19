@@ -41,11 +41,17 @@ static const struct regmap_range_cfg tasdevice_ranges[] = {
 	},
 };
 
+static bool tas2781_volatile(struct device *dev, unsigned int reg)
+{
+	return true;
+}
+
 static const struct regmap_config tasdevice_i2c_regmap = {
 	.reg_bits = 8,
 	.val_bits = 8,
 	.cache_type = REGCACHE_RBTREE,
 	.ranges = tasdevice_ranges,
+	.volatile_reg = tas2781_volatile,
 	.num_ranges = ARRAY_SIZE(tasdevice_ranges),
 	.max_register = 256 * 128,
 };

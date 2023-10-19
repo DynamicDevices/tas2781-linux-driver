@@ -244,15 +244,15 @@ ssize_t active_address_show(struct device *dev,
 
 	if (tas_dev != NULL) {
 #ifdef CONFIG_TASDEV_CODEC_SPI
-		struct spi_device *pClient =
+		struct spi_device *client =
 			(struct spi_device *)tas_dev->client;
 		n  += scnprintf(buf, size,
-			"Active SmartPA - chn0x%02x\n", pClient->chip_select);
+			"Active SmartPA - chn0x%02x\n", client->chip_select);
 #else
-		struct i2c_client *pClient =
+		struct i2c_client *client =
 			(struct i2c_client *)tas_dev->client;
 		n  += scnprintf(buf, size,
-			"Active SmartPA - addr0x%02x\n", pClient->addr);
+			"Active SmartPA - addr0x%02x\n", client->addr);
 #endif
 	}
 	return n;
@@ -269,25 +269,26 @@ ssize_t reg_show(struct device *dev,
 
 	if (tas_dev != NULL) {
 		struct Tsyscmd *pSysCmd = &tas_dev->nSysCmd[RegSettingCmd];
-#ifdef CONFIG_TASDEV_CODEC_SPI
-		struct spi_device *pClient =
-			(struct spi_device *)tas_dev->client;
-#else
-		struct i2c_client *pClient =
-			(struct i2c_client *)tas_dev->client;
-#endif
+
 		if (pSysCmd->bCmdErr == true) {
 			len  += scnprintf(buf, pSysCmd->bufLen,
 				gSysCmdLog[RegSettingCmd]);
 			goto out;
 		}
+
+		if (pSysCmd->mnCurrentChannel >= tas_dev->ndev) {
+			len = scnprintf(buf, PAGE_SIZE,
+				"channel no is invalid\n");
+			goto out;
+		}
 		//15 bytes
 #ifdef CONFIG_TASDEV_CODEC_SPI
 		len  += scnprintf(buf + len, size - len, "spi - chn: 0x%02x\n",
-			pClient->chip_select);
+			client->chip_select);
 #else
 		len  += scnprintf(buf + len, size - len,
-			"i2c - addr: 0x%02x\n", pClient->addr);
+			"i2c - addr: 0x%02x\n",
+			tas_dev->tasdevice[pSysCmd->mnCurrentChannel].mnDevAddr);
 #endif
 		//2560 bytes
 
@@ -412,15 +413,6 @@ ssize_t regdump_show(struct device *dev,
 		int i;
 		const int size = PAGE_SIZE;
 
-#ifdef CONFIG_TASDEV_CODEC_SPI
-		struct spi_device *pClient =
-			(struct spi_device *)tas_dev->client;
-#else
-		struct i2c_client *pClient =
-			(struct i2c_client *)tas_dev->client;
-#endif
-
-
 		int data = 0;
 		int n_result = 0;
 		struct Tsyscmd *pSysCmd = &tas_dev->nSysCmd[RegDumpCmd];
@@ -430,14 +422,22 @@ ssize_t regdump_show(struct device *dev,
 				gSysCmdLog[RegDumpCmd]);
 			goto out;
 		}
+
+		if (pSysCmd->mnCurrentChannel >= tas_dev->ndev) {
+			len = scnprintf(buf, PAGE_SIZE,
+				"channel no is invalid\n");
+			goto out;
+		}
+
 		//20 bytes
 		if (len + 20 <= size)
 #ifdef CONFIG_TASDEV_CODEC_SPI
 			len  += scnprintf(buf + len, size - len,
-				"addr: 0x%02x\n\r", pClient->chip_select);
+				"addr: 0x%02x\n\r", client->chip_select);
 #else
 			len  += scnprintf(buf + len, size - len,
-				"addr: 0x%02x\n\r", pClient->addr);
+				"addr: 0x%02x\n\r",
+				tas_dev->tasdevice[pSysCmd->mnCurrentChannel].mnDevAddr);
 #endif
 		else {
 			scnprintf(buf + PAGE_SIZE - 64, 64,
@@ -498,11 +498,11 @@ ssize_t regdump_store(struct device *dev,
 		return count;
 	pSysCmd = &tas_dev->nSysCmd[RegDumpCmd];
 	pSysCmd->bufLen = snprintf(gSysCmdLog[RegDumpCmd],
-		256, "command: echo chn 0xBK 0xPG > NODE\n "
+		256, "command: echo chn 0xBK 0xPG > NODE\n"
 		"chn is channel no, 1 - digital;"
 		"BK & PG must be 2 - digital HEX\n"
 		"PG must be 2 - digital HEX and less than or equeal to 4.\n"
-		"eg: echo 0x00\n\r");
+		"eg: echo 2 0x00 0x00\n\r");
 
 	if (count > 9) {
 		temp = kmalloc(count, GFP_KERNEL);
@@ -537,8 +537,8 @@ ssize_t regdump_store(struct device *dev,
 		pSysCmd->bufLen = 0;
 	} else {
 		pSysCmd->bCmdErr = true;
-		pSysCmd->bufLen  += snprintf(gSysCmdLog[RegDumpCmd],
-			30, "Input params must be 3!\n\r");
+		pSysCmd->bufLen  += snprintf(&gSysCmdLog[RegDumpCmd][pSysCmd->bufLen],
+			40, "Input params less than 9 bytes!\n\r");
 		dev_err(tas_dev->dev, "[regdump] count error.\n");
 	}
 out:

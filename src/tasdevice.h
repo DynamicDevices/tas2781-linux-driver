@@ -176,7 +176,6 @@ enum syscmds {
 	RegSettingCmd = 0,
 	RegDumpCmd	= 1,
 	RegCfgListCmd = 2,
-	CalBinListCmd = 3,
 	MaxCmd
 };
 

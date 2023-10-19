@@ -160,6 +160,7 @@ static int tasdevice_change_chn_book(
 		if(addr_chg == false && tasdev->cur_book == book)
 			goto out;
 
+		if (tasdev->cur_book != book)
 		/* addr_chg || tasdev->cur_book != book */
 		ret =  tasdevice_regmap_write(tas_priv,
 					TASDEVICE_PAGE_SELECT, 0);

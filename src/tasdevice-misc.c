@@ -283,6 +283,7 @@ static long tasdevice_ioctl(struct file *f,
 	case TILOAD_IOC_MAGIC_SET_DEFAULT_CALIB_PRI:
 		break;
 	case TILOAD_IOC_MAGIC_POWER_OFF:
+		mutex_lock(&tas_dev->codec_lock);
 		if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
 				tasdevice_enable_irq(tas_dev, false);
 		tasdevice_select_cfg_blk(tas_dev, tas_dev->cur_conf,
@@ -291,6 +292,7 @@ static long tasdevice_ioctl(struct file *f,
 			"=0x%08x: regscene = %d\n", __func__, __LINE__,
 			TILOAD_IOC_MAGIC_POWER_OFF,
 			tas_dev->mtRegbin.profile_cfg_id);
+		mutex_unlock(&tas_dev->codec_lock);
 		break;
 	case TILOAD_IOC_MAGIC_POWERON:
 		{
