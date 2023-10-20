@@ -412,6 +412,9 @@ static long tasdevice_compat_ioctl(struct file *f,
 	case TILOAD_IOC_MAGIC_POWERON_COMPAT:
 		cmd64 = TILOAD_IOC_MAGIC_POWERON;
 		break;
+	case TILOAD_COMPAT_IOCTL_SET_CONFIG:
+		cmd64 = TILOAD_IOCTL_SET_CONFIG;
+		break;
 	default:
 		dev_info(tas_dev->dev, "%s:COMMAND = 0x%08x Not Imple\n",
 			__func__, cmd);
