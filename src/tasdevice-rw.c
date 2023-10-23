@@ -160,12 +160,14 @@ static int tasdevice_change_chn_book(
 		if(addr_chg == false && tasdev->cur_book == book)
 			goto out;
 
-		ret = tasdevice_regmap_write(tas_priv,
-					TASDEVICE_PAGE_SELECT, 0);
-		if (ret < 0) {
-			dev_err(tas_priv->dev, "%s, E=%d\n",
-				__func__, ret);
-			goto out;
+		if (addr_chg) {
+			ret =  tasdevice_regmap_write(tas_priv,
+							TASDEVICE_PAGE_SELECT, 0);
+			if (ret < 0) {
+				dev_err(tas_priv->dev, "%s, E=%d\n",
+					__func__, ret);
+				goto out;
+			}
 		}
 
 		if (tasdev->cur_book != book) {
