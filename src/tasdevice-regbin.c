@@ -602,7 +602,7 @@ static struct tasdevice_config_info *tasdevice_add_config(
 		if (cfg_info->blk_data[i]->block_type  ==
 			TASDEVICE_BIN_BLK_PRE_POWER_UP) {
 			if (0 == cfg_info->blk_data[i]->dev_idx)
-				cfg_info->active_dev |= 1;
+				cfg_info->active_dev = (1 << tas_dev->ndev) - 1;
 			else
 				cfg_info->active_dev |= (1 << (cfg_info->blk_data[i]->dev_idx
 					- 1));

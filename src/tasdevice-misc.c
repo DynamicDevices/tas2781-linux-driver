@@ -226,22 +226,8 @@ static long tasdevice_ioctl(struct file *f,
 
 			for (i = 0; i < tas_dev->ndev; i++) {
 				if (tas_dev->tasdevice[i].mnDevAddr == addr) {
-#ifdef CONFIG_TASDEV_CODEC_SPI
-					struct spi_device *pClient =
-						(struct spi_device *)
-						tas_dev->client;
-					pClient->chip_select = addr;
-#else
-					struct i2c_client *pClient =
-						(struct i2c_client *)
-						tas_dev->client;
-
-					pClient->addr = addr;
-#endif
 					tas_dev->rwinfo.mnCurrentChannel = i;
-
-					dev_info(tas_dev->dev,
-						"TILOAD_IOCTL_SET_CHL(%d) = "
+					dev_info(tas_dev->dev, "TILOAD_IOCTL_SET_CHL(%d) = "
 						"0x%x\n", i, addr);
 					break;
 				}
