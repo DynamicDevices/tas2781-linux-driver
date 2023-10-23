@@ -157,10 +157,10 @@ static int tasdevice_change_chn_book(
 			addr_chg = true;
 		}
 #endif
-		if(addr_chg == false && tasdev->cur_book == book)
+		if (addr_chg == false && tasdev->cur_book == book)
 			goto out;
 
-		if (addr_chg) {
+		if (addr_chg && tasdev->cur_book == book) {
 			ret =  tasdevice_regmap_write(tas_priv,
 							TASDEVICE_PAGE_SELECT, 0);
 			if (ret < 0) {
@@ -168,18 +168,17 @@ static int tasdevice_change_chn_book(
 					__func__, ret);
 				goto out;
 			}
+			goto out;
 		}
 
-		if (tasdev->cur_book != book) {
-			ret = tasdevice_regmap_write(tas_priv,
-				TASDEVICE_BOOKCTL_REG, book);
-			if (ret < 0) {
-				dev_err(tas_priv->dev, "%s, ERROR, E=%d\n",
-					__func__, ret);
-				goto out;
-			}
-			tasdev->cur_book = book;
+		ret = tasdevice_regmap_write(tas_priv,
+			TASDEVICE_BOOKCTL_REG, book);
+		if (ret < 0) {
+			dev_err(tas_priv->dev, "%s, ERROR, E=%d\n",
+				__func__, ret);
+			goto out;
 		}
+		tasdev->cur_book = book;
 	} else if (chn == tas_priv->ndev) {
 		int i = 0;
 
