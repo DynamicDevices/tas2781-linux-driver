@@ -144,14 +144,13 @@ static ssize_t tasdevice_write(struct file *file, const char *buf,
 
 	nCompositeRegister = TASDEVICE_REG(tas_dev->rwinfo.mBook,
 		tas_dev->rwinfo.mPage, nRegister);
-	if (count == 2) {
+	if (count == 2)
 		ret = tas_dev->write(tas_dev, tas_dev->rwinfo.mnCurrentChannel,
 					nCompositeRegister, pData[1]);
-	} else if (count > 2) {
+	else if (count > 2)
 		ret = tas_dev->bulk_write(tas_dev,
 			tas_dev->rwinfo.mnCurrentChannel,
 			nCompositeRegister, &pData[1], count-1);
-	}
 
 	if (ret < 0) {
 		size = ret;
@@ -224,14 +223,14 @@ static long tasdevice_ioctl(struct file *f,
 			dev_info(tas_dev->dev,
 				"%s, cmd=TILOAD_IOCTL_SET_CHL\n", __func__);
 
-			for (i = 0; i < tas_dev->ndev; i++) {
+			for (i = 0; i < tas_dev->ndev; i++)
 				if (tas_dev->tasdevice[i].mnDevAddr == addr) {
 					tas_dev->rwinfo.mnCurrentChannel = i;
 					dev_info(tas_dev->dev, "TILOAD_IOCTL_SET_CHL(%d) = "
 						"0x%x\n", i, addr);
 					break;
 				}
-			}
+
 			if (i == tas_dev->ndev)
 				dev_err(tas_dev->dev, "TILOAD_IOCTL_SET_CHL: "
 					"err\n\r");
@@ -245,12 +244,11 @@ static long tasdevice_ioctl(struct file *f,
 		if (ret  == 0)
 			for (i = 0; i < tas_dev->ndev; i++)
 				tas_dev->set_calibration(tas_dev, i, val);
-		else {
+		else
 			dev_err(tas_dev->dev,
 				"%s: error copy from user "
 				"cmd=TILOAD_IOCTL_SET_CALIBRATION=0x%08x\n",
 				__func__, TILOAD_IOCTL_SET_CALIBRATION);
-		}
 		break;
 	case TILOAD_IOC_MAGIC_PA_INFO_GET:
 		{
