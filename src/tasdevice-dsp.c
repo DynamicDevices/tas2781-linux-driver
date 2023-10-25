@@ -1213,7 +1213,7 @@ int tas2781_load_calibration(void *pContext, char *pFileName,
 	struct firmware FW;
 	const struct firmware *fw_entry = NULL;
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *)pContext;
-	struct Ttasdevice *pTasdev = &(tas_dev->tasdevice[i]);
+	struct tasdevice_t *pTasdev = &(tas_dev->tasdevice[i]);
 	struct tasdevice_fw *mpCalFirmware = NULL;
 
 	dev_info(tas_dev->dev, "%s: enter\n", __func__);
@@ -1406,7 +1406,7 @@ out:
 void tasdevice_calbin_remove(void *pContext)
 {
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
-	struct Ttasdevice *pTasdev = NULL;
+	struct tasdevice_t *pTasdev = NULL;
 	int i = 0;
 
 	if (tas_dev) {
@@ -1640,7 +1640,7 @@ int tas2781_set_calibration(void *pContext, unsigned short i,
 {
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
 	int nResult = 0;
-	struct Ttasdevice *tasdevice = &(tas_dev->tasdevice[i]);
+	struct tasdevice_t *tasdevice = &(tas_dev->tasdevice[i]);
 	struct tasdevice_fw *pCalFirmware = tasdevice->mpCalFirmware;
 
 	dev_info(tas_dev->dev, "%s start\n", __func__);

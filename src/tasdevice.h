@@ -27,11 +27,11 @@
 	#include <linux/compat.h>
 #endif
 
-#define MAX_LENGTH				(128)
-
-#define TASDEVICE_RETRY_COUNT	(3)
-#define TASDEVICE_ERROR_FAILED	(-2)
-#define TASDEVICE_MAX_DOWNLOAD_CNT	3
+#define MAX_LENGTH						128
+#define TASDEVICE_CALIBRATION_PROFILE	1
+#define TASDEVICE_RETRY_COUNT			3
+#define TASDEVICE_ERROR_FAILED			-2
+#define TASDEVICE_MAX_DOWNLOAD_CNT		3
 
 #define TASDEVICE_RATES	(SNDRV_PCM_RATE_44100 |\
 	SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_96000 |\
@@ -142,7 +142,7 @@ struct BPR {
 	unsigned char nRegister;
 };
 
-struct Ttasdevice {
+struct tasdevice_t {
 	unsigned int mnDevAddr;
 	unsigned int mnErrCode;
 	unsigned char cur_book;
@@ -210,7 +210,7 @@ struct tasdevice_priv {
 	struct miscdevice misc_dev;
 	struct mutex dev_lock;
 	struct mutex file_lock;
-	struct Ttasdevice tasdevice[TASDEVICE_MAX_CHANNELS];
+	struct tasdevice_t tasdevice[TASDEVICE_MAX_CHANNELS];
 	struct Trwinfo rwinfo;
 	struct Tsyscmd nSysCmd[MaxCmd];
 	struct tasdevice_fw *fmw;
@@ -282,6 +282,8 @@ void tasdevice_parse_dt_reset_irq_pin(
 void tasdevice_remove(struct tasdevice_priv *tas_dev);
 void tasdevice_enable_irq(
 	struct tasdevice_priv *tas_dev, bool enable);
+void tasdevice_force_dsp_download(
+	struct tasdevice_priv *tas_dev);
 void tas2781_irq_work_func(struct tasdevice_priv *tas_dev);
 void tas2563_irq_work_func(struct tasdevice_priv *tas_dev);
 

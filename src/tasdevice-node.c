@@ -787,19 +787,13 @@ ssize_t force_fw_load_chip_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct tasdevice_priv *tas_dev = dev_get_drvdata(dev);
-	struct Ttasdevice *tasdevice;
-	int i = 0;
 
 	mutex_unlock(&tas_dev->codec_lock);
 
 	if (tas_dev == NULL)
 		goto out;
 
-	for (i = 0; i < tas_dev->ndev; i++) {
-		tasdevice = &(tas_dev->tasdevice[i]);
-		tasdevice->prg_download_cnt = 0;
-		tasdevice->mnCurrentProgram = -1;
-	}
+	tasdevice_force_dsp_download(tas_dev);
 
 out:
 	mutex_unlock(&tas_dev->codec_lock);
@@ -811,7 +805,7 @@ ssize_t force_fw_load_chip_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	struct tasdevice_priv *tas_dev = dev_get_drvdata(dev);
-	struct Ttasdevice *tasdevice;
+	struct tasdevice_t *tasdevice;
 	int n = 0, i = 0;
 
 	if (tas_dev != NULL) {

@@ -276,6 +276,9 @@ static long tasdevice_ioctl(struct file *f,
 			"=0x%08x: regscene = %d\n", __func__, __LINE__,
 			TILOAD_IOC_MAGIC_POWER_OFF,
 			tas_dev->mtRegbin.profile_cfg_id);
+		if (tas_dev->mtRegbin.profile_cfg_id ==
+				TASDEVICE_CALIBRATION_PROFILE)
+			tasdevice_force_dsp_download(tas_dev);
 		mutex_unlock(&tas_dev->codec_lock);
 		break;
 	case TILOAD_IOC_MAGIC_POWERON:

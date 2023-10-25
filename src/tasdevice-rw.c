@@ -138,7 +138,7 @@ static int tasdevice_change_chn_book(
 #endif
 
 	if (chn < tas_priv->ndev) {
-		struct Ttasdevice *tasdev = &tas_priv->tasdevice[chn];
+		struct tasdevice_t *tasdev = &tas_priv->tasdevice[chn];
 		bool addr_chg = false;
 
 #ifdef CONFIG_TASDEV_CODEC_SPI

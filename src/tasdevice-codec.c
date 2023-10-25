@@ -260,6 +260,18 @@ void powercontrol_routine(struct work_struct *work)
 	dev_info(tas_dev->dev, "%s: leave\n", __func__);
 }
 
+void tasdevice_force_dsp_download(struct tasdevice_priv *tas_dev)
+{
+	struct tasdevice_t *tasdevice;
+	int i;
+
+	for (i = 0; i < tas_dev->ndev; i++) {
+		tasdevice = &(tas_dev->tasdevice[i]);
+		tasdevice->prg_download_cnt = 0;
+		tasdevice->mnCurrentProgram = -1;
+	}
+}
+
 static void tasdevice_set_power_state(
 	struct tasdevice_priv *tas_dev, int state)
 {
@@ -275,6 +287,9 @@ static void tasdevice_set_power_state(
 			tasdevice_select_cfg_blk(tas_dev,
 				tas_dev->mtRegbin.profile_cfg_id,
 				TASDEVICE_BIN_BLK_PRE_SHUTDOWN);
+			if (tas_dev->mtRegbin.profile_cfg_id ==
+				TASDEVICE_CALIBRATION_PROFILE)
+				tasdevice_force_dsp_download(tas_dev);
 		}
 		break;
 	}
