@@ -235,7 +235,6 @@ void powercontrol_routine(struct work_struct *work)
 		powercontrol_work.work);
 	struct tasdevice_fw *fw = tas_dev->fmw;
 	int profile_cfg_id = tas_dev->mtRegbin.profile_cfg_id;
-	int is_set_glb_mode;
 
 	dev_info(tas_dev->dev, "%s: enter\n", __func__);
 
@@ -245,10 +244,8 @@ void powercontrol_routine(struct work_struct *work)
 		/*dsp mode or tuning mode*/
 		dev_info(tas_dev->dev, "%s: %s\n", __func__,
 			fw->mpConfigurations[tas_dev->cur_conf].mpName);
-		is_set_glb_mode = tasdevice_select_tuningprm_cfg(tas_dev,
-			tas_dev->cur_prog, tas_dev->cur_conf, profile_cfg_id);
-		if (is_set_glb_mode && tas_dev->set_global_mode)
-			tas_dev->set_global_mode(tas_dev);
+		tasdevice_select_tuningprm_cfg(tas_dev, tas_dev->cur_prog,
+			tas_dev->cur_conf, profile_cfg_id);
 	}
 
 	tasdevice_select_cfg_blk(tas_dev, profile_cfg_id,

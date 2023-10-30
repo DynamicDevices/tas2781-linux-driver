@@ -115,7 +115,7 @@ struct TConfiguration {
 	struct TData mData;
 };
 
-struct TCalibration {
+struct calibration_t {
 	char mpName[64];
 	char *mpDescription;
 	unsigned int mnProgram;
@@ -132,7 +132,7 @@ struct tasdevice_fw {
 	unsigned short nr_configurations;
 	struct TConfiguration *mpConfigurations;
 	unsigned short mnCalibrations;
-	struct TCalibration *mpCalibrations;
+	struct calibration_t *mpCalibrations;
 	bool bKernelFormat;
 };
 

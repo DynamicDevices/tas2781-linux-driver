@@ -646,14 +646,13 @@ out:
 void tasdevice_regbin_ready(const struct firmware *pFW,
 	void *pContext)
 {
-	struct tasdevice_priv *tas_dev =
-		(struct tasdevice_priv *) pContext;
-	int offset = 0, i, j, ret = 0, is_set_glb_mode;
+	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
 	struct tasdevice_config_info **cfg_info;
 	struct tasdevice_regbin_hdr *fw_hdr;
 	struct tasdevice_regbin *regbin;
 	const struct firmware *fw_entry;
 	unsigned int total_config_sz = 0;
+	int offset = 0, i, j, ret = 0;
 	unsigned char *buf = NULL;
 
 	if (tas_dev == NULL) {
@@ -739,8 +738,7 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 		ret = -1;
 		goto out;
 	}
-	cfg_info = kcalloc(fw_hdr->nconfig,
-		sizeof(struct tasdevice_config_info *),
+	cfg_info = kcalloc(fw_hdr->nconfig, sizeof(struct tasdevice_config_info *),
 		GFP_KERNEL);
 
 	if (!cfg_info) {
@@ -807,12 +805,9 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 		}
 	}
 
-	is_set_glb_mode =
-		tasdevice_select_tuningprm_cfg(tas_dev,
-			tas_dev->cur_prog, tas_dev->cur_conf,
-			0);
-	if (is_set_glb_mode && tas_dev->set_global_mode)
-		tas_dev->set_global_mode(tas_dev);
+	tasdevice_select_tuningprm_cfg(tas_dev, tas_dev->cur_prog,
+		tas_dev->cur_conf, 0);
+
 out:
 	mutex_unlock(&tas_dev->codec_lock);
 	if (pFW)

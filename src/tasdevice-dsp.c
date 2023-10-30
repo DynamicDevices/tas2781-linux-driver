@@ -99,20 +99,19 @@ const char *devicelist[TASDEVICE_DSP_TAS_MAX_DEVICE] = {
 	"TAS2781 Quad"
 };
 
-static inline void tas2781_clear_Calfirmware(struct tasdevice_fw
+static inline void tas2781_clear_calfirmware(struct tasdevice_fw
 	*mpCalFirmware)
 {
 	int i = 0;
 	unsigned int nBlock = 0;
 
 	if (mpCalFirmware->mpCalibrations) {
-		struct TCalibration *pCalibration;
+		struct calibration_t *cal;
 
 		for (i = 0; i < mpCalFirmware->mnCalibrations; i++) {
-			pCalibration = &(mpCalFirmware->mpCalibrations[i]);
-			if (pCalibration) {
-				struct TData *pImageData =
-					&(pCalibration->mData);
+			cal = &(mpCalFirmware->mpCalibrations[i]);
+			if (cal) {
+				struct TData *pImageData = &(cal->mData);
 
 				if (pImageData->mpBlocks) {
 					struct TBlock *pBlock;
@@ -124,12 +123,12 @@ static inline void tas2781_clear_Calfirmware(struct tasdevice_fw
 							mpBlocks[nBlock]);
 						kfree(pBlock->mpData);
 					}
-				kfree(pImageData->mpBlocks);
+					kfree(pImageData->mpBlocks);
 				}
-				if((pImageData->mpDescription))
+				if (pImageData->mpDescription)
 					kfree(pImageData->mpDescription);
-				if((pCalibration->mpDescription))
-					kfree(pCalibration->mpDescription);
+				if (cal->mpDescription)
+					kfree(cal->mpDescription);
 			}
 		}
 		kfree(mpCalFirmware->mpCalibrations);
@@ -274,7 +273,7 @@ static int fw_parse_calibration_data(struct tasdevice_fw *pFirmware,
 {
 	unsigned char *data = (unsigned char *)fmw->data;
 	unsigned int nCalibration = 0;
-	struct TCalibration *pCalibration = NULL;
+	struct calibration_t *cal = NULL;
 
 	if (offset + 2 > fmw->size) {
 		pr_err("%s: File Size error\n", __func__);
@@ -291,7 +290,7 @@ static int fw_parse_calibration_data(struct tasdevice_fw *pFirmware,
 	}
 
 	pFirmware->mpCalibrations =
-		kcalloc(pFirmware->mnCalibrations, sizeof(struct TCalibration),
+		kcalloc(pFirmware->mnCalibrations, sizeof(struct calibration_t),
 			GFP_KERNEL);
 	if (pFirmware->mpCalibrations == NULL) {
 		pr_err("%s: mpCalibrations memory failed!\n", __func__);
@@ -307,8 +306,8 @@ static int fw_parse_calibration_data(struct tasdevice_fw *pFirmware,
 			offset = -1;
 			goto out;
 		}
-		pCalibration = &(pFirmware->mpCalibrations[nCalibration]);
-		memcpy(pCalibration->mpName, &data[offset], 64);
+		cal = &(pFirmware->mpCalibrations[nCalibration]);
+		memcpy(cal->mpName, &data[offset], 64);
 		offset  += 64;
 
 		n = strlen((char *)&data[offset]);
@@ -318,14 +317,14 @@ static int fw_parse_calibration_data(struct tasdevice_fw *pFirmware,
 			offset = -1;
 			goto out;
 		}
-		pCalibration->mpDescription = kmemdup(&data[offset], n,
+		cal->mpDescription = kmemdup(&data[offset], n,
 			GFP_KERNEL);
-		if (pCalibration->mpDescription == NULL) {
+		if (cal->mpDescription == NULL) {
 			pr_err("%s: mpPrograms memory failed!\n", __func__);
 			offset = -1;
 			goto out;
 		}
-		offset  += n;
+		offset += n;
 
 		if (offset + 1 > fmw->size) {
 			pr_err("%s: File Size error, offset = %d\n", __func__,
@@ -333,7 +332,7 @@ static int fw_parse_calibration_data(struct tasdevice_fw *pFirmware,
 			offset = -1;
 			goto out;
 		}
-		pCalibration->mnProgram = data[offset];
+		cal->mnProgram = data[offset];
 		offset++;
 
 		if (offset + 1 > fmw->size) {
@@ -342,10 +341,10 @@ static int fw_parse_calibration_data(struct tasdevice_fw *pFirmware,
 			offset = -1;
 			goto out;
 		}
-		pCalibration->mnConfiguration = data[offset];
+		cal->mnConfiguration = data[offset];
 		offset++;
 
-		offset = fw_parse_data(pFirmware, &(pCalibration->mData), fmw,
+		offset = fw_parse_data(pFirmware, &(cal->mData), fmw,
 			offset);
 		if (offset < 0)
 			goto out;
@@ -1413,8 +1412,7 @@ void tasdevice_calbin_remove(void *pContext)
 		for (i = 0; i < tas_dev->ndev; i++) {
 			pTasdev = &(tas_dev->tasdevice[i]);
 			if (pTasdev->mpCalFirmware) {
-				tas2781_clear_Calfirmware(
-					pTasdev->mpCalFirmware);
+				tas2781_clear_calfirmware(pTasdev->mpCalFirmware);
 				pTasdev->mpCalFirmware = NULL;
 			}
 		}
@@ -1553,14 +1551,12 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 				TASDEVICE_MAX_DOWNLOAD_CNT &&
 				tas_dev->tasdevice[i].mnCurrentProgram != prm_no) {
 				/* After download fw, dsp config must be redownload */
-				tas_dev->tasdevice[i].mnCurrentConfiguration
-					= -1;
+				tas_dev->tasdevice[i].mnCurrentConfiguration = -1;
 				tas_dev->tasdevice[i].bLoading = true;
 				prog_status++;
 
-				dev_dbg(tas_dev->dev, "%s: dev-%d cnt = %d\n",
-							__func__, i,
-							tas_dev->tasdevice[i].prg_download_cnt);
+				dev_dbg(tas_dev->dev, "%s: dev-%d cnt = %d\n", __func__,
+					i, tas_dev->tasdevice[i].prg_download_cnt);
 			}
 		} else
 			tas_dev->tasdevice[i].bLoading = false;
@@ -1577,18 +1573,16 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 				continue;
 			} else if (tas_dev->tasdevice[i].bLoaderr == false
 				&& tas_dev->tasdevice[i].bLoading == true) {
-				struct tasdevice_fw *pCalFirmware =
+				struct tasdevice_fw *cal_fw =
 					tas_dev->tasdevice[i].mpCalFirmware;
 
-				if (pCalFirmware) {
-					struct TCalibration *pCalibration =
-						pCalFirmware->mpCalibrations;
+				if (cal_fw) {
+					struct calibration_t *cal =
+						cal_fw->mpCalibrations;
 
-					if (pCalibration)
+					if (cal)
 						tasdevice_load_calibrated_data(
-							tas_dev,
-							&(pCalibration->
-							mData));
+							tas_dev, &(cal->mData));
 				}
 				tas_dev->tasdevice[i].mnCurrentProgram
 					= prm_no;
@@ -1631,6 +1625,11 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 	status |= cfg_info[regbin_conf_no]->active_dev;
 	dev_info(tas_dev->dev, "%s: DSP mode: load status is %08x\n",
 		__func__, status);
+
+	/* After downloading program, global mode will be reset.
+	 */
+	if (prog_status && tas_dev->set_global_mode)
+			tas_dev->set_global_mode(tas_dev);
 out:
 	return prog_status;
 }
@@ -1639,9 +1638,9 @@ int tas2781_set_calibration(void *pContext, unsigned short i,
 	int nCalibration)
 {
 	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
-	int nResult = 0;
 	struct tasdevice_t *tasdevice = &(tas_dev->tasdevice[i]);
-	struct tasdevice_fw *pCalFirmware = tasdevice->mpCalFirmware;
+	struct tasdevice_fw *cal_fw = tasdevice->mpCalFirmware;
+	int nResult = 0;
 
 	dev_info(tas_dev->dev, "%s start\n", __func__);
 	if ((!tas_dev->fmw->mpPrograms)
@@ -1656,9 +1655,9 @@ int tas2781_set_calibration(void *pContext, unsigned short i,
 	}
 
 	if (nCalibration == 0xFF || nCalibration == 0x100) {
-		if (pCalFirmware) {
-			tas2781_clear_Calfirmware(pCalFirmware);
-			pCalFirmware = NULL;
+		if (cal_fw) {
+			tas2781_clear_calfirmware(cal_fw);
+			cal_fw = NULL;
 		}
 
 		scnprintf(tas_dev->cal_binaryname[i], 64, "%s-0x%02x-cal.bin",
@@ -1673,13 +1672,11 @@ int tas2781_set_calibration(void *pContext, unsigned short i,
 		}
 	}
 
-	if (pCalFirmware) {
-		struct TCalibration *pCalibration =
-			pCalFirmware->mpCalibrations;
+	if (cal_fw) {
+		struct calibration_t *cal = cal_fw->mpCalibrations;
 
-		if (pCalibration)
-			tasdevice_load_calibrated_data(tas_dev,
-				&(pCalibration->mData));
+		if (cal)
+			tasdevice_load_calibrated_data(tas_dev, &(cal->mData));
 	} else
 		dev_err(tas_dev->dev,
 			"%s: No calibrated data for device %d\n", __func__, i);
