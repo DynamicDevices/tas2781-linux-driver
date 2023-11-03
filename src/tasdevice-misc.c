@@ -267,24 +267,33 @@ static long tasdevice_ioctl(struct file *f,
 	case TILOAD_IOC_MAGIC_SET_DEFAULT_CALIB_PRI:
 		break;
 	case TILOAD_IOC_MAGIC_POWER_OFF:
-		mutex_lock(&tas_dev->codec_lock);
-		if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
+		if (tas_dev->pstream != 0 && tas_dev->pstream == 0) {
+			tas_dev->pstream = 0;
+			mutex_lock(&tas_dev->codec_lock);
+			if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
 				tasdevice_enable_irq(tas_dev, false);
-		tasdevice_select_cfg_blk(tas_dev, tas_dev->cur_conf,
-			TASDEVICE_BIN_BLK_PRE_SHUTDOWN);
-		dev_info(tas_dev->dev, "%s:%u: cmd=TILOAD_IOC_MAGIC_POWER_OFF"
-			"=0x%08x: regscene = %d\n", __func__, __LINE__,
-			TILOAD_IOC_MAGIC_POWER_OFF,
-			tas_dev->mtRegbin.profile_cfg_id);
-		if (tas_dev->mtRegbin.profile_cfg_id ==
-				TASDEVICE_CALIBRATION_PROFILE)
-			tasdevice_force_dsp_download(tas_dev);
-		mutex_unlock(&tas_dev->codec_lock);
+			tasdevice_select_cfg_blk(tas_dev, tas_dev->cur_conf,
+				TASDEVICE_BIN_BLK_PRE_SHUTDOWN);
+			dev_info(tas_dev->dev, "%s:%u: cmd=TILOAD_IOC_MAGIC_POWER_OFF"
+				"=0x%08x: regscene = %d\n", __func__, __LINE__,
+				TILOAD_IOC_MAGIC_POWER_OFF,
+				tas_dev->mtRegbin.profile_cfg_id);
+			if (tas_dev->mtRegbin.profile_cfg_id ==
+					TASDEVICE_CALIBRATION_PROFILE)
+				tasdevice_force_dsp_download(tas_dev);
+			mutex_unlock(&tas_dev->codec_lock);
+		} else
+			dev_info(tas_dev->dev, "%s:%u: AMP is already power off\n",
+				__func__, __LINE__);
 		break;
 	case TILOAD_IOC_MAGIC_POWERON:
 		{
 			struct smartpa_params param;
 
+			dev_info(tas_dev->dev, "%s:%u: pstream is %d\n",
+				__func__, __LINE__, tas_dev->pstream);
+
+			tas_dev->pstream = 1;
 			ret = copy_from_user(&param, arg,
 				sizeof(struct smartpa_params));
 			if(ret == 0) {
