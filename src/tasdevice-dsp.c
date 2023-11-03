@@ -1591,7 +1591,7 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 	}
 
 	for (i = 0; i < tas_dev->ndev; i++) {
-		dev_dbg(tas_dev->dev, "%s,dsp-conf:%d, active-dev:%d, loaderr:%d\n",
+		dev_info(tas_dev->dev, "%s,dsp-conf:%d, active-dev:%d, loaderr:%d\n",
 			__func__, tas_dev->tasdevice[i].mnCurrentConfiguration,
 			cfg_info[regbin_conf_no]->active_dev,
 			tas_dev->tasdevice[i].bLoaderr);
@@ -1616,13 +1616,11 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 				tas_dev->tasdevice[i].mnCurrentConfiguration
 					= cfg_no;
 		}
-	} else {
-		dev_err(tas_dev->dev,
+	} else
+		dev_info(tas_dev->dev,
 			"%s: No device is in active in conf %d\n",
 			__func__, regbin_conf_no);
-	}
 
-	status |= cfg_info[regbin_conf_no]->active_dev;
 	dev_info(tas_dev->dev, "%s: DSP mode: load status is %08x\n",
 		__func__, status);
 

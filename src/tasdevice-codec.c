@@ -238,6 +238,12 @@ void powercontrol_routine(struct work_struct *work)
 
 	dev_info(tas_dev->dev, "%s: enter\n", __func__);
 
+	if (tas_dev->pstream == 0 && tas_dev->cstream == 0) {
+		dev_info(tas_dev->dev,
+			"%s: power off has been done before power on has been executed\n",
+			__func__);
+		goto out;
+	}
 	mutex_lock(&tas_dev->codec_lock);
 
 	if (fw && tas_dev->cur_prog == 0) {
@@ -254,6 +260,7 @@ void powercontrol_routine(struct work_struct *work)
 	if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
 		tasdevice_enable_irq(tas_dev, true);
 	mutex_unlock(&tas_dev->codec_lock);
+out:
 	dev_info(tas_dev->dev, "%s: leave\n", __func__);
 }
 
