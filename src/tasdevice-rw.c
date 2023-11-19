@@ -128,7 +128,6 @@ static int tasdevice_regmap_update_bits(
 static int tasdevice_change_chn_book(
 	struct tasdevice_priv *tas_priv, unsigned short chn, int book)
 {
-	int ret = 0;
 #ifdef CONFIG_TASDEV_CODEC_SPI
 	struct spi_device *clnt =
 		(struct spi_device *)tas_priv->client;
@@ -136,15 +135,16 @@ static int tasdevice_change_chn_book(
 	struct i2c_client *clnt =
 		(struct i2c_client *)tas_priv->client;
 #endif
+	bool chip_switching = false;
+	int ret = 0;
 
 	if (chn < tas_priv->ndev) {
 		struct tasdevice_t *tasdev = &tas_priv->tasdevice[chn];
-		bool addr_chg = false;
 
 #ifdef CONFIG_TASDEV_CODEC_SPI
 		if (clnt->chip_select != tasdev->mnDevAddr) {
 			clnt->chip_select = tasdev->mnDevAddr;
-			addr_chg = true;
+			chip_switching = true;
 		}
 #else
 		if (tas_priv->glb_addr.ref_cnt != 0) {
@@ -154,31 +154,32 @@ static int tasdevice_change_chn_book(
 
 		if (clnt->addr != tasdev->mnDevAddr) {
 			clnt->addr = tasdev->mnDevAddr;
-			addr_chg = true;
+			chip_switching = true;
 		}
 #endif
-		if (addr_chg == false && tasdev->cur_book == book)
-			goto out;
-
-		if (addr_chg && tasdev->cur_book == book) {
-			ret =  tasdevice_regmap_write(tas_priv,
-							TASDEVICE_PAGE_SELECT, 0);
+		if (tasdev->cur_book == book) {
+			if (chip_switching) {
+				/* All tas2781s share the same regmap, clear the page
+				 * inside regmap once switching to another tas2781.
+				 * Register 0 at any pages and any books inside tas2781
+				 * is the same one for page-switching. Book has already
+				 * inside the current tas2781.
+				 */
+				ret = tasdevice_regmap_write(tas_priv,
+					TASDEVICE_PAGE_SELECT, 0);
+				if (ret < 0)
+					dev_err(tas_priv->dev, "%s, E=%d\n", __func__, ret);
+			}
+		} else {
+			/* Book switching in other cases */
+			ret = tasdevice_regmap_write(tas_priv,
+				TASDEVICE_BOOKCTL_REG, book);
 			if (ret < 0) {
-				dev_err(tas_priv->dev, "%s, E=%d\n",
-					__func__, ret);
+				dev_err(tas_priv->dev, "%s, E=%d\n", __func__, ret);
 				goto out;
 			}
-			goto out;
+			tasdev->cur_book = book;
 		}
-
-		ret = tasdevice_regmap_write(tas_priv,
-			TASDEVICE_BOOKCTL_REG, book);
-		if (ret < 0) {
-			dev_err(tas_priv->dev, "%s, ERROR, E=%d\n",
-				__func__, ret);
-			goto out;
-		}
-		tasdev->cur_book = book;
 	} else if (chn == tas_priv->ndev) {
 		int i = 0;
 
