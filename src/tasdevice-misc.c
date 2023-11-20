@@ -267,7 +267,7 @@ static long tasdevice_ioctl(struct file *f,
 	case TILOAD_IOC_MAGIC_SET_DEFAULT_CALIB_PRI:
 		break;
 	case TILOAD_IOC_MAGIC_POWER_OFF:
-		if (tas_dev->pstream != 0 && tas_dev->pstream == 0) {
+		if (tas_dev->pstream != 0 && tas_dev->cstream == 0) {
 			tas_dev->pstream = 0;
 			mutex_lock(&tas_dev->codec_lock);
 			if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
