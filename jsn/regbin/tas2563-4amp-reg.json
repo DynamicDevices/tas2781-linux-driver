@@ -379,7 +379,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "Music degree 0",
+                "configName": "00-Music degree 0",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -688,7 +688,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "0",
                                 "delay": ""
                             },
@@ -771,7 +771,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "calibration",
+                "configName": "01-calibration",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -1080,7 +1080,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "0",
                                 "delay": ""
                             },
@@ -1163,7 +1163,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "voice call",
+                "configName": "02-voice call",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -1190,7 +1190,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "080"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -1472,7 +1473,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "0",
                                 "delay": ""
                             },
@@ -1555,7 +1556,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "ringtone",
+                "configName": "03-ringtone",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -1582,7 +1583,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "08N"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -1864,7 +1866,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "0",
                                 "delay": ""
                             },
@@ -1947,7 +1949,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "attach",
+                "configName": "04-attach",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -1974,7 +1976,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "091"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -1989,7 +1992,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "2",
                                 "delay": ""
                             },
@@ -2006,7 +2009,7 @@
                                 "page": "0",
                                 "register": "08",
                                 "mask": "ff",
-                                "data": "7e",
+                                "data": "5e",
                                 "delay": ""
                             },
                             {
@@ -2064,7 +2067,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "spk1 bypass - electrical test",
+                "configName": "05-spk1 bypass - electrical test",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -2091,7 +2094,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "09F"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -2106,7 +2110,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "2",
                                 "delay": ""
                             },
@@ -2123,7 +2127,7 @@
                                 "page": "0",
                                 "register": "08",
                                 "mask": "ff",
-                                "data": "7e",
+                                "data": "5e",
                                 "delay": ""
                             },
                             {
@@ -2181,7 +2185,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "spk2 bypass - electrical test",
+                "configName": "06-spk2 bypass - electrical test",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -2208,7 +2212,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "09T"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -2223,7 +2228,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "2",
                                 "delay": ""
                             },
@@ -2240,7 +2245,7 @@
                                 "page": "0",
                                 "register": "08",
                                 "mask": "ff",
-                                "data": "7e",
+                                "data": "6e",
                                 "delay": ""
                             },
                             {
@@ -2298,7 +2303,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "spk3 bypass  - electrical test",
+                "configName": "07-spk3 bypass  - electrical test",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -2325,7 +2330,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0A7"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -2340,7 +2346,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "2",
                                 "delay": ""
                             },
@@ -2357,7 +2363,7 @@
                                 "page": "0",
                                 "register": "08",
                                 "mask": "ff",
-                                "data": "7e",
+                                "data": "6e",
                                 "delay": ""
                             },
                             {
@@ -2415,7 +2421,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "spk4 bypass  - electrical test",
+                "configName": "08-spk4 bypass  - electrical test",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -2442,7 +2448,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0AU"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -2807,7 +2814,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "Music degree 90",
+                "configName": "09-Music degree 90",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -2834,7 +2841,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0BH"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -3199,7 +3207,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "Music degree 180",
+                "configName": "10-Music degree 180",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -3226,7 +3234,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0C4"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -3591,7 +3600,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "Music degree 270",
+                "configName": "11-Music degree 270",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -3618,7 +3627,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0CR"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -3633,7 +3643,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "2",
                                 "delay": ""
                             },
@@ -3714,7 +3724,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "2",
                                 "delay": ""
                             },
@@ -3795,7 +3805,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "2",
                                 "delay": ""
                             },
@@ -3876,7 +3886,7 @@
                                 "book": "0",
                                 "page": "01",
                                 "register": "02",
-                                "mask": "ff",
+                                "mask": "1e",
                                 "data": "2",
                                 "delay": ""
                             },
@@ -3951,7 +3961,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "bypass",
+                "configName": "12-bypass",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -3975,32 +3985,16 @@
                             {
                                 "book": "0",
                                 "page": "0",
-                                "register": "2",
+                                "register": "02",
                                 "mask": "ff",
-                                "data": "e",
-                                "delay": ""
+                                "data": "0",
+                                "delay": "",
+                                "$$hashKey": "06M"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
                         "deviceName": "Common",
-                        "deviceValue": null,
-                        "deviceShortName": ""
-                    },
-                    {
-                        "blockName": "PRE_POWER_UP - Dev 3",
-                        "commands": [
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "08",
-                                "mask": "ff",
-                                "data": "6e",
-                                "delay": ""
-                            }
-                        ],
-                        "blockType": "PRE_POWER_UP",
-                        "deviceName": "Dev 3 - TAS2562",
-                        "deviceValue": 3,
+                        "deviceValue": 0,
                         "deviceShortName": ""
                     },
                     {
@@ -4055,6 +4049,24 @@
                         "deviceShortName": ""
                     },
                     {
+                        "blockName": "PRE_POWER_UP - Dev 3",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "6e",
+                                "delay": "",
+                                "$$hashKey": "06S"
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 3 - TAS2562",
+                        "deviceValue": 3,
+                        "deviceShortName": ""
+                    },
+                    {
                         "blockName": "PRE_POWER_UP - Common",
                         "commands": [
                             {
@@ -4062,17 +4074,18 @@
                                 "page": "0",
                                 "register": "02",
                                 "mask": "ff",
-                                "data": "0",
-                                "delay": ""
+                                "data": "e",
+                                "delay": "",
+                                "$$hashKey": "070"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
                         "deviceName": "Common",
-                        "deviceValue": null,
+                        "deviceValue": 0,
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "Direct rotation degree 0",
+                "configName": "13-Direct rotation degree 0",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -4098,30 +4111,14 @@
                                 "page": "0",
                                 "register": "02",
                                 "mask": "ff",
-                                "data": "e",
-                                "delay": ""
+                                "data": "0",
+                                "delay": "",
+                                "$$hashKey": "0DU"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
                         "deviceName": "Common",
-                        "deviceValue": null,
-                        "deviceShortName": ""
-                    },
-                    {
-                        "blockName": "PRE_POWER_UP - Dev 4",
-                        "commands": [
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "08",
-                                "mask": "ff",
-                                "data": "6e",
-                                "delay": ""
-                            }
-                        ],
-                        "blockType": "PRE_POWER_UP",
-                        "deviceName": "Dev 4 - TAS2562",
-                        "deviceValue": 4,
+                        "deviceValue": 0,
                         "deviceShortName": ""
                     },
                     {
@@ -4176,6 +4173,24 @@
                         "deviceShortName": ""
                     },
                     {
+                        "blockName": "PRE_POWER_UP - Dev 4",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "6e",
+                                "delay": "",
+                                "$$hashKey": "0H9"
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 4 - TAS2562",
+                        "deviceValue": 4,
+                        "deviceShortName": ""
+                    },
+                    {
                         "blockName": "PRE_POWER_UP - Common",
                         "commands": [
                             {
@@ -4183,17 +4198,18 @@
                                 "page": "0",
                                 "register": "02",
                                 "mask": "ff",
-                                "data": "0",
-                                "delay": ""
+                                "data": "e",
+                                "delay": "",
+                                "$$hashKey": "0HH"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
                         "deviceName": "Common",
-                        "deviceValue": null,
+                        "deviceValue": 0,
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "Direct rotation degree 90",
+                "configName": "14-Direct rotation degree 90",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -4219,30 +4235,14 @@
                                 "page": "0",
                                 "register": "02",
                                 "mask": "ff",
-                                "data": "e",
-                                "delay": ""
+                                "data": "0",
+                                "delay": "",
+                                "$$hashKey": "0EE"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
                         "deviceName": "Common",
-                        "deviceValue": null,
-                        "deviceShortName": ""
-                    },
-                    {
-                        "blockName": "PRE_POWER_UP - Dev 1",
-                        "commands": [
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "08",
-                                "mask": "ff",
-                                "data": "6e",
-                                "delay": ""
-                            }
-                        ],
-                        "blockType": "PRE_POWER_UP",
-                        "deviceName": "Dev 1 - TAS2562",
-                        "deviceValue": 1,
+                        "deviceValue": 0,
                         "deviceShortName": ""
                     },
                     {
@@ -4297,6 +4297,24 @@
                         "deviceShortName": ""
                     },
                     {
+                        "blockName": "PRE_POWER_UP - Dev 1",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "6e",
+                                "delay": "",
+                                "$$hashKey": "0HZ"
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 1 - TAS2562",
+                        "deviceValue": 1,
+                        "deviceShortName": ""
+                    },
+                    {
                         "blockName": "PRE_POWER_UP - Common",
                         "commands": [
                             {
@@ -4304,17 +4322,18 @@
                                 "page": "0",
                                 "register": "02",
                                 "mask": "ff",
-                                "data": "0",
-                                "delay": ""
+                                "data": "e",
+                                "delay": "",
+                                "$$hashKey": "0IF"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
                         "deviceName": "Common",
-                        "deviceValue": null,
+                        "deviceValue": 0,
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "Direct rotation degree 180",
+                "configName": "15-Direct rotation degree 180",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -4340,30 +4359,14 @@
                                 "page": "0",
                                 "register": "02",
                                 "mask": "ff",
-                                "data": "e",
-                                "delay": ""
+                                "data": "0",
+                                "delay": "",
+                                "$$hashKey": "0EY"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
                         "deviceName": "Common",
-                        "deviceValue": null,
-                        "deviceShortName": ""
-                    },
-                    {
-                        "blockName": "PRE_POWER_UP - Dev 2",
-                        "commands": [
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "08",
-                                "mask": "ff",
-                                "data": "6e",
-                                "delay": ""
-                            }
-                        ],
-                        "blockType": "PRE_POWER_UP",
-                        "deviceName": "Dev 2 - TAS2562",
-                        "deviceValue": 2,
+                        "deviceValue": 0,
                         "deviceShortName": ""
                     },
                     {
@@ -4418,6 +4421,24 @@
                         "deviceShortName": ""
                     },
                     {
+                        "blockName": "PRE_POWER_UP - Dev 2",
+                        "commands": [
+                            {
+                                "book": "0",
+                                "page": "0",
+                                "register": "08",
+                                "mask": "ff",
+                                "data": "6e",
+                                "delay": "",
+                                "$$hashKey": "0IZ"
+                            }
+                        ],
+                        "blockType": "PRE_POWER_UP",
+                        "deviceName": "Dev 2 - TAS2562",
+                        "deviceValue": 2,
+                        "deviceShortName": ""
+                    },
+                    {
                         "blockName": "PRE_POWER_UP - Common",
                         "commands": [
                             {
@@ -4425,17 +4446,18 @@
                                 "page": "0",
                                 "register": "02",
                                 "mask": "ff",
-                                "data": "0",
-                                "delay": ""
+                                "data": "e",
+                                "delay": "",
+                                "$$hashKey": "0J7"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
                         "deviceName": "Common",
-                        "deviceValue": null,
+                        "deviceValue": 0,
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "Direct rotation degree 270",
+                "configName": "16-Direct rotation degree 270",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -4462,7 +4484,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0FC"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -4494,7 +4517,7 @@
                                 "page": "0",
                                 "register": "08",
                                 "mask": "ff",
-                                "data": "7e",
+                                "data": "5e",
                                 "delay": ""
                             },
                             {
@@ -4560,7 +4583,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "spk1 dsp - acoustic test",
+                "configName": "17-spk1 dsp - acoustic test",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -4619,7 +4642,7 @@
                                 "page": "0",
                                 "register": "08",
                                 "mask": "ff",
-                                "data": "7e",
+                                "data": "5e",
                                 "delay": ""
                             },
                             {
@@ -4685,7 +4708,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "spk2 dsp - acoustic test",
+                "configName": "18-spk2 dsp - acoustic test",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -4712,7 +4735,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0FV"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -4744,7 +4768,7 @@
                                 "page": "0",
                                 "register": "08",
                                 "mask": "ff",
-                                "data": "7e",
+                                "data": "6e",
                                 "delay": ""
                             },
                             {
@@ -4810,7 +4834,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "spk3 dsp - acoustic test",
+                "configName": "19-spk3 dsp - acoustic test",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
@@ -4837,7 +4861,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0G9"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -4869,7 +4894,7 @@
                                 "page": "0",
                                 "register": "08",
                                 "mask": "ff",
-                                "data": "7e",
+                                "data": "6e",
                                 "delay": ""
                             },
                             {
@@ -4935,7 +4960,7 @@
                         "deviceShortName": ""
                     }
                 ],
-                "configName": "spk4 dsp - acoustic test",
+                "configName": "20-spk4 dsp - acoustic test",
                 "blockTypeValues": {
                     "COEFF": "0x01",
                     "POST_POWER_UP": "0x02",
