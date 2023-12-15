@@ -1367,6 +1367,7 @@ int tasdevice_dspfw_ready(const void *pVoid, void *pContext)
 		break;
 	case 0x202:
 	case 0x400:
+	case 0x401:        
 		tas_dev->fw_parse_variable_header =
 			fw_parse_variable_header_git;
 		tas_dev->fw_parse_program_data =
