@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-# Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+# Copyright (C) 2022 - 2024 Texas Instruments Incorporated
 %YAML 1.2
 ---
 $id: http://devicetree.org/schemas/sound/ti,tas2781.yaml#
@@ -17,12 +17,20 @@ description: |
   Smart Amp speaker protection algorithm. The integrated speaker
   voltage and current sense provides for real time
   monitoring of loudspeaker behavior.
-
-allOf:
-  - $ref: dai-common.yaml#
+  
+  Specifications about the audio amplifier can be found at:
+    https://www.ti.com/lit/gpn/tas2563
+    https://www.ti.com/lit/gpn/tas2781
 
 properties:
   compatible:
+    description: |
+      ti,tas2563: 6.1-W Boosted Class-D Audio Amplifier With Integrated
+      DSP and IV Sense, 16/20/24/32bit stereo I2S or multichannel TDM.
+
+      ti,tas2781: 24-V Class-D Amplifier with Real Time Integrated Speaker
+      Protection and Audio Processing, 16/20/24/32bit stereo I2S or
+      multichannel TDM.  
     enum:
       - ti,tas2563
       - ti,tas2781
@@ -30,15 +38,9 @@ properties:
   reg:
     description:
       I2C address, in multiple tas2563s/tas2781s case, all the i2c address
-      aggreate as one Audio Device to support multiple audio slots. For
-      tas2563, the possible i2c address is 0x40, 0x4c, 0x4d, 0x4e, 0x4f;
-      For tas2781, the possible i2c address is 0x38, 0x39, 0x3a, 0x3b,
-      0x3c, 0x3d, 0x3e, 0x3f, 0x40.
+      aggreate as one Audio Device to support multiple audio slots.
     maxItems: 8
     minItems: 1
-    items:
-      minimum: 0x38
-      maximum: 0x4f
 
   reset-gpios:
     minItems: 1
@@ -59,6 +61,44 @@ properties:
 required:
   - compatible
   - reg
+
+allOf:
+  - $ref: dai-common.yaml#
+  - if:
+      properties:
+        compatible:
+          contains:
+            enum:
+              - ti,tas2563
+    then:
+      properties:
+        reg:
+          description:
+            I2C address, in multiple-AMP case, all the i2c address
+            aggregate as one Audio Device to support multiple audio slots.
+          maxItems: 4
+          minItems: 1
+          items:
+            minimum: 0x4c
+            maximum: 0x4f
+
+  - if:
+      properties:
+        compatible:
+          contains:
+            enum:
+              - ti,tas2781
+    then:
+      properties:
+        reg:
+          description:
+            I2C address, in multiple-AMP case, all the i2c address
+            aggregate as one Audio Device to support multiple audio slots.
+          maxItems: 8
+          minItems: 1
+          items:
+            minimum: 0x38
+            maximum: 0x3f
 
 additionalProperties: false
 
@@ -84,10 +124,10 @@ examples:
      /* Stereo without interrupt setting */
      #address-cells = <1>;
      #size-cells = <0>;
-     stereo: codec@38 {
+     stereo: codec@4f {
        compatible = "ti,tas2563";
-       reg = <0x38>, /* left-channel */
-             <0x39>; /* right-channel */
+       reg = <0x4f>, /* left-channel */
+             <0x4c>; /* right-channel */
        #sound-dai-cells = <0>;
      };
    };
