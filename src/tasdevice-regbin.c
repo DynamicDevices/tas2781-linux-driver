@@ -815,29 +815,30 @@ out:
 	dev_info(tas_dev->dev, "Firmware init complete\n");
 }
 
-void tasdevice_config_info_remove(void *pContext)
+void tasdevice_config_info_remove(void *ctxt)
 {
-	struct tasdevice_priv *tas_dev =
-		(struct tasdevice_priv *) pContext;
+	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) ctxt;
 	struct tasdevice_regbin *regbin = &(tas_dev->mtRegbin);
 	struct tasdevice_config_info **cfg_info = regbin->cfg_info;
-	int i = 0, j = 0;
+	int i, j;
 
 	mutex_lock(&tas_dev->dev_lock);
-	if (cfg_info) {
-		for (i = 0; i < regbin->ncfgs; i++) {
-			if (cfg_info[i]) {
-				for (j = 0; j < (int)cfg_info[i]->real_nblocks;
-					j++) {
-					kfree(cfg_info[i]->blk_data[j]->
-						regdata);
-					kfree(cfg_info[i]->blk_data[j]);
-				}
-				kfree(cfg_info[i]->blk_data);
-				kfree(cfg_info[i]);
+	if (!cfg_info)
+		return;
+	for (i = 0; i < regbin->ncfgs; i++) {
+		if (!cfg_info[i])
+			continue;
+		if (cfg_info[i]->blk_data) {
+			for (j = 0; j < (int)cfg_info[i]->real_nblocks; j++) {
+				if (!cfg_info[i]->blk_data[j])
+					continue;
+				kfree(cfg_info[i]->blk_data[j]->regdata);
+				kfree(cfg_info[i]->blk_data[j]);
 			}
+			kfree(cfg_info[i]->blk_data);
 		}
-		kfree(cfg_info);
+		kfree(cfg_info[i]);
 	}
+	kfree(cfg_info);
 	mutex_unlock(&tas_dev->dev_lock);
 }

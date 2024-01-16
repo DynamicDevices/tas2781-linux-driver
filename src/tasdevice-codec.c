@@ -362,12 +362,15 @@ static struct snd_soc_dai_driver tasdevice_dai_driver[] = {
 			.formats	= TASDEVICE_FORMATS,
 		},
 		.ops = &tasdevice_dai_ops,
+#if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE
+		.symmetric_rate = 1,
+#else
 		.symmetric_rates = 1,
+#endif
 	},
 };
 
-static int tasdevice_codec_probe(
-	struct snd_soc_component *codec)
+static int tasdevice_codec_probe(struct snd_soc_component *codec)
 {
 	struct tasdevice_priv *tas_priv =
 		snd_soc_component_get_drvdata(codec);
@@ -380,8 +383,13 @@ static int tasdevice_codec_probe(
 
 	scnprintf(tas_priv->regbin_binaryname, 64, "%s-%uamp-reg.bin",
 		tas_priv->dev_name, tas_priv->ndev);
-	ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
-		tas_priv->regbin_binaryname, tas_priv->dev, GFP_KERNEL,
+	ret = request_firmware_nowait(THIS_MODULE,
+#if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE
+		FW_ACTION_UEVENT
+#else
+		FW_ACTION_HOTPLUG
+#endif
+		,tas_priv->regbin_binaryname, tas_priv->dev, GFP_KERNEL,
 		tas_priv, tasdevice_regbin_ready);
 	if (ret)
 		dev_err(tas_priv->dev,
