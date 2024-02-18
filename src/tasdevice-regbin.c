@@ -1,7 +1,7 @@
 /*
  * TAS2563/TAS2871 Linux Driver
  *
- * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ * Copyright (C) 2022 - 2024 Texas Instruments Incorporated
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -786,7 +786,7 @@ void tasdevice_regbin_ready(const struct firmware *pFW,
 		release_firmware(fw_entry);
 		fw_entry = NULL;
 	} else {
-		dev_err(tas_dev->dev, "%s: load %s error\n", __func__,
+		dev_info(tas_dev->dev, "%s: No %s load\n", __func__,
 			tas_dev->dsp_binaryname);
 		goto out;
 	}
