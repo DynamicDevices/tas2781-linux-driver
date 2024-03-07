@@ -899,7 +899,7 @@
                                 "mask": "ff",
                                 "data": "18",
                                 "delay": "",
-                                "comments": "",
+                                "comments": "enable pull down",
                                 "$$hashKey": "033"
                             },
                             {
