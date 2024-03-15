@@ -197,8 +197,8 @@ static int fw_parse_block_data(struct tasdevice_fw *pFirmware,
 
 	n = block->mnCommands * 4;
 	if (offset + n > pFW->size) {
-		pr_err("%s: File Size(%u) error offset = %d n = %d\n",
-			__func__, pFW->size, offset, n);
+		pr_err("%s: File Size(%d) error offset = %d n = %d\n",
+			__func__, (int)pFW->size, offset, n);
 		offset = -1;
 		goto out;
 	}
@@ -607,7 +607,7 @@ static int fw_parse_header(struct tasdevice_fw *pFirmware,
 		goto out;
 	}
 	if (fw_fixed_hdr->mnFWSize != pFW->size) {
-		pr_err("File size not match, %d %d", pFW->size,
+		pr_err("File size not match, %d %u", (int)pFW->size,
 			fw_fixed_hdr->mnFWSize);
 		offset = -1;
 		goto out;
@@ -1222,7 +1222,7 @@ int tas2781_load_calibration(void *pContext, char *pFileName,
 		if (!fw_entry->size) {
 			dev_err(tas_dev->dev,
 				"%s: file read error: size = %d\n",
-				__func__, fw_entry->size);
+				__func__, (int)fw_entry->size);
 			goto out;
 		}
 		FW.size = fw_entry->size;
@@ -1230,7 +1230,8 @@ int tas2781_load_calibration(void *pContext, char *pFileName,
 		dev_info(tas_dev->dev, "%s: file = %s, file size %zd\n",
 			__func__, pFileName, fw_entry->size);
 	} else {
-		dev_info(tas_dev->dev, "%s: Request firmware failed\n", __func__);
+		dev_info(tas_dev->dev, "%s: Request firmware failed\n",
+			__func__);
 		goto out;
 	}
 
@@ -1367,7 +1368,7 @@ int tasdevice_dspfw_ready(const void *pVoid, void *pContext)
 		break;
 	case 0x202:
 	case 0x400:
-	case 0x401:        
+	case 0x401:
 		tas_dev->fw_parse_variable_header =
 			fw_parse_variable_header_git;
 		tas_dev->fw_parse_program_data =

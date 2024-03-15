@@ -173,6 +173,8 @@ static int tasdevice_hw_params(struct snd_pcm_substream *substream,
 		break;
 	case 44100:
 		break;
+	case 16000:
+		break;
 	default:
 		dev_err(tas_dev->dev,
 			"%s: incorrect sample rate = %u\n",
@@ -343,7 +345,7 @@ static struct snd_soc_dai_ops tasdevice_dai_ops = {
 };
 
 
-static struct snd_soc_dai_driver tasdevice_dai_driver[] = {
+static struct snd_soc_dai_driver tas2781_dai_driver[] = {
 	{
 		.name = "tasdevice_codec",
 		.id = 0,
@@ -369,6 +371,34 @@ static struct snd_soc_dai_driver tasdevice_dai_driver[] = {
 #endif
 	},
 };
+
+static struct snd_soc_dai_driver tas2563_dai_driver[] = {
+	{
+		.name = "tasdevice_codec",
+		.id = 0,
+		.playback = {
+			.stream_name	= "Playback",
+			.channels_min   = 1,
+			.channels_max   = 4,
+			.rates	 = TASDEVICE_RATES | SNDRV_PCM_RATE_16000,
+			.formats	= TASDEVICE_FORMATS,
+		},
+		.capture = {
+			.stream_name	= "Capture",
+			.channels_min   = 1,
+			.channels_max   = 4,
+			.rates	 = TASDEVICE_RATES | SNDRV_PCM_RATE_16000,
+			.formats	= TASDEVICE_FORMATS,
+		},
+		.ops = &tasdevice_dai_ops,
+#if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE
+		.symmetric_rate = 1,
+#else
+		.symmetric_rates = 1,
+#endif
+	},
+};
+
 
 static int tasdevice_codec_probe(struct snd_soc_component *codec)
 {
@@ -997,17 +1027,12 @@ out:
 
 int tasdevice_register_codec(struct tasdevice_priv *tas_priv)
 {
-	int nResult = 0;
-
-	dev_err(tas_priv->dev, "%s, enter\n", __func__);
-	nResult = devm_snd_soc_register_component(tas_priv->dev,
+	int ret = devm_snd_soc_register_component(tas_priv->dev,
 		&soc_codec_driver_tasdevice,
-		tasdevice_dai_driver, ARRAY_SIZE(tasdevice_dai_driver));
+		tas_priv->chip_id == TAS2781 ? tas2781_dai_driver :
+		tas2563_dai_driver,
+		tas_priv->chip_id == TAS2781 ? ARRAY_SIZE(tas2781_dai_driver) :
+		ARRAY_SIZE(tas2563_dai_driver));
 
-	return nResult;
-}
-
-void tasdevice_deregister_codec(struct tasdevice_priv *tas_priv)
-{
-	snd_soc_unregister_component(tas_priv->dev);
+	return ret;
 }

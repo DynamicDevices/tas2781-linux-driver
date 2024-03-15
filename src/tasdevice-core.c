@@ -313,7 +313,6 @@ void tasdevice_remove(struct tasdevice_priv *tas_dev)
 	mutex_destroy(&tas_dev->file_lock);
 	mutex_destroy(&tas_dev->codec_lock);
 	misc_deregister(&tas_dev->misc_dev);
-	tasdevice_deregister_codec(tas_dev);
 	sysfs_remove_group(&tas_dev->dev->kobj, &tasdevice_attribute_group);
 }
 

@@ -329,7 +329,7 @@ ssize_t reg_store(struct device *dev,
 	int n_result = 0;
 	struct Tsyscmd *pSysCmd = NULL;
 
-	dev_dbg(tas_dev->dev, "reg: count = %d\n", count);
+	dev_dbg(tas_dev->dev, "reg: count = %d\n", (int)count);
 
 	if (tas_dev == NULL)
 		return count;
@@ -493,7 +493,7 @@ ssize_t regdump_store(struct device *dev,
 	unsigned char kbuf[3];
 	char *temp = NULL;
 
-	dev_info(tas_dev->dev, "regdump: count = %d\n", count);
+	dev_info(tas_dev->dev, "regdump: count = %d\n", (int)count);
 	if (tas_dev == NULL)
 		return count;
 	pSysCmd = &tas_dev->nSysCmd[RegDumpCmd];
@@ -619,7 +619,7 @@ ssize_t regcfg_list_store(struct device *dev,
 	char *temp = NULL;
 	struct Tsyscmd *pSysCmd = NULL;
 
-	dev_info(tas_dev->dev, "regcfg: count = %d\n", count);
+	dev_info(tas_dev->dev, "regcfg: count = %d\n", (int)count);
 	if (tas_dev == NULL)
 		return count;
 	mutex_lock(&tas_dev->codec_lock);
@@ -773,6 +773,10 @@ ssize_t dspfw_config_show(struct device *dev,
 
 	mutex_lock(&tas_dev->file_lock);
 	pFirmware = tas_dev->fmw;
+	if (pFirmware == NULL) {
+		n = scnprintf(buf, 64, "No dsp fw is the system.\n");
+		return n;
+	}
 	if (!tas_dev->cur_prog)
 		n = scnprintf(buf, 64, "%s\n",
 			pFirmware->mpConfigurations[tas_dev->cur_conf].mpName);
