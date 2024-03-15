@@ -775,7 +775,7 @@ ssize_t dspfw_config_show(struct device *dev,
 	pFirmware = tas_dev->fmw;
 	if (pFirmware == NULL) {
 		n = scnprintf(buf, 64, "No dsp fw is the system.\n");
-		return n;
+		goto out;
 	}
 	if (!tas_dev->cur_prog)
 		n = scnprintf(buf, 64, "%s\n",
@@ -783,6 +783,7 @@ ssize_t dspfw_config_show(struct device *dev,
 	else
 		n = scnprintf(buf, 64, "Current mode is bypass\n");
 
+out:
 	mutex_unlock(&tas_dev->file_lock);
 	return n;
 }
