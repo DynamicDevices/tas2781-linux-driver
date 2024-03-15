@@ -92,13 +92,16 @@ static int tasdevice_i2c_parse_dt(struct tasdevice_priv *tas_priv)
 	struct i2c_client *client = (struct i2c_client *)tas_priv->client;
 	struct device_node *np = tas_priv->dev->of_node;
 	unsigned int dev_addrs[TASDEVICE_MAX_CHANNELS];
-	int len, sw, aw, i, ndev;
+	int i, ndev;
+#ifdef CONFIG_OF
+	int len, sw, aw;
 	const __be32 *reg, *reg_end;
-
+#endif
 	dev_info(tas_priv->dev, "%s, chip_id:%d\n", __func__,
 		tas_priv->chip_id);
 	strcpy(tas_priv->dev_name, tasdevice_id[tas_priv->chip_id].name);
 
+#ifdef CONFIG_OF
 	aw = of_n_addr_cells(np);
 	sw = of_n_size_cells(np);
 	if (sw == 0) {
@@ -115,6 +118,10 @@ static int tasdevice_i2c_parse_dt(struct tasdevice_priv *tas_priv)
 		ndev = 1;
 		dev_addrs[0] = client->addr;
 	}
+#else
+	ndev = 1;
+	dev_addrs[0] = client->addr;
+#endif
 
 	if (ndev > TAS2563_MAX_DEVICE && TAS2563 == tas_priv->chip_id) {
 		dev_info(tas_priv->dev, "Do not support more than 4 TAS2563s "
@@ -139,14 +146,14 @@ static int tasdevice_i2c_parse_dt(struct tasdevice_priv *tas_priv)
 	return 0;
 }
 
-#if KERNEL_VERSION(6, 5, 0) < LINUX_VERSION_CODE
+#if KERNEL_VERSION(6, 5, 0) >= LINUX_VERSION_CODE
 static int tasdevice_i2c_probe(struct i2c_client *i2c,
 	const struct i2c_device_id *id)
 #else
 static int tasdevice_i2c_probe(struct i2c_client *i2c)
 #endif
 {
-#if KERNEL_VERSION(6, 5, 0) >= LINUX_VERSION_CODE
+#if KERNEL_VERSION(6, 5, 0) < LINUX_VERSION_CODE
 	const struct i2c_device_id *id = i2c_match_id(tasdevice_id, i2c);
 #endif
 	struct tasdevice_priv *tas_dev = NULL;
@@ -203,7 +210,7 @@ out:
 
 }
 
-#if KERNEL_VERSION(6, 5, 0) < LINUX_VERSION_CODE
+#if KERNEL_VERSION(6, 5, 0) >= LINUX_VERSION_CODE
 static int tasdevice_i2c_remove(struct i2c_client *i2c)
 #else
 static void tasdevice_i2c_remove(struct i2c_client *i2c)
@@ -214,7 +221,7 @@ static void tasdevice_i2c_remove(struct i2c_client *i2c)
 	if (tas_dev)
 		tasdevice_remove(tas_dev);
 
-#if KERNEL_VERSION(6, 5, 0) < LINUX_VERSION_CODE
+#if KERNEL_VERSION(6, 5, 0) >= LINUX_VERSION_CODE
 	return 0;
 #endif
 }

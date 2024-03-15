@@ -16,7 +16,6 @@
 #ifndef __TASDEV_CODEC_H__
 #define __TASDEV_CODEC_H__
 int tasdevice_register_codec(struct tasdevice_priv *tas_priv);
-void tasdevice_deregister_codec(struct tasdevice_priv *tas_priv);
 int tasdevice_create_controls(struct tasdevice_priv *tas_priv);
 int tasdevice_dsp_create_control(struct tasdevice_priv
 	*tas_priv);

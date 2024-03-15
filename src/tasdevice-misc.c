@@ -248,7 +248,8 @@ static long tasdevice_ioctl(struct file *f,
 			dev_err(tas_dev->dev,
 				"%s: error copy from user "
 				"cmd=TILOAD_IOCTL_SET_CALIBRATION=0x%08x\n",
-				__func__, TILOAD_IOCTL_SET_CALIBRATION);
+				__func__,
+				(unsigned int)TILOAD_IOCTL_SET_CALIBRATION);
 		break;
 	case TILOAD_IOC_MAGIC_PA_INFO_GET:
 		{
@@ -274,9 +275,9 @@ static long tasdevice_ioctl(struct file *f,
 				tasdevice_enable_irq(tas_dev, false);
 			tasdevice_select_cfg_blk(tas_dev, tas_dev->cur_conf,
 				TASDEVICE_BIN_BLK_PRE_SHUTDOWN);
-			dev_info(tas_dev->dev, "%s:%u: cmd=TILOAD_IOC_MAGIC_POWER_OFF"
-				"=0x%08x: regscene = %d\n", __func__, __LINE__,
-				TILOAD_IOC_MAGIC_POWER_OFF,
+			dev_info(tas_dev->dev, "%s: cmd=TILOAD_IOC_MAGIC_POWER_OFF"
+				"=0x%08x: regscene = %d\n", __func__,
+				(unsigned int)TILOAD_IOC_MAGIC_POWER_OFF,
 				tas_dev->mtRegbin.profile_cfg_id);
 			if (tas_dev->mtRegbin.profile_cfg_id ==
 					TASDEVICE_CALIBRATION_PROFILE)
@@ -301,7 +302,8 @@ static long tasdevice_ioctl(struct file *f,
 					"%s, TILOAD_IOC_MAGIC_POWERON=0x%08x:"
 					"mProg = %d, config = %d, regscene = "
 					"%d\n", __func__,
-					TILOAD_IOC_MAGIC_POWERON, param.mProg,
+					(unsigned int)TILOAD_IOC_MAGIC_POWERON,
+					param.mProg,
 					param.config, param.regscene);
 				tas_dev->cur_prog = param.mProg;
 				tas_dev->cur_conf = param.config;
@@ -310,12 +312,13 @@ static long tasdevice_ioctl(struct file *f,
 				schedule_delayed_work(
 					&tas_dev->powercontrol_work,
 					msecs_to_jiffies(20));
-			} else
+			} else {
 				dev_err(tas_dev->dev,
-					"%s:%u: error copy from user cmd="
+					"%s: error copy from user cmd="
 					"TILOAD_IOC_MAGIC_POWERON=0x%08x\n",
-					__func__, __LINE__,
-					TILOAD_IOC_MAGIC_POWERON);
+					__func__,
+					(unsigned int)TILOAD_IOC_MAGIC_POWERON);
+			}
 		}
 		break;
 	case TILOAD_IOCTL_SET_CONFIG:
@@ -332,10 +335,10 @@ static long tasdevice_ioctl(struct file *f,
 					msecs_to_jiffies(20));
 			} else
 				dev_err(tas_dev->dev,
-					"%s:%u: error copy from user cmd="
+					"%s: error copy from user cmd="
 					"TILOAD_IOCTL_SET_CONFIG=0x%08x\n",
-					__func__, __LINE__,
-					TILOAD_IOCTL_SET_CONFIG);
+					__func__,
+					(unsigned int)TILOAD_IOCTL_SET_CONFIG);
 		}
 		break;
 	default:
