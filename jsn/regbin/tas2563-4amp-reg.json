@@ -799,7 +799,7 @@
                                 "mask": "ff",
                                 "data": "e",
                                 "delay": "",
-                                "$$hashKey": "07L"
+                                "$$hashKey": "073"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -817,7 +817,8 @@
                                 "mask": "1e",
                                 "data": "0",
                                 "delay": "",
-                                "$$hashKey": "07O"
+                                "comments": "B0P0R0xb and B0P0R0xc will be set in dspbin file",
+                                "$$hashKey": "076"
                             },
                             {
                                 "book": "0",
@@ -826,7 +827,7 @@
                                 "mask": "ff",
                                 "data": "9",
                                 "delay": "",
-                                "$$hashKey": "07P"
+                                "$$hashKey": "077"
                             },
                             {
                                 "book": "0",
@@ -836,25 +837,7 @@
                                 "data": "50",
                                 "delay": "",
                                 "comments": "channel bitwidth and signal bit width are both 16bit",
-                                "$$hashKey": "07Q"
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0c",
-                                "mask": "ff",
-                                "data": "40",
-                                "delay": "",
-                                "$$hashKey": "07R"
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0b",
-                                "mask": "ff",
-                                "data": "42",
-                                "delay": "",
-                                "$$hashKey": "07S"
+                                "$$hashKey": "078"
                             },
                             {
                                 "book": "0",
@@ -863,7 +846,7 @@
                                 "mask": "ff",
                                 "data": "99",
                                 "delay": "",
-                                "$$hashKey": "07T"
+                                "$$hashKey": "07B"
                             },
                             {
                                 "book": "0",
@@ -872,7 +855,7 @@
                                 "mask": "ff",
                                 "data": "f1",
                                 "delay": "",
-                                "$$hashKey": "07U"
+                                "$$hashKey": "07C"
                             },
                             {
                                 "book": "0",
@@ -881,7 +864,7 @@
                                 "mask": "ff",
                                 "data": "41",
                                 "delay": "",
-                                "$$hashKey": "07V"
+                                "$$hashKey": "07D"
                             },
                             {
                                 "book": "0",
@@ -891,7 +874,7 @@
                                 "data": "02",
                                 "delay": "",
                                 "comments": "",
-                                "$$hashKey": "07W"
+                                "$$hashKey": "07E"
                             },
                             {
                                 "book": "0",
@@ -900,7 +883,7 @@
                                 "mask": "ff",
                                 "data": "0",
                                 "delay": "",
-                                "$$hashKey": "07X"
+                                "$$hashKey": "07F"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -918,7 +901,7 @@
                                 "mask": "1e",
                                 "data": "00",
                                 "delay": "",
-                                "$$hashKey": "08I"
+                                "$$hashKey": "080"
                             },
                             {
                                 "book": "0",
@@ -927,7 +910,7 @@
                                 "mask": "ff",
                                 "data": "9",
                                 "delay": "",
-                                "$$hashKey": "08J"
+                                "$$hashKey": "081"
                             },
                             {
                                 "book": "0",
@@ -936,25 +919,7 @@
                                 "mask": "ff",
                                 "data": "60",
                                 "delay": "",
-                                "$$hashKey": "08K"
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0c",
-                                "mask": "ff",
-                                "data": "00",
-                                "delay": "",
-                                "$$hashKey": "08L"
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0b",
-                                "mask": "ff",
-                                "data": "02",
-                                "delay": "",
-                                "$$hashKey": "08M"
+                                "$$hashKey": "082"
                             },
                             {
                                 "book": "0",
@@ -963,7 +928,7 @@
                                 "mask": "ff",
                                 "data": "99",
                                 "delay": "",
-                                "$$hashKey": "08N"
+                                "$$hashKey": "085"
                             },
                             {
                                 "book": "0",
@@ -972,7 +937,7 @@
                                 "mask": "ff",
                                 "data": "f1",
                                 "delay": "",
-                                "$$hashKey": "08O"
+                                "$$hashKey": "086"
                             },
                             {
                                 "book": "0",
@@ -981,7 +946,7 @@
                                 "mask": "ff",
                                 "data": "41",
                                 "delay": "",
-                                "$$hashKey": "08P"
+                                "$$hashKey": "087"
                             },
                             {
                                 "book": "0",
@@ -990,7 +955,7 @@
                                 "mask": "ff",
                                 "data": "02",
                                 "delay": "",
-                                "$$hashKey": "08Q"
+                                "$$hashKey": "088"
                             },
                             {
                                 "book": "0",
@@ -999,7 +964,7 @@
                                 "mask": "ff",
                                 "data": "0",
                                 "delay": "",
-                                "$$hashKey": "08R"
+                                "$$hashKey": "089"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -1017,7 +982,7 @@
                                 "mask": "1e",
                                 "data": "0",
                                 "delay": "",
-                                "$$hashKey": "09C"
+                                "$$hashKey": "08U"
                             },
                             {
                                 "book": "0",
@@ -1026,7 +991,7 @@
                                 "mask": "ff",
                                 "data": "9",
                                 "delay": "",
-                                "$$hashKey": "09D"
+                                "$$hashKey": "08V"
                             },
                             {
                                 "book": "0",
@@ -1035,25 +1000,7 @@
                                 "mask": "ff",
                                 "data": "50",
                                 "delay": "",
-                                "$$hashKey": "09E"
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0c",
-                                "mask": "ff",
-                                "data": "00",
-                                "delay": "",
-                                "$$hashKey": "09F"
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0b",
-                                "mask": "ff",
-                                "data": "02",
-                                "delay": "",
-                                "$$hashKey": "09G"
+                                "$$hashKey": "08W"
                             },
                             {
                                 "book": "0",
@@ -1062,7 +1009,7 @@
                                 "mask": "ff",
                                 "data": "99",
                                 "delay": "",
-                                "$$hashKey": "09H"
+                                "$$hashKey": "08Z"
                             },
                             {
                                 "book": "0",
@@ -1071,7 +1018,7 @@
                                 "mask": "ff",
                                 "data": "f1",
                                 "delay": "",
-                                "$$hashKey": "09I"
+                                "$$hashKey": "090"
                             },
                             {
                                 "book": "0",
@@ -1080,7 +1027,7 @@
                                 "mask": "ff",
                                 "data": "41",
                                 "delay": "",
-                                "$$hashKey": "09J"
+                                "$$hashKey": "091"
                             },
                             {
                                 "book": "0",
@@ -1089,7 +1036,7 @@
                                 "mask": "ff",
                                 "data": "02",
                                 "delay": "",
-                                "$$hashKey": "09K"
+                                "$$hashKey": "092"
                             },
                             {
                                 "book": "0",
@@ -1098,7 +1045,7 @@
                                 "mask": "ff",
                                 "data": "0",
                                 "delay": "",
-                                "$$hashKey": "09L"
+                                "$$hashKey": "093"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -1116,7 +1063,8 @@
                                 "mask": "1e",
                                 "data": "0",
                                 "delay": "",
-                                "$$hashKey": "0A6"
+                                "comments": "",
+                                "$$hashKey": "09O"
                             },
                             {
                                 "book": "0",
@@ -1125,7 +1073,7 @@
                                 "mask": "ff",
                                 "data": "9",
                                 "delay": "",
-                                "$$hashKey": "0A7"
+                                "$$hashKey": "09P"
                             },
                             {
                                 "book": "0",
@@ -1134,25 +1082,7 @@
                                 "mask": "ff",
                                 "data": "60",
                                 "delay": "",
-                                "$$hashKey": "0A8"
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0c",
-                                "mask": "ff",
-                                "data": "00",
-                                "delay": "",
-                                "$$hashKey": "0A9"
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0b",
-                                "mask": "ff",
-                                "data": "02",
-                                "delay": "",
-                                "$$hashKey": "0AA"
+                                "$$hashKey": "09Q"
                             },
                             {
                                 "book": "0",
@@ -1161,7 +1091,7 @@
                                 "mask": "ff",
                                 "data": "99",
                                 "delay": "",
-                                "$$hashKey": "0AB"
+                                "$$hashKey": "09T"
                             },
                             {
                                 "book": "0",
@@ -1170,7 +1100,7 @@
                                 "mask": "ff",
                                 "data": "f1",
                                 "delay": "",
-                                "$$hashKey": "0AC"
+                                "$$hashKey": "09U"
                             },
                             {
                                 "book": "0",
@@ -1179,7 +1109,7 @@
                                 "mask": "ff",
                                 "data": "41",
                                 "delay": "",
-                                "$$hashKey": "0AD"
+                                "$$hashKey": "09V"
                             },
                             {
                                 "book": "0",
@@ -1188,7 +1118,7 @@
                                 "mask": "ff",
                                 "data": "02",
                                 "delay": "",
-                                "$$hashKey": "0AE"
+                                "$$hashKey": "09W"
                             },
                             {
                                 "book": "0",
@@ -1197,7 +1127,7 @@
                                 "mask": "ff",
                                 "data": "0",
                                 "delay": "",
-                                "$$hashKey": "0AF"
+                                "$$hashKey": "09X"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -5005,7 +4935,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0CT"
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
@@ -5022,7 +4953,9 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": ""
+                                "delay": "",
+                                "comments": "B0P0R0xb and B0P0R0xc will be set in dspbin file",
+                                "$$hashKey": "0CW"
                             },
                             {
                                 "book": "0",
@@ -5030,7 +4963,8 @@
                                 "register": "06",
                                 "mask": "ff",
                                 "data": "19",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0CX"
                             },
                             {
                                 "book": "0",
@@ -5038,23 +4972,8 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "5e",
-                                "delay": ""
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0c",
-                                "mask": "ff",
-                                "data": "44",
-                                "delay": ""
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0b",
-                                "mask": "ff",
-                                "data": "46",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0CY"
                             },
                             {
                                 "book": "0",
@@ -5062,7 +4981,8 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0D1"
                             },
                             {
                                 "book": "0",
@@ -5070,7 +4990,8 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0D2"
                             },
                             {
                                 "book": "0",
@@ -5078,7 +4999,8 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0D3"
                             },
                             {
                                 "book": "0",
@@ -5087,7 +5009,8 @@
                                 "mask": "ff",
                                 "data": "02",
                                 "delay": "",
-                                "comments": "channel bitwidth and signal bit width are both 32bit"
+                                "comments": "channel bitwidth and signal bit width are both 32bit",
+                                "$$hashKey": "0D4"
                             },
                             {
                                 "book": "0",
@@ -5095,7 +5018,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0D5"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -5112,7 +5036,8 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0DQ"
                             },
                             {
                                 "book": "0",
@@ -5120,7 +5045,8 @@
                                 "register": "06",
                                 "mask": "ff",
                                 "data": "19",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0DR"
                             },
                             {
                                 "book": "0",
@@ -5128,23 +5054,8 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "6e",
-                                "delay": ""
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0c",
-                                "mask": "ff",
-                                "data": "44",
-                                "delay": ""
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0b",
-                                "mask": "ff",
-                                "data": "46",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0DS"
                             },
                             {
                                 "book": "0",
@@ -5152,7 +5063,8 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0DV"
                             },
                             {
                                 "book": "0",
@@ -5160,7 +5072,8 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0DW"
                             },
                             {
                                 "book": "0",
@@ -5168,7 +5081,8 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0DX"
                             },
                             {
                                 "book": "0",
@@ -5176,7 +5090,8 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "02",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0DY"
                             },
                             {
                                 "book": "0",
@@ -5184,7 +5099,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0DZ"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -5201,7 +5117,8 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0EK"
                             },
                             {
                                 "book": "0",
@@ -5209,7 +5126,8 @@
                                 "register": "06",
                                 "mask": "ff",
                                 "data": "19",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0EL"
                             },
                             {
                                 "book": "0",
@@ -5217,23 +5135,8 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "5e",
-                                "delay": ""
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0c",
-                                "mask": "ff",
-                                "data": "44",
-                                "delay": ""
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0b",
-                                "mask": "ff",
-                                "data": "46",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0EM"
                             },
                             {
                                 "book": "0",
@@ -5241,7 +5144,8 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0EP"
                             },
                             {
                                 "book": "0",
@@ -5249,7 +5153,8 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0EQ"
                             },
                             {
                                 "book": "0",
@@ -5257,7 +5162,8 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0ER"
                             },
                             {
                                 "book": "0",
@@ -5265,7 +5171,8 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "02",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0ES"
                             },
                             {
                                 "book": "0",
@@ -5273,7 +5180,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0ET"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -5290,7 +5198,8 @@
                                 "register": "02",
                                 "mask": "1e",
                                 "data": "0",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0FE"
                             },
                             {
                                 "book": "0",
@@ -5298,7 +5207,8 @@
                                 "register": "06",
                                 "mask": "ff",
                                 "data": "19",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0FF"
                             },
                             {
                                 "book": "0",
@@ -5306,23 +5216,8 @@
                                 "register": "08",
                                 "mask": "ff",
                                 "data": "6e",
-                                "delay": ""
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0c",
-                                "mask": "ff",
-                                "data": "44",
-                                "delay": ""
-                            },
-                            {
-                                "book": "0",
-                                "page": "0",
-                                "register": "0b",
-                                "mask": "ff",
-                                "data": "46",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0FG"
                             },
                             {
                                 "book": "0",
@@ -5330,7 +5225,8 @@
                                 "register": "30",
                                 "mask": "ff",
                                 "data": "99",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0FJ"
                             },
                             {
                                 "book": "0",
@@ -5338,7 +5234,8 @@
                                 "register": "0a",
                                 "mask": "ff",
                                 "data": "f1",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0FK"
                             },
                             {
                                 "book": "0",
@@ -5346,7 +5243,8 @@
                                 "register": "41",
                                 "mask": "ff",
                                 "data": "41",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0FL"
                             },
                             {
                                 "book": "0",
@@ -5354,7 +5252,8 @@
                                 "register": "07",
                                 "mask": "ff",
                                 "data": "02",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0FM"
                             },
                             {
                                 "book": "0",
@@ -5362,7 +5261,8 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "0",
-                                "delay": ""
+                                "delay": "",
+                                "$$hashKey": "0FN"
                             }
                         ],
                         "blockType": "PRE_POWER_UP",
@@ -5398,8 +5298,7 @@
                                 "register": "02",
                                 "mask": "ff",
                                 "data": "e",
-                                "delay": "",
-                                "$$hashKey": "073"
+                                "delay": ""
                             }
                         ],
                         "blockType": "PRE_SHUTDOWN",
