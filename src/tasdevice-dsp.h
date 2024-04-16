@@ -1,7 +1,7 @@
 /*
  * TAS2563/TAS2871 Linux Driver
  *
- * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ * Copyright (C) 2022 - 2024 Texas Instruments Incorporated
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -139,13 +139,13 @@ struct tasdevice_fw {
 extern const char deviceNumber[TASDEVICE_DSP_TAS_MAX_DEVICE];
 
 int tasdevice_dspfw_ready(const void *pVoid, void *pContext);
-void tasdevice_dsp_remove(void *pContext);
-void tasdevice_calbin_remove(void *pContext);
-int tas2781_load_calibration(void *tas_dev, char *pFileName,
+void tasdevice_dsp_remove(void *ctxt);
+void tasdevice_calbin_remove(void *ctxt);
+int tas2781_load_calibration(void *ctxt, char *pFileName,
 	unsigned short i);
-int tas2781_set_calibration(void *pContext, unsigned short i,
+int tas2781_set_calibration(void *ctxt, unsigned short i,
 	int nCalibration);
-int tasdevice_select_tuningprm_cfg(void *pContext, int prm,
+int tasdevice_select_tuningprm_cfg(void *ctxt, int prm,
 	int cfg_no, int regbin_conf_no);
-
+int tasdevice_calbin_load(void *ctxt);
 #endif

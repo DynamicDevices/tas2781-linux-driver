@@ -1,7 +1,7 @@
 /*
  * TAS2563/TAS2871 Linux Driver
  *
- * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ * Copyright (C) 2022 - 2024 Texas Instruments Incorporated
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -314,6 +314,7 @@ void tasdevice_remove(struct tasdevice_priv *tas_dev)
 	mutex_destroy(&tas_dev->codec_lock);
 	misc_deregister(&tas_dev->misc_dev);
 	sysfs_remove_group(&tas_dev->dev->kobj, &tasdevice_attribute_group);
+	kfree(tas_dev->calbin_buf.buf);
 }
 
 static int tasdevice_pm_suspend(struct device *dev)

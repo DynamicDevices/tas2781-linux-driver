@@ -1,7 +1,7 @@
 /*
  * TAS2563/TAS2871 Linux Driver
  *
- * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ * Copyright (C) 2022 - 2024 Texas Instruments Incorporated
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -133,6 +133,7 @@ static inline void tas2781_clear_calfirmware(struct tasdevice_fw
 		}
 		kfree(mpCalFirmware->mpCalibrations);
 	}
+	mpCalFirmware->mpCalibrations = NULL;
 	kfree(mpCalFirmware);
 }
 
@@ -1205,19 +1206,57 @@ static int tasdevice_load_calibrated_data(
 	return nResult;
 }
 
-int tas2781_load_calibration(void *pContext, char *pFileName,
+static void calbin_parse(struct device *dev, struct tasdevice_t *tasdev,
+	struct firmware *pfw)
+{
+	struct tasdevice_fw *mpCalFirmware;
+	int offset = 0;
+
+	mpCalFirmware = tasdev->mpCalFirmware = kzalloc(
+		sizeof(struct tasdevice_fw), GFP_KERNEL);
+	if (tasdev->mpCalFirmware == NULL) {
+		dev_err(dev, "%s: FW memory failed!\n", __func__);
+		return;
+	}
+	offset = fw_parse_header(mpCalFirmware, pfw, offset);
+	if (offset == -1) {
+		dev_err(dev, "%s: EXIT!\n", __func__);
+		return;
+	}
+	offset = fw_parse_variable_header_cal(mpCalFirmware, pfw, offset);
+	if (offset == -1) {
+		dev_err(dev, "%s: EXIT!\n", __func__);
+		return;
+	}
+	offset = fw_parse_program_data(mpCalFirmware, pfw, offset);
+	if (offset == -1) {
+		dev_err(dev, "%s: EXIT!\n", __func__);
+		return;
+	}
+	offset = fw_parse_configuration_data(mpCalFirmware, pfw, offset);
+	if (offset == -1) {
+		dev_err(dev, "%s: EXIT!\n", __func__);
+		return;
+	}
+	offset = fw_parse_calibration_data(mpCalFirmware, pfw, offset);
+	if (offset == -1) {
+		dev_err(dev, "%s: EXIT!\n", __func__);
+		return;
+	}
+}
+
+int tas2781_load_calibration(void *ctxt, char *fileName,
 	unsigned short i)
 {
-	int ret = 0, offset = 0;
-	struct firmware FW;
+	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *)ctxt;
+	struct tasdevice_t *tasdev_one = &(tas_dev->tasdevice[i]);
+	struct firmware fw;
 	const struct firmware *fw_entry = NULL;
-	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *)pContext;
-	struct tasdevice_t *pTasdev = &(tas_dev->tasdevice[i]);
-	struct tasdevice_fw *mpCalFirmware = NULL;
+	int ret = 0;
 
 	dev_info(tas_dev->dev, "%s: enter\n", __func__);
 
-	ret = request_firmware(&fw_entry, pFileName, tas_dev->dev);
+	ret = request_firmware(&fw_entry, fileName, tas_dev->dev);
 	if (!ret) {
 		if (!fw_entry->size) {
 			dev_err(tas_dev->dev,
@@ -1225,48 +1264,17 @@ int tas2781_load_calibration(void *pContext, char *pFileName,
 				__func__, (int)fw_entry->size);
 			goto out;
 		}
-		FW.size = fw_entry->size;
-		FW.data = fw_entry->data;
+		fw.size = fw_entry->size;
+		fw.data = fw_entry->data;
 		dev_info(tas_dev->dev, "%s: file = %s, file size %zd\n",
-			__func__, pFileName, fw_entry->size);
+			__func__, fileName, fw_entry->size);
 	} else {
 		dev_info(tas_dev->dev, "%s: Request firmware failed\n",
 			__func__);
 		goto out;
 	}
 
-	mpCalFirmware = pTasdev->mpCalFirmware = kzalloc(
-		sizeof(struct tasdevice_fw), GFP_KERNEL);
-	if (pTasdev->mpCalFirmware == NULL) {
-		dev_err(tas_dev->dev, "%s: FW memory failed!\n", __func__);
-		ret = -1;
-		goto out;
-	}
-	offset = fw_parse_header(mpCalFirmware, &FW, offset);
-	if (offset == -1) {
-		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
-		goto out;
-	}
-	offset = fw_parse_variable_header_cal(mpCalFirmware, &FW, offset);
-	if (offset == -1) {
-		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
-		goto out;
-	}
-	offset = fw_parse_program_data(mpCalFirmware, &FW, offset);
-	if (offset == -1) {
-		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
-		goto out;
-	}
-	offset = fw_parse_configuration_data(mpCalFirmware, &FW, offset);
-	if (offset == -1) {
-		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
-		goto out;
-	}
-	offset = fw_parse_calibration_data(mpCalFirmware, &FW, offset);
-	if (offset == -1) {
-		dev_err(tas_dev->dev, "%s: EXIT!\n", __func__);
-		goto out;
-	}
+	calbin_parse(tas_dev->dev, tasdev_one, &fw);
 
 out:
 	if (fw_entry) {
@@ -1404,18 +1412,18 @@ out:
 	return ret;
 }
 
-void tasdevice_calbin_remove(void *pContext)
+void tasdevice_calbin_remove(void *ctxt)
 {
-	struct tasdevice_priv *tas_dev = (struct tasdevice_priv *) pContext;
-	struct tasdevice_t *pTasdev = NULL;
+	struct tasdevice_priv *tas_pri = (struct tasdevice_priv *)ctxt;
+	struct tasdevice_t *tasdev = NULL;
 	int i = 0;
 
-	if (tas_dev) {
-		for (i = 0; i < tas_dev->ndev; i++) {
-			pTasdev = &(tas_dev->tasdevice[i]);
-			if (pTasdev->mpCalFirmware) {
-				tas2781_clear_calfirmware(pTasdev->mpCalFirmware);
-				pTasdev->mpCalFirmware = NULL;
+	if (tas_pri) {
+		for (i = 0; i < tas_pri->ndev; i++) {
+			tasdev = &(tas_pri->tasdevice[i]);
+			if (tasdev->mpCalFirmware) {
+				tas2781_clear_calfirmware(tasdev->mpCalFirmware);
+				tasdev->mpCalFirmware = NULL;
 			}
 		}
 	}
@@ -1657,7 +1665,7 @@ int tas2781_set_calibration(void *pContext, unsigned short i,
 	if (nCalibration == 0xFF || nCalibration == 0x100) {
 		if (cal_fw) {
 			tas2781_clear_calfirmware(cal_fw);
-			cal_fw = NULL;
+			tasdevice->mpCalFirmware = NULL;
 		}
 
 		scnprintf(tas_dev->cal_binaryname[i], 64, "%s-0x%02x-cal.bin",
@@ -1672,15 +1680,65 @@ int tas2781_set_calibration(void *pContext, unsigned short i,
 		}
 	}
 
+	cal_fw = tasdevice->mpCalFirmware;
 	if (cal_fw) {
 		struct calibration_t *cal = cal_fw->mpCalibrations;
 
 		if (cal)
 			tasdevice_load_calibrated_data(tas_dev, &(cal->mData));
-	} else
-		dev_err(tas_dev->dev,
-			"%s: No calibrated data for device %d\n", __func__, i);
+	} else {
+		dev_err(tas_dev->dev, "%s: No calibrated data for device %d\n",
+			__func__, i);
+	}
 
 out:
 	return nResult;
+}
+
+int tasdevice_calbin_load(void *ctxt)
+{
+	struct tasdevice_priv *tas_pri = ctxt;
+	struct tasdevice_t *tasdev = tas_pri->tasdevice;
+	struct tasdev_buf *p = &tas_pri->calbin_buf;
+	struct tasdevice_fw *cal_fw;
+	struct firmware fw;
+	unsigned char *buf = p->buf;
+	int i, size = p->used_size;
+
+	mutex_lock(&tas_pri->codec_lock);
+	for (i = 0; i < tas_pri->ndev; i++) {
+		if (buf[0] == (unsigned char)tasdev[i].mnDevAddr)
+			break;
+	}
+	if (i == tas_pri->ndev) {
+		size = -ENODEV;
+		goto out;
+	}
+
+	fw.size = p->used_size - 1;
+	fw.data = buf + 1;
+
+	cal_fw = tasdev[i].mpCalFirmware;
+
+	if (cal_fw) {
+		tas2781_clear_calfirmware(cal_fw);
+		tasdev[i].mpCalFirmware = NULL;
+	}
+
+	calbin_parse(tas_pri->dev, &tasdev[i], &fw);
+
+	cal_fw = tasdev[i].mpCalFirmware;
+	if (cal_fw) {
+		struct calibration_t *cal = cal_fw->mpCalibrations;
+
+		if (cal)
+			tasdevice_load_calibrated_data(tas_pri, &(cal->mData));
+	} else {
+		dev_err(tas_pri->dev, "%s: No calibrated data for device %d\n",
+			__func__, i);
+		size = -ENOENT;
+	}
+out:
+	mutex_unlock(&tas_pri->codec_lock);
+	return size;
 }
