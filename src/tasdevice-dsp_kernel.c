@@ -1,7 +1,7 @@
 /*
  * TAS2563/TAS2871 Linux Driver
  *
- * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ * Copyright (C) 2022 - 2024 Texas Instruments Incorporated
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -193,7 +193,7 @@ static int fw_parse_block_data_kernel(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	block->type = be32_to_cpup((__be32 *)&data[offset]);
+	block->type = get_unaligned_be32(&data[offset]);
 	offset  += 4;
 
 	if (offset + 1 > pFW->size) {
@@ -233,7 +233,7 @@ static int fw_parse_block_data_kernel(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	block->blk_size = be32_to_cpup((__be32 *)&data[offset]);
+	block->blk_size = get_unaligned_be32(&data[offset]);
 	offset  += 4;
 
 	if (offset + 4 > pFW->size) {
@@ -241,7 +241,7 @@ static int fw_parse_block_data_kernel(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	block->nSublocks = be32_to_cpup((__be32 *)&data[offset]);
+	block->nSublocks = get_unaligned_be32(&data[offset]);
 	offset  += 4;
 
 	/* storing the dev_idx as a member of block can reduce unnecessary time
@@ -273,7 +273,7 @@ static int fw_parse_data_kernel(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pImageData->mnBlocks = be32_to_cpup((__be32 *)&data[offset]);
+	pImageData->mnBlocks = get_unaligned_be32(&data[offset]);
 	offset  += 4;
 
 	pImageData->mpBlocks =
@@ -401,7 +401,7 @@ int fw_parse_configuration_data_kernel(
 			goto out;
 		}
 		pConfiguration->mProgram =
-			be16_to_cpup((__be16 *)&data[offset]);
+			get_unaligned_be16(&data[offset]);
 		offset  += 2;
 
 		if (offset + 4 > fmw->size) {
@@ -410,7 +410,7 @@ int fw_parse_configuration_data_kernel(
 			goto out;
 		}
 		pConfiguration->mnSamplingRate =
-			be32_to_cpup((__be32 *)&data[offset]);
+			get_unaligned_be32(&data[offset]);
 		offset  += 4;
 
 		if (offset + 2 > fmw->size) {
@@ -419,7 +419,7 @@ int fw_parse_configuration_data_kernel(
 			goto out;
 		}
 		pConfiguration->mnPLLSrc =
-			be16_to_cpup((__be16 *)&data[offset]);
+			get_unaligned_be16(&data[offset]);
 		offset  += 2;
 
 		if (offset + 2 > fmw->size) {
@@ -428,7 +428,7 @@ int fw_parse_configuration_data_kernel(
 			goto out;
 		}
 		pConfiguration->mnFsRate =
-			be16_to_cpup((__be16 *)&data[offset]);
+			get_unaligned_be16(&data[offset]);
 		offset  += 2;
 
 		if (offset + 4 > fmw->size) {
@@ -437,7 +437,7 @@ int fw_parse_configuration_data_kernel(
 			goto out;
 		}
 		pConfiguration->mnPLLSrcRate =
-			be32_to_cpup((__be32 *)&data[offset]);
+			get_unaligned_be32(&data[offset]);
 		offset  += 4;
 		offset = fw_parse_data_kernel(pFirmware,
 			&(pConfiguration->mData), fmw, offset);
@@ -464,7 +464,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDeviceFamily = be16_to_cpup((__be16 *)&buf[offset]);
+	pFw_hdr->mnDeviceFamily = get_unaligned_be16(&buf[offset]);
 	if (pFw_hdr->mnDeviceFamily != 0) {
 		pr_err("ERROR:%s:not TAS device\n", __func__);
 		offset = -1;
@@ -476,7 +476,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDevice = be16_to_cpup((__be16 *)&buf[offset]);
+	pFw_hdr->mnDevice = get_unaligned_be16(&buf[offset]);
 	if (pFw_hdr->mnDevice >= TASDEVICE_DSP_TAS_MAX_DEVICE ||
 		pFw_hdr->mnDevice == 6) {
 		pr_err("ERROR:%s: not support device %d\n", __func__,
@@ -499,7 +499,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		offset = -1;
 		goto out;
 	}
-	pFirmware->nr_programs = be32_to_cpup((__be32 *)&buf[offset]);
+	pFirmware->nr_programs = get_unaligned_be32(&buf[offset]);
 	offset  += 4;
 
 	if (pFirmware->nr_programs == 0 || pFirmware->nr_programs >
@@ -525,7 +525,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 
 	for (nProgram = 0; nProgram < pFirmware->nr_programs; nProgram++) {
 		pProgram = &(pFirmware->mpPrograms[nProgram]);
-		pProgram->prog_size = be32_to_cpup((__be32 *)&buf[offset]);
+		pProgram->prog_size = get_unaligned_be32(&buf[offset]);
 		pFirmware->cfg_start_offset  += pProgram->prog_size;
 		offset  += 4;
 	}
@@ -536,7 +536,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		offset = -1;
 		goto out;
 	}
-	pFirmware->nr_configurations = be32_to_cpup((__be32 *)&buf[offset]);
+	pFirmware->nr_configurations = get_unaligned_be32(&buf[offset]);
 	offset  += 4;
 	maxConf = (pFw_hdr->ndev >= 4) ?
 		TASDEVICE_MAXCONFIG_NUM_KERNEL_MULTIPLE_AMPS :
@@ -567,7 +567,7 @@ int fw_parse_variable_header_kernel(struct tasdevice_priv *tas_dev,
 		pConfiguration =
 			&(pFirmware->mpConfigurations[nConfiguration]);
 		pConfiguration->cfg_size =
-			be32_to_cpup((__be32 *)&buf[offset]);
+			get_unaligned_be32(&buf[offset]);
 		offset  += 4;
 	}
 

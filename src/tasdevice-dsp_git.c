@@ -1,7 +1,7 @@
 /*
  * TAS2563/TAS2871 Linux Driver
  *
- * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ * Copyright (C) 2022 - 2024 Texas Instruments Incorporated
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -54,7 +54,7 @@ int fw_parse_variable_header_git(struct tasdevice_priv *tas_dev,
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDeviceFamily = be32_to_cpup((__be32 *)&buf[offset]);
+	pFw_hdr->mnDeviceFamily = get_unaligned_be32(&buf[offset]);
 	if (pFw_hdr->mnDeviceFamily != 0) {
 		dev_err(tas_dev->dev, "ERROR:%s: not TAS device\n", __func__);
 		offset = -1;
@@ -66,7 +66,7 @@ int fw_parse_variable_header_git(struct tasdevice_priv *tas_dev,
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDevice = be32_to_cpup((__be32 *)&buf[offset]);
+	pFw_hdr->mnDevice = get_unaligned_be32(&buf[offset]);
 	if (pFw_hdr->mnDevice >= TASDEVICE_DSP_TAS_MAX_DEVICE ||
 		pFw_hdr->mnDevice == 6) {
 		dev_err(tas_dev->dev, "ERROR:%s: not support device %d\n",
@@ -114,7 +114,7 @@ int fw_parse_variable_header_cal(struct tasdevice_fw *pCalFirmware,
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDeviceFamily = be32_to_cpup((__be32 *)&buf[offset]);
+	pFw_hdr->mnDeviceFamily = get_unaligned_be32(&buf[offset]);
 	if (pFw_hdr->mnDeviceFamily != 0) {
 		pr_err("ERROR:%s: not TAS device\n", __func__);
 		offset = -1;
@@ -126,7 +126,7 @@ int fw_parse_variable_header_cal(struct tasdevice_fw *pCalFirmware,
 		offset = -1;
 		goto out;
 	}
-	pFw_hdr->mnDevice = be32_to_cpup((__be32 *)&buf[offset]);
+	pFw_hdr->mnDevice = get_unaligned_be32(&buf[offset]);
 	if (pFw_hdr->mnDevice >= TASDEVICE_DSP_TAS_MAX_DEVICE ||
 		pFw_hdr->mnDevice == 6) {
 		pr_err("ERROR:%s: not support device %d\n",

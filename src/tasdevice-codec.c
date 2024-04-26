@@ -1,7 +1,7 @@
 /*
  * TAS2563/TAS2871 Linux Driver
  *
- * Copyright (C) 2022 - 2023 Texas Instruments Incorporated
+ * Copyright (C) 2022 - 2024 Texas Instruments Incorporated
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -488,7 +488,7 @@ static int tas2563_digital_getvol(struct snd_kcontrol *kcontrol,
 		__func__);
 		goto out;
 	}
-	tmp = be32_to_cpup((__be32 *)data);
+	tmp = get_unaligned_be32(data);
 	vol = tmp >> 16;
 	vol = mc->invert ? max_vol - vol : vol;
 	ucontrol->value.integer.value[0] = vol;

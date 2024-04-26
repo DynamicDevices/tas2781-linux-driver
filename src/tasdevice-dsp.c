@@ -148,7 +148,7 @@ static int fw_parse_block_data(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	block->type = be32_to_cpup((__be32 *)&data[offset]);
+	block->type = get_unaligned_be32(&data[offset]);
 	offset  += 4;
 
 	if (pFirmware->fw_hdr.mnFixedHdr.drv_ver >=
@@ -193,7 +193,7 @@ static int fw_parse_block_data(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	block->mnCommands = be32_to_cpup((__be32 *)&data[offset]);
+	block->mnCommands = get_unaligned_be32(&data[offset]);
 	offset  += 4;
 
 	n = block->mnCommands * 4;
@@ -248,7 +248,7 @@ static int fw_parse_data(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pImageData->mnBlocks = be16_to_cpup((__be16 *)&data[offset]);
+	pImageData->mnBlocks = get_unaligned_be16(&data[offset]);
 	offset  += 2;
 
 	pImageData->mpBlocks = kcalloc(pImageData->mnBlocks,
@@ -281,7 +281,7 @@ static int fw_parse_calibration_data(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pFirmware->mnCalibrations = be16_to_cpup((__be16 *)&data[offset]);
+	pFirmware->mnCalibrations = get_unaligned_be16(&data[offset]);
 	offset  += 2;
 
 	if (pFirmware->mnCalibrations != 1) {
@@ -368,7 +368,7 @@ static int fw_parse_program_data(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pFirmware->nr_programs = be16_to_cpup((__be16 *)&buf[offset]);
+	pFirmware->nr_programs = get_unaligned_be16(&buf[offset]);
 	offset  += 2;
 
 	if (pFirmware->nr_programs == 0) {
@@ -471,7 +471,7 @@ static int fw_parse_configuration_data(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	pFirmware->nr_configurations = be16_to_cpup((__be16 *)&data[offset]);
+	pFirmware->nr_configurations = get_unaligned_be16(&data[offset]);
 	offset  += 2;
 
 	if (pFirmware->nr_configurations == 0) {
@@ -536,7 +536,7 @@ static int fw_parse_configuration_data(struct tasdevice_fw *pFirmware,
 			goto out;
 		}
 		pConfiguration->mnSamplingRate =
-			be32_to_cpup((__be32 *)&data[offset]);
+			get_unaligned_be32(&data[offset]);
 		offset  += 4;
 
 		if (offset + 1 > fmw->size) {
@@ -553,7 +553,7 @@ static int fw_parse_configuration_data(struct tasdevice_fw *pFirmware,
 			goto out;
 		}
 		pConfiguration->mnPLLSrcRate =
-			be32_to_cpup((__be32 *)&data[offset]);
+			get_unaligned_be32(&data[offset]);
 		offset  += 4;
 
 		if (offset + 2 > fmw->size) {
@@ -562,7 +562,7 @@ static int fw_parse_configuration_data(struct tasdevice_fw *pFirmware,
 			goto out;
 		}
 		pConfiguration->mnFsRate =
-			be16_to_cpup((__be16 *)&data[offset]);
+			get_unaligned_be16(&data[offset]);
 		offset  += 2;
 
 		offset = fw_parse_data(pFirmware, &(pConfiguration->mData),
@@ -593,14 +593,14 @@ static int fw_parse_header(struct tasdevice_fw *pFirmware,
 		offset = -EINVAL;
 		goto out;
 	}
-	fw_fixed_hdr->mnMagicNumber = be32_to_cpup((__be32 *)&buf[offset]);
+	fw_fixed_hdr->mnMagicNumber = get_unaligned_be32(&buf[offset]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	fw_fixed_hdr->mnFWSize = be32_to_cpup((__be32 *)&buf[offset]);
+	fw_fixed_hdr->mnFWSize = get_unaligned_be32(&buf[offset]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
 		pr_err("%s: File Size error\n", __func__);
@@ -618,28 +618,28 @@ static int fw_parse_header(struct tasdevice_fw *pFirmware,
 		offset = -1;
 		goto out;
 	}
-	fw_fixed_hdr->mnChecksum = be32_to_cpup((__be32 *)&buf[offset]);
+	fw_fixed_hdr->mnChecksum = get_unaligned_be32(&buf[offset]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	fw_fixed_hdr->ppcver = be32_to_cpup((__be32 *)&buf[offset]);
+	fw_fixed_hdr->ppcver = get_unaligned_be32(&buf[offset]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	fw_fixed_hdr->mnFWVersion = be32_to_cpup((__be32 *)&buf[offset]);
+	fw_fixed_hdr->mnFWVersion = get_unaligned_be32(&buf[offset]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
 		pr_err("%s: File Size error\n", __func__);
 		offset = -1;
 		goto out;
 	}
-	fw_fixed_hdr->drv_ver = be32_to_cpup((__be32 *)&buf[offset]);
+	fw_fixed_hdr->drv_ver = get_unaligned_be32(&buf[offset]);
 	offset  += 4;
 	if (offset + 4 > pFW->size) {
 		pr_err("%s: File Size error\n", __func__);
@@ -655,7 +655,7 @@ static int fw_parse_header(struct tasdevice_fw *pFirmware,
 			break;
 		}
 	}
-	fw_fixed_hdr->mnTimeStamp = be32_to_cpup((__be32 *)&buf[offset]);
+	fw_fixed_hdr->mnTimeStamp = get_unaligned_be32(&buf[offset]);
 	offset  += 4;
 	if (offset + 64 > pFW->size) {
 		pr_err("%s: File Size error\n", __func__);
@@ -1583,17 +1583,6 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 				continue;
 			} else if (tas_dev->tasdevice[i].bLoaderr == false
 				&& tas_dev->tasdevice[i].bLoading == true) {
-				struct tasdevice_fw *cal_fw =
-					tas_dev->tasdevice[i].mpCalFirmware;
-
-				if (cal_fw) {
-					struct calibration_t *cal =
-						cal_fw->mpCalibrations;
-
-					if (cal)
-						tasdevice_load_calibrated_data(
-							tas_dev, &(cal->mData));
-				}
 				tas_dev->tasdevice[i].mnCurrentProgram
 					= prm_no;
 			}
@@ -1622,9 +1611,21 @@ int tasdevice_select_tuningprm_cfg(void *pContext, int prm_no,
 				status |= 1 << (i + 4);
 				continue;
 			} else if (tas_dev->tasdevice[i].bLoaderr == false
-				&& tas_dev->tasdevice[i].bLoading == true)
+				&& tas_dev->tasdevice[i].bLoading == true) {
+				struct tasdevice_fw *cal_fw =
+					tas_dev->tasdevice[i].mpCalFirmware;
+
+				if (cal_fw) {
+					struct calibration_t *cal =
+						cal_fw->mpCalibrations;
+
+					if (cal)
+						tasdevice_load_calibrated_data(
+							tas_dev, &(cal->mData));
+				}
 				tas_dev->tasdevice[i].mnCurrentConfiguration
 					= cfg_no;
+			}
 		}
 	} else
 		dev_info(tas_dev->dev,
