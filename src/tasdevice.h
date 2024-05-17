@@ -56,7 +56,7 @@
 					(page * 128)) + reg)
 
 	/*Software Reset */
-#define TASDEVICE_REG_SWRESET		TASDEVICE_REG(0x0, 0X0, 0x02)
+#define TASDEVICE_REG_SWRESET		TASDEVICE_REG(0x0, 0X0, 0x01)
 #define TASDEVICE_REG_SWRESET_RESET	BIT(0)
 	/* Enable Global addresses */
 #define TAS2563_MISC_CFG2		TASDEVICE_REG(0x0, 0X0, 0x05)
