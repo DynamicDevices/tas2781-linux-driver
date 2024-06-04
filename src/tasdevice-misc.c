@@ -114,7 +114,7 @@ static ssize_t tasdevice_write(struct file *file, const char *buf,
 		struct tasdev_buf *p = &tas_dev->calbin_buf;
 
 		dev_info(tas_dev->dev, "Got %d bytes than Max %d bytes!\n",
-			count, MAX_LENGTH);
+			(int)count, MAX_LENGTH);
 		if (count > p->real_size) {
 			if (p->real_size)
 				kfree(p->buf);

@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 
+#include <asm/unaligned.h>
 #include <linux/crc8.h>
 #include <linux/firmware.h>
 #include <linux/interrupt.h>
