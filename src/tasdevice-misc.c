@@ -231,7 +231,7 @@ static long tasdevice_ioctl(struct file *f,
 	case TILOAD_IOCTL_SET_CHL:
 	mutex_lock(&tas_dev->dev_lock);
 	{
-		unsigned char addr = 0;
+		unsigned char addr;
 
 		ret = copy_from_user(&val, arg, sizeof(int));
 		addr = (unsigned char)(val>>1);
@@ -248,7 +248,8 @@ static long tasdevice_ioctl(struct file *f,
 			}
 
 		if (i == tas_dev->ndev)
-			dev_err(tas_dev->dev, "TILOAD_IOCTL_SET_CHL: err\n\r");
+			dev_err(tas_dev->dev, "TILOAD_IOCTL_SET_CHL: "
+				"err addr = 0x%02x\n\r", addr);
 	}
 	mutex_unlock(&tas_dev->dev_lock);
 		break;
