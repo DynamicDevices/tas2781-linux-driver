@@ -1,0 +1,70 @@
+// Definitions for Waveshare tac5x1x https://github.com/waveshare/tac5x1x-Audio-HAT
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2835";
+
+	fragment@0 {
+		target = <&i2s_clk_producer>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target-path="/";
+		__overlay__ {
+			tac5x1x_mclk: tac5x1x_mclk {
+				compatible = "fixed-clock";
+				#clock-cells = <0>;
+				clock-frequency = <12288000>;
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			clock-frequency = <400000>;
+			tas2563: tas2563@4c {
+				compatible = "ti,tas2563";
+				reg = <0x4c>, /* Audio slot 0 */
+						<0x4d>; /* Audio slot 1 */
+
+				#sound-dai-cells = <0>;
+				reset-gpios = <&gpio 24 1>;
+				
+			};
+		};
+	};
+
+
+	fragment@3 {
+		target = <&sound>;
+		master_overlay: __overlay__ {
+			compatible = "simple-audio-card";
+			simple-audio-card,format = "i2s";
+			simple-audio-card,name = "ti,tas2563-soundcard"; 
+			status = "okay";
+
+            simple-audio-card,bitclock-master = <&dailink0_master>;
+            simple-audio-card,frame-master = <&dailink0_master>;
+
+			dailink0_master: simple-audio-card,cpu {
+				sound-dai = <&i2s_clk_producer>;
+			};
+			simple-audio-card,codec {
+				sound-dai = <&tas2563>;
+			};
+		};
+	};
+
+	__overrides__ {
+		alsaname = <&master_overlay>,"simple-audio-card,name";
+		compatible = <&tas2563>,"compatible";
+	};
+};
