@@ -365,11 +365,6 @@ static ssize_t tasdevice_write(struct file *file, const char *buf,
 		tas_dev->rwinfo.mnDBGCmd = wr_data[0];
 		tas_dev->rwinfo.mnCurrentChannel = wr_data[1];
 		tas_dev->rwinfo.mBook = wr_data[3];
-		if (wr_data[3] >= TASDEV_DSP_BOOK) {
-			dev_info(tas_dev->dev,
-				"%s: Pls check the package type 0x%02x\n",
-				__func__, wr_data[3]);
-		}
 		tas_dev->rwinfo.mPage = wr_data[4];
 		tas_dev->rwinfo.mnCurrentReg = wr_data[5];
 		size = tasdev_rccd2_tas_write(tas_dev, wr_data, count, 6);
