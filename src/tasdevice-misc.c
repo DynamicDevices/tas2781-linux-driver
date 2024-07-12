@@ -267,7 +267,7 @@ static int tasdev_rccd2_tas_write(struct tasdevice_priv *tas_dev,
 		else
 			ret = tas_dev->bulk_write(tas_dev,
 				tas_dev->rwinfo.mnCurrentChannel,
-				nCompositeRegister, &wr_data[1], len);
+				nCompositeRegister, &wr_data[offset], len);
 		if (!ret)
 			ret = count;
 	} else {
