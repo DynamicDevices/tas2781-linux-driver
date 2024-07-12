@@ -32,26 +32,18 @@
 #include "tasdevice.h"
 #include "tasdevice-misc.h"
 
-static ssize_t tasdevice_read(struct file *file, char *buf,
-			size_t count, loff_t *ppos)
+#define	TIAUDIO_CMD_REG_WITE			1
+#define	TIAUDIO_CMD_REG_READ			2
+#define	TIAUDIO_CMD_REG_FCT			0xff
+
+static int tasdev_fct_read(struct tasdevice_priv *tas_dev,
+	char *buf, size_t count)
 {
-	struct miscdevice *dev = file->private_data;
-	struct tasdevice_priv *tas_dev = container_of(dev,
-		struct tasdevice_priv, misc_dev);
 	unsigned int nCompositeRegister, Value;
-	static char rd_data[MAX_LENGTH + 1];
+	char rd_data[MAX_LENGTH];
 	char reg_addr;
 	size_t size;
 	int ret;
-
-	mutex_lock(&tas_dev->file_lock);
-
-	if (count > MAX_LENGTH) {
-		dev_err(tas_dev->dev,
-			"Max %d bytes can be read\n", MAX_LENGTH);
-		size = -EINVAL;
-		goto out;
-	}
 
 	/* copy register address from user space */
 	size = copy_from_user(&reg_addr, buf, 1);
@@ -67,12 +59,10 @@ static ssize_t tasdevice_read(struct file *file, char *buf,
 	if (count == 1) {
 		ret = tas_dev->read(tas_dev, tas_dev->rwinfo.mnCurrentChannel,
 				nCompositeRegister, &Value);
-		if (ret >= 0)
-			rd_data[0] = (char) Value;
+		rd_data[0] = Value;
 	} else if (count > 1) {
 		ret = tas_dev->bulk_read(tas_dev,
-					tas_dev->rwinfo.mnCurrentChannel,
-					nCompositeRegister,
+			tas_dev->rwinfo.mnCurrentChannel, nCompositeRegister,
 			rd_data, size);
 	}
 	if (ret < 0) {
@@ -83,74 +73,151 @@ static ssize_t tasdevice_read(struct file *file, char *buf,
 		goto out;
 	}
 
-	if (size != count)
-		dev_err(tas_dev->dev,
-		"read %d registers from the codec\n", (int) size);
-
 	if (copy_to_user(buf, rd_data, size) != 0) {
-		dev_err(tas_dev->dev, "copy_to_user failed\n");
+		dev_err(tas_dev->dev, "%s: copy_to_user failed\n", __func__);
+		size = -EINVAL;
+	}
+out:
+	return size;
+}
+
+static int tasdev_rccd2_read(struct tasdevice_priv *tas_dev,
+	char *buf, size_t count)
+{
+	unsigned int nCompositeRegister, Value;
+	char rd_data[MAX_LENGTH];
+	size_t size = count;
+	int ret;
+
+	if (count > MAX_LENGTH) {
+		dev_err(tas_dev->dev, "%s: read: size too large\n",
+			__func__);
+		size = -EINVAL;
+		goto out;
+	}
+	nCompositeRegister = TASDEVICE_REG(tas_dev->rwinfo.mBook,
+		tas_dev->rwinfo.mPage, tas_dev->rwinfo.mnCurrentReg);
+
+	if (count == 1) {
+		ret = tas_dev->read(tas_dev, tas_dev->rwinfo.mnCurrentChannel,
+			nCompositeRegister, &Value);
+		rd_data[0] = Value;
+	} else if (count > 1) {
+		ret = tas_dev->bulk_read(tas_dev,
+			tas_dev->rwinfo.mnCurrentChannel, nCompositeRegister,
+			rd_data, count);
+	}
+
+	if (ret < 0) {
+		dev_err(tas_dev->dev,
+			"%s, ret=%d, count=%zu error happen!\n",
+			__func__, ret, count);
+		size = ret;
+		goto out;
+	}
+
+	if (copy_to_user(buf, rd_data, count) != 0) {
+		/* Failed to copy all the data, exit */
+		dev_err(tas_dev->dev, "%s: copy to user fail %d\n",
+			__func__, ret);
 		size = -EINVAL;
 	}
 
 out:
-	mutex_unlock(&tas_dev->file_lock);
 	return size;
 }
 
-static ssize_t tasdevice_write(struct file *file, const char *buf,
-				size_t count, loff_t *ppos)
+static ssize_t tasdevice_read(struct file *file, char *buf,
+			size_t count, loff_t *ppos)
 {
 	struct miscdevice *dev = file->private_data;
-	struct tasdevice_priv *tas_dev = container_of(dev, struct
-		tasdevice_priv, misc_dev);
-	unsigned int nCompositeRegister, nRegister;
-	static char wr_data[MAX_LENGTH + 1];
-	char *pData = wr_data;
-	int size, ret;
+	struct tasdevice_priv *tas_dev = container_of(dev,
+		struct tasdevice_priv, misc_dev);
+	size_t size;
 
 	mutex_lock(&tas_dev->file_lock);
 
 	if (count > MAX_LENGTH) {
-		struct tasdev_buf *p = &tas_dev->calbin_buf;
-
-		dev_info(tas_dev->dev, "Got %d bytes than Max %d bytes!\n",
-			(int)count, MAX_LENGTH);
-		if (count > p->real_size) {
-			if (p->real_size)
-				kfree(p->buf);
-			p->buf = kcalloc(count, sizeof(char), GFP_KERNEL);
-			if (!p->buf) {
-				size = -ENOMEM;
-				goto out;
-			}
-			p->real_size = count;
-		}
-		size = copy_from_user(p->buf, buf, count);
-		if (size != 0) {
-			dev_err(tas_dev->dev,
-				"copy_from_user failure %d bytes\n", size);
-			size = -EINVAL;
-			goto out;
-		}
-		p->used_size = count;
-		size = tasdevice_calbin_load(tas_dev);
-		goto out;
-	}
-
-	/* copy buffer from user space	*/
-	size = copy_from_user(wr_data, buf, count);
-	if (size != 0) {
-		dev_err(tas_dev->dev, "copy_from_user failure %d bytes\n",
-			size);
+		dev_err(tas_dev->dev,
+			"Max %d bytes can be read\n", MAX_LENGTH);
 		size = -EINVAL;
 		goto out;
 	}
+
+
+	switch (tas_dev->rwinfo.mnDBGCmd) {
+	case TIAUDIO_CMD_REG_FCT:
+	size = tasdev_fct_read(tas_dev, buf, count);
+		break;
+	case TIAUDIO_CMD_REG_READ:
+	size = tasdev_rccd2_read(tas_dev, buf, count);
+		break;
+	default:
+	dev_err(tas_dev->dev, "%s: No such cmd 0x%02x\n", __func__,
+		tas_dev->rwinfo.mnDBGCmd);
+	size = 0;
+		break;
+	}
+out:
+	tas_dev->rwinfo.mnDBGCmd = 0;
+	mutex_unlock(&tas_dev->file_lock);
+	return size;
+}
+
+#define TASDEV_DSP_BOOK				0x8C
+
+static int tasdev_rccd2_dsp_write(struct tasdevice_priv *tas_dev,
+	char *wr_data, int count)
+{
+	unsigned int nCompositeRegister;
+	unsigned char *pData = wr_data;
+	unsigned char i2c_addr;
+	int size, ret, idx;
+
+	if (pData[1] != TASDEV_DSP_BOOK) {
+		dev_err(tas_dev->dev, "%s: 0x%02xnot dsp book!\n", __func__,
+			pData[1]);
+		return -EINVAL;
+	}
+	size = count;
+	i2c_addr = pData[0] >> 1;
+
+	for (idx = 0; idx < tas_dev->ndev; idx++) {
+		if (i2c_addr == tas_dev->tasdevice[idx].mnDevAddr)
+			break;
+	}
+
+	if (idx == tas_dev->ndev) {
+		dev_err(tas_dev->dev, "%s: can't find device!\n", __func__);
+		return -EINVAL;
+	}
+	nCompositeRegister = TASDEVICE_REG(pData[1], pData[2], pData[3]);
+
+	ret = tas_dev->bulk_write(tas_dev, idx, nCompositeRegister, &pData[4],
+		count - 4);
+
+	if (ret < 0) {
+		size = ret;
+		dev_err(tas_dev->dev, "%s, ret=%d, count=%d, ERROR Happen\n",
+			__func__, ret, (int)count);
+	}
+
+	return size;
+}
+
+static int tasdev_fct_write(struct tasdevice_priv *tas_dev,
+	char *wr_data, int count)
+{
+	unsigned int nCompositeRegister, nRegister;
+	char *pData = wr_data;
+	int size, ret;
+
 
 	nRegister = wr_data[0];
 	size = count;
 	if ((nRegister == 127) && (tas_dev->rwinfo.mPage == 0)) {
 		tas_dev->rwinfo.mBook = wr_data[1];
-		goto out;
+		return size;
 	}
 
 	if (nRegister == 0) {
@@ -167,13 +234,149 @@ static ssize_t tasdevice_write(struct file *file, const char *buf,
 	else if (count > 2)
 		ret = tas_dev->bulk_write(tas_dev,
 			tas_dev->rwinfo.mnCurrentChannel,
-			nCompositeRegister, &pData[1], count-1);
+			nCompositeRegister, &pData[1], count - 1);
 
-	if (ret < 0) {
+	if (!ret) {
+		tas_dev->rwinfo.mnDBGCmd = TIAUDIO_CMD_REG_FCT;
+	} else {
 		size = ret;
-		dev_err(tas_dev->dev, "%s, ret=%d, count=%zu, ERROR Happen\n",
-			__func__, ret, count);
+		dev_err(tas_dev->dev, "%s, ret=%d, count=%d, ERROR Happen\n",
+			__func__, ret, (int)count);
 	}
+
+	return size;
+}
+
+static int tasdev_rccd2_tas_write(struct tasdevice_priv *tas_dev,
+	char *wr_data, int count, int offset)
+{
+	struct Trwinfo *p = &tas_dev->rwinfo;
+	int ret;
+
+	switch (p->mnDBGCmd) {
+	case TIAUDIO_CMD_REG_WITE:
+	if (count > 6) {
+		unsigned int len = count - offset;
+		unsigned int nCompositeRegister = TASDEVICE_REG(p->mBook,
+			p->mPage, p->mnCurrentReg);
+
+		if (len == 1)
+			ret = tas_dev->write(tas_dev,
+				tas_dev->rwinfo.mnCurrentChannel,
+				nCompositeRegister, wr_data[offset]);
+		else
+			ret = tas_dev->bulk_write(tas_dev,
+				tas_dev->rwinfo.mnCurrentChannel,
+				nCompositeRegister, &wr_data[1], len);
+		if (!ret)
+			ret = count;
+	} else {
+		dev_err(tas_dev->dev, "%s, write len fail, count=%d.\n",
+			__func__, (int)count);
+		ret = -EINVAL;
+	}
+	p->mnDBGCmd = 0;
+		break;
+	case TIAUDIO_CMD_REG_READ:
+		if (count != 6) {
+			ret = -EINVAL;
+			dev_err(tas_dev->dev, "read len fail.\n");
+			memset(p, 0, sizeof(tas_dev->rwinfo));
+		} else {
+			ret = count;
+		}
+		break;
+	}
+
+	return ret;
+}
+
+#define CALIBRATION_BIN_SIZE	460
+static int tasdev_load_calbin_from_user_space(
+	struct tasdevice_priv *tas_dev, const char *buf)
+{
+	struct tasdev_buf *p = &tas_dev->calbin_buf;
+	int size;
+
+	if (CALIBRATION_BIN_SIZE > p->real_size) {
+		if (p->real_size)
+			kfree(p->buf);
+		p->buf = kcalloc(CALIBRATION_BIN_SIZE, sizeof(char),
+			GFP_KERNEL);
+		if (!p->buf) {
+			size = -ENOMEM;
+			return size;
+		}
+		p->real_size = CALIBRATION_BIN_SIZE;
+	}
+	size = copy_from_user(p->buf, buf, CALIBRATION_BIN_SIZE);
+	if (size != 0) {
+		dev_err(tas_dev->dev,
+			"copy_from_user failure %d bytes\n", size);
+		size = -EINVAL;
+		return size;
+	}
+
+	p->used_size = CALIBRATION_BIN_SIZE;
+	return tasdevice_calbin_load(tas_dev);
+}
+
+static ssize_t tasdevice_write(struct file *file, const char *buf,
+				size_t count, loff_t *ppos)
+{
+	struct miscdevice *dev = file->private_data;
+	struct tasdevice_priv *tas_dev = container_of(dev, struct
+		tasdevice_priv, misc_dev);
+	char wr_data[MAX_LENGTH];
+	int size;
+
+	mutex_lock(&tas_dev->file_lock);
+
+	dev_info(tas_dev->dev, "%s: count = %d\n", __func__, (int)count);
+
+	if (count == CALIBRATION_BIN_SIZE) {
+		size = tasdev_load_calbin_from_user_space(tas_dev, buf);
+		goto out;
+	}
+
+	if (count > MAX_LENGTH) {
+		dev_err(tas_dev->dev, "%s: write len is too large\n",
+			__func__);
+		size =  -EINVAL;
+		goto out;
+	}
+
+	/* copy buffer from user space	*/
+	size = copy_from_user(wr_data, buf, count);
+	if (size != 0) {
+		dev_err(tas_dev->dev, "copy_from_user failure %d bytes\n",
+			size);
+		size = -EINVAL;
+		goto out;
+	}
+
+	if (count <= 5) {
+		size = tasdev_fct_write(tas_dev, wr_data, count);
+		goto out;
+	}
+
+	if (wr_data[0] == TIAUDIO_CMD_REG_WITE ||
+		wr_data[0] == TIAUDIO_CMD_REG_READ) {
+		tas_dev->rwinfo.mnDBGCmd = wr_data[0];
+		tas_dev->rwinfo.mnCurrentChannel = wr_data[1];
+		tas_dev->rwinfo.mBook = wr_data[3];
+		if (wr_data[3] >= TASDEV_DSP_BOOK) {
+			dev_info(tas_dev->dev,
+				"%s: Pls check the package type 0x%02x\n",
+				__func__, wr_data[3]);
+		}
+		tas_dev->rwinfo.mPage = wr_data[4];
+		tas_dev->rwinfo.mnCurrentReg = wr_data[5];
+		size = tasdev_rccd2_tas_write(tas_dev, wr_data, count, 6);
+		goto out;
+	}
+
+	size = tasdev_rccd2_dsp_write(tas_dev, wr_data, count);
 
 out:
 	mutex_unlock(&tas_dev->file_lock);
