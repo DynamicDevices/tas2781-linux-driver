@@ -362,11 +362,15 @@ static ssize_t tasdevice_write(struct file *file, const char *buf,
 
 	if (wr_data[0] == TIAUDIO_CMD_REG_WITE ||
 		wr_data[0] == TIAUDIO_CMD_REG_READ) {
+		unsigned int reg;
 		tas_dev->rwinfo.mnDBGCmd = wr_data[0];
 		tas_dev->rwinfo.mnCurrentChannel = wr_data[1];
-		tas_dev->rwinfo.mBook = wr_data[3];
-		tas_dev->rwinfo.mPage = wr_data[4];
-		tas_dev->rwinfo.mnCurrentReg = wr_data[5];
+		reg = ((unsigned int)wr_data[3] << 16) +
+			((unsigned int)wr_data[4] << 8) +
+			(unsigned int)wr_data[5];
+		tas_dev->rwinfo.mBook = TASDEVICE_BOOK_ID(reg);
+		tas_dev->rwinfo.mPage = TASDEVICE_PAGE_ID(reg);
+		tas_dev->rwinfo.mnCurrentReg = TASDEVICE_PAGE_REG(reg);
 		size = tasdev_rccd2_tas_write(tas_dev, wr_data, count, 6);
 		goto out;
 	}
