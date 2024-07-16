@@ -127,6 +127,73 @@ out:
 	return size;
 }
 
+#define TASDEV_DSP_BOOK				0x8C
+
+static int tasdev_rccd2_dsp_read(struct tasdevice_priv *tas_dev,
+	char *buf, int count)
+{
+	unsigned int nCompositeRegister;
+	unsigned char i2c_addr;
+	char rd_data[MAX_LENGTH];
+	int size, idx;
+	int ret;
+	int i = 0;
+	int rest;
+
+	if (count < 5) {
+		dev_err(tas_dev->dev, "%s: size is too small\n", __func__);
+		return -EINVAL;
+	}
+	/* copy i2c address and register address from user space */
+	size = copy_from_user(rd_data, buf, 4);
+	if (size != 0) {
+		dev_err(tas_dev->dev, "read: copy_from_user failure\n");
+		return -EINVAL;
+	}
+
+	if (rd_data[1] != TASDEV_DSP_BOOK) {
+		dev_err(tas_dev->dev, "%s: 0x%02xnot dsp book!\n", __func__,
+			rd_data[1]);
+		return -EINVAL;
+	}
+
+	i2c_addr = rd_data[0] >> 1;
+
+	for (idx = 0; idx < tas_dev->ndev; idx++) {
+		if (i2c_addr == tas_dev->tasdevice[idx].mnDevAddr)
+			break;
+	}
+
+	if (idx == tas_dev->ndev) {
+		dev_err(tas_dev->dev, "%s: can't find device!\n", __func__);
+		return -EINVAL;
+	}
+	nCompositeRegister = TASDEVICE_REG(rd_data[1], rd_data[2], rd_data[3]);
+
+	if (count - 4 != 1) {
+		ret = tas_dev->bulk_read(tas_dev, idx, nCompositeRegister,
+			&rd_data[4], count - 4);
+	} else {
+		ret = tas_dev->read(tas_dev, idx, nCompositeRegister,
+			(unsigned int *)&rd_data[4]);
+	}
+
+	if (ret < 0) {
+		dev_err(tas_dev->dev, "%s, ret=%d, count=%d, ERROR Happen\n",
+			__func__, ret, (int)count);
+		return ret;
+	}
+
+	if (copy_to_user(buf, rd_data, count) != 0) {
+		/* Failed to copy all the data, exit */
+		dev_err(tas_dev->dev, "%s: copy to user fail %d\n",
+			__func__, ret);
+		return -EINVAL;
+	}
+
+	return count;
+}
+
 static ssize_t tasdevice_read(struct file *file, char *buf,
 			size_t count, loff_t *ppos)
 {
@@ -153,9 +220,7 @@ static ssize_t tasdevice_read(struct file *file, char *buf,
 	size = tasdev_rccd2_read(tas_dev, buf, count);
 		break;
 	default:
-	dev_err(tas_dev->dev, "%s: No such cmd 0x%02x\n", __func__,
-		tas_dev->rwinfo.mnDBGCmd);
-	size = 0;
+	size = tasdev_rccd2_dsp_read(tas_dev, buf, count);
 		break;
 	}
 out:
@@ -163,8 +228,6 @@ out:
 	mutex_unlock(&tas_dev->file_lock);
 	return size;
 }
-
-#define TASDEV_DSP_BOOK				0x8C
 
 static int tasdev_rccd2_dsp_write(struct tasdevice_priv *tas_dev,
 	char *wr_data, int count)
