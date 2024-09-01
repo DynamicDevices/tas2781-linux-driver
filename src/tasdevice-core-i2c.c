@@ -146,16 +146,16 @@ static int tasdevice_i2c_parse_dt(struct tasdevice_priv *tas_priv)
 	return 0;
 }
 
-#if KERNEL_VERSION(6, 5, 0) >= LINUX_VERSION_CODE
+//#if KERNEL_VERSION(6, 5, 0) >= LINUX_VERSION_CODE
 static int tasdevice_i2c_probe(struct i2c_client *i2c,
 	const struct i2c_device_id *id)
-#else
-static int tasdevice_i2c_probe(struct i2c_client *i2c)
-#endif
+//#else
+//static int tasdevice_i2c_probe(struct i2c_client *i2c)
+//#endif
 {
-#if KERNEL_VERSION(6, 5, 0) < LINUX_VERSION_CODE
-	const struct i2c_device_id *id = i2c_match_id(tasdevice_id, i2c);
-#endif
+//#if KERNEL_VERSION(6, 5, 0) < LINUX_VERSION_CODE
+//	const struct i2c_device_id *id = i2c_match_id(tasdevice_id, i2c);
+//#endif
 	struct tasdevice_priv *tas_dev = NULL;
 	int ret = 0;
 
@@ -210,20 +210,20 @@ out:
 
 }
 
-#if KERNEL_VERSION(6, 5, 0) >= LINUX_VERSION_CODE
-static int tasdevice_i2c_remove(struct i2c_client *i2c)
-#else
+//#if KERNEL_VERSION(6, 5, 0) >= LINUX_VERSION_CODE
+//static int tasdevice_i2c_remove(struct i2c_client *i2c)
+//#else
 static void tasdevice_i2c_remove(struct i2c_client *i2c)
-#endif
+//#endif
 {
 	struct tasdevice_priv *tas_dev = i2c_get_clientdata(i2c);
 
 	if (tas_dev)
 		tasdevice_remove(tas_dev);
 
-#if KERNEL_VERSION(6, 5, 0) >= LINUX_VERSION_CODE
-	return 0;
-#endif
+//#if KERNEL_VERSION(6, 5, 0) >= LINUX_VERSION_CODE
+//	return 0;
+//#endif
 }
 
 static struct i2c_driver tasdevice_i2c_driver = {
