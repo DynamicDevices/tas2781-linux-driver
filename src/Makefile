@@ -13,4 +13,12 @@ snd-soc-integrated-tasdevice-objs	:=	tasdevice-core.o \
 							tasdevice-dsp_kernel.o \
 							tasdevice-dsp_git.o
 
-obj-$(CONFIG_SND_SOC_INTEGRATED_TASDEVICE)		+= snd-soc-integrated-tasdevice.o
+obj-m					+= snd-soc-integrated-tasdevice.o
+
+SRC := $(shell pwd)
+
+all:
+	$(MAKE) -C $(KERNEL_SRC) M=$(SRC) modules
+
+modules_install:
+	$(MAKE) -C $(KERNEL_SRC) M=$(SRC) modules_install
