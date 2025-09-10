@@ -1,0 +1,66 @@
+From: Dynamic Devices <info@dynamicdevices.co.uk>
+Date: Tue, 10 Sep 2025 14:15:00 +0000
+Subject: [PATCH] Fix IRQ handling in TAS2781 driver
+
+The driver was incorrectly treating IRQ numbers as GPIO numbers,
+causing "GPIO request error" on systems where IRQ numbers don't
+correspond to valid GPIO numbers.
+
+The fix removes the incorrect gpio_request/gpio_to_irq sequence
+and uses the IRQ number directly from of_irq_get().
+
+Fixes: GPIO request error when using standard interrupt bindings
+Signed-off-by: Dynamic Devices <info@dynamicdevices.co.uk>
+
+--- a/src/tasdevice-core.c
++++ b/src/tasdevice-core.c
+@@ -183,33 +183,21 @@ void tasdevice_parse_dt_reset_irq_pin(
+ 	if (IS_ERR(tas_priv->reset))
+ 		dev_err(tas_priv->dev, "%s Can't get reset GPIO\n", __func__);
+ 
+-	tas_priv->irq_info.irq_gpio = of_irq_get(np, 0);
+-	if (gpio_is_valid(tas_priv->irq_info.irq_gpio)) {
+-		dev_info(tas_priv->dev, "irq-gpio = %d",
+-			tas_priv->irq_info.irq_gpio);
++	tas_priv->irq_info.irq = of_irq_get(np, 0);
++	if (tas_priv->irq_info.irq > 0) {
++		dev_info(tas_priv->dev, "irq = %d", tas_priv->irq_info.irq);
+ 		INIT_DELAYED_WORK(&tas_priv->irq_info.irq_work,
+ 			irq_work_routine);
+ 		tas_priv->irq_info.irq_enable = false;
+ 
+-		rc = gpio_request(tas_priv->irq_info.irq_gpio, "AUDEV-IRQ");
+-		if (!rc) {
+-			gpio_direction_input(tas_priv->irq_info.irq_gpio);
+-
+-			tas_priv->irq_info.irq =
+-				gpio_to_irq(tas_priv->irq_info.irq_gpio);
+-			dev_info(tas_priv->dev, "irq = %d\n",
+-				tas_priv->irq_info.irq);
+-
+-			rc = request_threaded_irq(tas_priv->irq_info.irq,
+-				tasdevice_irq_handler, NULL,
+-				IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+-				tas_priv->dev_name, tas_priv);
+-			if (!rc)
+-				disable_irq_nosync(tas_priv->irq_info.irq);
+-			else
+-				dev_err(tas_priv->dev,
+-					"request_irq failed, %d\n", rc);
+-		} else
+-			dev_err(tas_priv->dev,
+-				"%s: GPIO %d request error\n",
+-				__func__,
+-				tas_priv->irq_info.irq_gpio);
++		rc = request_threaded_irq(tas_priv->irq_info.irq,
++			tasdevice_irq_handler, NULL,
++			IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
++			tas_priv->dev_name, tas_priv);
++		if (!rc)
++			disable_irq_nosync(tas_priv->irq_info.irq);
++		else
++			dev_err(tas_priv->dev,
++				"request_irq failed, %d\n", rc);
+ 	} else
+ 		dev_err(tas_priv->dev, "Looking up irq gpio property "
+ 			"in node %s failed %d, no side effect on driver running\n",

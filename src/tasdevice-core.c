@@ -127,7 +127,7 @@ void tasdevice_enable_irq(struct tasdevice_priv *tas_dev,
 	bool enable)
 {
 	if (enable != tas_dev->irq_info.irq_enable &&
-		!gpio_is_valid(tas_dev->irq_info.irq_gpio))
+		tas_dev->irq_info.irq <= 0)
 		return;
 
 	if (enable)
@@ -183,43 +183,28 @@ void tasdevice_parse_dt_reset_irq_pin(
 	if (IS_ERR(tas_priv->reset))
 		dev_err(tas_priv->dev, "%s Can't get reset GPIO\n", __func__);
 
-	tas_priv->irq_info.irq_gpio = of_irq_get(np, 0);
-	if (gpio_is_valid(tas_priv->irq_info.irq_gpio)) {
-		dev_info(tas_priv->dev, "irq-gpio = %d",
-			tas_priv->irq_info.irq_gpio);
+	tas_priv->irq_info.irq = of_irq_get(np, 0);
+	if (tas_priv->irq_info.irq > 0) {
+		dev_info(tas_priv->dev, "irq = %d", tas_priv->irq_info.irq);
 		INIT_DELAYED_WORK(&tas_priv->irq_info.irq_work,
 			irq_work_routine);
 		tas_priv->irq_info.irq_enable = false;
 
-		rc = gpio_request(tas_priv->irq_info.irq_gpio, "AUDEV-IRQ");
-		if (!rc) {
-			gpio_direction_input(tas_priv->irq_info.irq_gpio);
-
-			tas_priv->irq_info.irq =
-				gpio_to_irq(tas_priv->irq_info.irq_gpio);
-			dev_info(tas_priv->dev, "irq = %d\n",
-				tas_priv->irq_info.irq);
-
-			rc = request_threaded_irq(tas_priv->irq_info.irq,
-				tasdevice_irq_handler, NULL,
-				IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-				tas_priv->dev_name, tas_priv);
-			if (!rc)
-				disable_irq_nosync(tas_priv->irq_info.irq);
-			else
-				dev_err(tas_priv->dev,
-					"request_irq failed, %d\n", rc);
-		} else
+		rc = request_threaded_irq(tas_priv->irq_info.irq,
+			tasdevice_irq_handler, NULL,
+			IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+			tas_priv->dev_name, tas_priv);
+		if (!rc)
+			disable_irq_nosync(tas_priv->irq_info.irq);
+		else
 			dev_err(tas_priv->dev,
-				"%s: GPIO %d request error\n",
-				__func__,
-				tas_priv->irq_info.irq_gpio);
+				"request_irq failed, %d\n", rc);
 	} else
-		dev_err(tas_priv->dev, "Looking up irq gpio property "
+		dev_err(tas_priv->dev, "Looking up irq property "
 			"in node %s failed %d, no side effect on driver running\n",
-			np->full_name, tas_priv->irq_info.irq_gpio);
+			np->full_name, tas_priv->irq_info.irq);
 
-	if (gpio_is_valid(tas_priv->irq_info.irq_gpio)) {
+	if (tas_priv->irq_info.irq > 0) {
 		switch (tas_priv->chip_id) {
 		case TAS2563:
 			tas_priv->irq_work_func = tas2563_irq_work_func;
@@ -330,7 +315,7 @@ static int tasdevice_pm_suspend(struct device *dev)
 
 	tas_dev->mb_runtime_suspend = true;
 
-	if (gpio_is_valid(tas_dev->irq_info.irq_gpio)) {
+	if (tas_dev->irq_info.irq > 0) {
 		if (delayed_work_pending(&tas_dev->irq_info.irq_work)) {
 			dev_dbg(tas_dev->dev, "cancel IRQ work\n");
 			cancel_delayed_work_sync(&tas_dev->irq_info.irq_work);

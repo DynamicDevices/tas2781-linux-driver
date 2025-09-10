@@ -260,7 +260,7 @@ void powercontrol_routine(struct work_struct *work)
 	tasdevice_select_cfg_blk(tas_dev, profile_cfg_id,
 		TASDEVICE_BIN_BLK_PRE_POWER_UP);
 
-	if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
+	if (tas_dev->irq_info.irq > 0)
 		tasdevice_enable_irq(tas_dev, true);
 	mutex_unlock(&tas_dev->codec_lock);
 out:
@@ -289,7 +289,7 @@ static void tasdevice_set_power_state(
 		break;
 	default:
 		if (!(tas_dev->pstream || tas_dev->cstream)) {
-			if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
+			if (tas_dev->irq_info.irq > 0)
 				tasdevice_enable_irq(tas_dev, false);
 			tasdevice_select_cfg_blk(tas_dev,
 				tas_dev->mtRegbin.profile_cfg_id,

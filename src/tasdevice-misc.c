@@ -553,7 +553,7 @@ static long tasdevice_ioctl(struct file *f,
 	if (tas_dev->pstream != 0 && tas_dev->cstream == 0) {
 		tas_dev->pstream = 0;
 		mutex_lock(&tas_dev->codec_lock);
-		if (gpio_is_valid(tas_dev->irq_info.irq_gpio))
+		if (tas_dev->irq_info.irq > 0)
 			tasdevice_enable_irq(tas_dev, false);
 		tasdevice_select_cfg_blk(tas_dev, tas_dev->cur_conf,
 			TASDEVICE_BIN_BLK_PRE_SHUTDOWN);
